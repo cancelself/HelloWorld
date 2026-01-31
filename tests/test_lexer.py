@@ -1,7 +1,8 @@
 """Tests for the HelloWorld lexer."""
 
 import sys
-sys.path.insert(0, '../src')
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from lexer import Lexer, TokenType
 
