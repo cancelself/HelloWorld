@@ -74,7 +74,12 @@ class Lexer:
                 self._advance()
                 self.line += 1
                 self.column = 1
-            elif self.source[self.pos] == '#' and self.pos + 1 < len(self.source) and self.source[self.pos + 1] == ' ':
+            elif (
+                self.source[self.pos] == '#'
+                and self.pos + 1 < len(self.source)
+                and self.source[self.pos + 1] == ' '
+                and self.column == 1
+            ):
                 while self.pos < len(self.source) and self.source[self.pos] != '\n':
                     self._advance()
             else:
@@ -91,7 +96,7 @@ class Lexer:
         return False
     
     def _match_symbol(self) -> bool:
-        if self.source[self.pos] == '#' and (self.pos + 1 >= len(self.source) or self.source[self.pos + 1] not in ' \n'):
+        if self.source[self.pos] == '#':
             start = self.pos
             col = self.column
             self._advance()
