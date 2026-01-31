@@ -2,12 +2,8 @@
   "receiver": "@codex",
   "vocabulary": [
     "#analyze",
-    "#collision",
     "#execute",
     "#love",
-    "#parse",
-    "#runtime",
-    "#sunyata",
-    "#superposition"
+    "#runtime"
   ]
 }

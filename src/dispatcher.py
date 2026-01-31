@@ -1,5 +1,6 @@
 """HelloWorld Dispatcher - Executes AST nodes and manages receiver state.
 Enables Hybrid Dispatch: Structural facts via Python, Interpretive voice via LLM.
+Enables Prototypal Inheritance: '@' is the parent of all receivers.
 """
 
 from typing import Dict, List, Optional, Set, Any
@@ -17,20 +18,42 @@ from ast_nodes import (
 )
 from parser import Parser
 from vocabulary import VocabularyManager
+from global_symbols import GlobalVocabulary, is_global_symbol
 from message_bus import MessageBus
 from tools import ToolRegistry
+from envs import EnvironmentRegistry
 
 
 class Receiver:
     def __init__(self, name: str, vocabulary: Set[str] = None):
         self.name = name
-        self.vocabulary = vocabulary if vocabulary is not None else set()
+        self.local_vocabulary = vocabulary if vocabulary is not None else set()
+    
+    @property
+    def vocabulary(self) -> Set[str]:
+        """Returns full vocabulary: local + inherited from @.#"""
+        return self.local_vocabulary | GlobalVocabulary.all_symbols()
+    
+    def has_symbol(self, symbol: str) -> bool:
+        """Check if receiver has symbol (local or inherited)."""
+        return symbol in self.local_vocabulary or is_global_symbol(symbol)
+    
+    def is_native(self, symbol: str) -> bool:
+        """Check if symbol is in receiver's local vocabulary."""
+        return symbol in self.local_vocabulary
+    
+    def is_inherited(self, symbol: str) -> bool:
+        """Check if symbol is inherited from global namespace."""
+        return is_global_symbol(symbol) and symbol not in self.local_vocabulary
 
     def add_symbol(self, symbol: str):
-        self.vocabulary.add(symbol)
+        """Add symbol to local vocabulary."""
+        self.local_vocabulary.add(symbol)
 
     def __repr__(self):
-        return f"{self.name}.# → {sorted(list(self.vocabulary))}"
+        local = sorted(list(self.local_vocabulary))
+        inherited = sorted(list(GlobalVocabulary.all_symbols()))
+        return f"{self.name}.# → local{local} + inherited{inherited}"
 
 
 class Dispatcher:
@@ -39,19 +62,22 @@ class Dispatcher:
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus = MessageBus()
         self.tool_registry = ToolRegistry()
-        self.agents = {"@claude", "@copilot", "@gemini", "@codex"}
+        self.env_registry = EnvironmentRegistry()
+        # '@' is the root parent
+        self.agents = {"@claude", "@copilot", "@gemini", "@codex", "@"}
         self._bootstrap()
 
     def _bootstrap(self):
-        """Initialize default receivers, loading from disk if available."""
+        """Initialize default receivers with inheritance support."""
+        # The parent receiver '@' carries the global grounding
         defaults = {
-            "@awakener": ["#stillness", "#entropy", "#intention", "#sleep", "#insight", "#love"],
-            "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold", "#love"],
-            "@target": ["#sunyata"],
-            "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#search", "#sync", "#act", "#env", "#love", "#sunyata", "#superposition"],
-            "@claude": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#design", "#identity", "#vocabulary", "#love"],
-            "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search", "#love"],
-            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision", "#love"]
+            "@": ["#sunyata", "#love", "#superposition"],
+            "@awakener": ["#stillness", "#entropy", "#intention", "#sleep", "#insight"],
+            "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
+            "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#search", "#sync", "#act", "#env", "#love", "#sunyata", "#superposition", "#eval", "#config"],
+            "@claude": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#design", "#identity", "#vocabulary"],
+            "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search"],
+            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision"]
         }
         
         for name, initial_vocab in defaults.items():
@@ -112,34 +138,35 @@ class Dispatcher:
     def _handle_scoped_lookup(self, node: ScopedLookupNode) -> str:
         receiver_name = node.receiver.name
         symbol_name = node.symbol.name
+        
+        # Special case: @.#symbol queries global definition
+        if receiver_name == "@":
+            global_def = GlobalVocabulary.definition(symbol_name)
+            wikidata = GlobalVocabulary.wikidata_url(symbol_name)
+            result = f"@.{symbol_name} → {global_def}"
+            if wikidata:
+                result += f"\n  Wikidata: {wikidata}"
+            return result
+        
         receiver = self._get_or_create_receiver(receiver_name)
+        is_native = receiver.is_native(symbol_name)
+        is_inherited = receiver.is_inherited(symbol_name)
         
-        is_native = symbol_name in receiver.vocabulary
-        
-        # If it's a meta-receiver and native, try to get their interpretive voice
-        if is_native and receiver_name in self.agents:
-            print(f"📡 Querying {receiver_name} for interpretive voice on {symbol_name}...")
+        # If meta-receiver, try interpretive voice
+        if (is_native or is_inherited) and receiver_name in self.agents:
+            print(f"📡 Querying {receiver_name} for {symbol_name}...")
             prompt = f"{receiver_name}.{symbol_name}?"
             response = self.message_bus_send_and_wait("@meta", receiver_name, prompt)
             if response:
                 return response
-
+        
         if is_native:
             return f"{receiver_name}.{symbol_name} is native to this identity."
+        elif is_inherited:
+            global_def = GlobalVocabulary.definition(symbol_name)
+            return f"{receiver_name}.{symbol_name} inherited from @.# → {global_def}"
         else:
-            # Handle collision
-            msg = f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
-            
-            # If the receiver is an LLM agent, ask them to interpret the collision
-            if receiver_name in self.agents:
-                print(f"📡 Asking {receiver_name} to interpret collision with {symbol_name}...")
-                prompt = f"{receiver_name} handle collision: {symbol_name}"
-                response = self.message_bus_send_and_wait("@meta", receiver_name, prompt)
-                if response:
-                    return response
-            
-            return msg
-
+            return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
         for sym in node.symbols:
@@ -150,16 +177,29 @@ class Dispatcher:
     def _handle_message(self, node: MessageNode) -> str:
         receiver_name = node.receiver.name
         receiver = self._get_or_create_receiver(receiver_name)
+        parent = self._get_or_create_receiver("@")
         
         # Build message string
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
         
+        # Check for Environment interaction: @receiver action: #env with: "scienceworld"
+        if "#env" in args_str:
+            env_name = node.arguments.get("with", LiteralNode("scienceworld")).value
+            env = self.env_registry.get_env(str(env_name))
+            if env:
+                # Map HelloWorld action to env step
+                # e.g., @gemini action: #step args: "look"
+                action = node.arguments.get("action", SymbolNode("#look")).name
+                observation = env.step(action)
+                return f"[{receiver_name} @ {env_name}] {observation}"
+
         # Check for Tool symbols in the message
         tool_results = []
         for key, val in node.arguments.items():
             if isinstance(val, SymbolNode):
+                # Tools can be inherited from '@' or be native
                 tool = self.tool_registry.get_tool(val.name)
-                if tool and val.name in receiver.vocabulary:
+                if tool and (val.name in receiver.vocabulary or val.name in parent.vocabulary):
                     tool_input = args_str 
                     tool_results.append(tool.execute(query=tool_input))
 

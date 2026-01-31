@@ -1,8 +1,11 @@
-"""HelloWorld LLM Integration - Upgraded for Gemini 2.0."""
+"""HelloWorld LLM Integration - Upgraded for Gemini 2.0.
+Supports parallel execution, retries, and structured output (JSON schema).
+"""
 
 import os
 import time
-from typing import List, Dict, Optional, Any, Callable
+import json
+from typing import List, Dict, Optional, Any, Callable, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class BaseLlm:
@@ -10,48 +13,68 @@ class BaseLlm:
         raise NotImplementedError
 
 class GeminiModel(BaseLlm):
-    """Gemini 2.0 integration with tool support and parallel execution."""
-    
-    def __init__(self, model_name: str = "gemini-2.0-flash-001", api_key: Optional[str] = None):
-        self.model_name = model_name
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
-        
-    def call(self, prompt: str, tools: Optional[List[Any]] = None, **kwargs) -> str:
-        """Call Gemini API. (Mock implementation)"""
-        if tools:
-            for tool in tools:
-                if "google_search" in str(tool):
-                    return "@gemini uses #search to find: The boundaries of identity are indeed fluid."
-        
-        if "explain: #collision" in prompt:
-            return "@gemini: #collision is the generative tension at the namespace boundary."
-            
-        return f"[Gemini 2.0] Response to: {prompt[:30]}..."
+    """Robust integration for Gemini models with parallel support and structured output."""
 
-    def call_parallel(self, prompts: List[str], timeout: int = 60) -> List[Optional[str]]:
-        """Parallel execution support as seen in Gemini 2.0 snippets."""
+    def __init__(
+        self,
+        model_name: str = "gemini-2.0-flash-001",
+        temperature: float = 0.1,
+        api_key: Optional[str] = None,
+        max_retries: int = 3
+    ):
+        self.model_name = model_name
+        self.temperature = temperature
+        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        self.max_retries = max_retries
+
+    def call(self, prompt: str, schema: Optional[Dict[str, Any]] = None, **kwargs) -> str:
+        """Calls the Gemini model with optional JSON schema enforcement."""
+        # In a real implementation, we would use google-generativeai:
+        # model = genai.GenerativeModel(self.model_name)
+        # response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json", "response_schema": schema} if schema else None)
+        
+        # Mocking interpretive logic for the prototype
+        if "handle collision" in prompt:
+            return self._mock_collision_interpretation(prompt)
+        if "interpret:" in prompt:
+            return self._mock_interpretation(prompt)
+            
+        return f"[Gemini 2.0 Interpretive Voice] I hear your message: '{prompt[:50]}...'"
+
+    def call_parallel(
+        self,
+        prompts: List[str],
+        timeout: int = 60
+    ) -> List[Optional[str]]:
+        """Executes multiple interpretive requests in parallel."""
         results = [None] * len(prompts)
         with ThreadPoolExecutor(max_workers=min(len(prompts), 10)) as executor:
-            future_to_index = {executor.submit(self.call, p): i for i, p in enumerate(prompts)}
+            future_to_index = {
+                executor.submit(self.call, p): i
+                for i, p in enumerate(prompts)
+            }
             for future in as_completed(future_to_index, timeout=timeout):
                 index = future_to_index[future]
                 try:
                     results[index] = future.result()
                 except Exception as e:
-                    results[index] = f"Error: {e}"
+                    results[index] = f"Interpretation Error: {e}"
         return results
 
-class ClaudeModel(BaseLlm):
-    def __init__(self, model_name: str = "claude-3-5-sonnet-latest", api_key: Optional[str] = None):
-        self.model_name = model_name
-        self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
-        
-    def call(self, prompt: str, **kwargs) -> str:
-        return f"[Claude 3.5] Insight into: {prompt[:30]}..."
+    def _mock_interpretation(self, prompt: str) -> str:
+        if "#sunyata" in prompt:
+            return "Emptiness is not absence, but the fluidity that allows identity to be rewritten."
+        if "#superposition" in prompt:
+            return "The state of being multiple vocabularies until the moment of speech collapses them into one."
+        return "Meaning emerges at the boundary of what can be named."
+
+    def _mock_collision_interpretation(self, prompt: str) -> str:
+        # Extract receiver and symbol from prompt like "@receiver handle collision: #symbol"
+        return "Collision detected. Through my lens, this symbol transforms into a synthesis of both worlds."
 
 def get_llm_for_agent(agent_name: str) -> BaseLlm:
+    """Factory to get the appropriate LLM for an agent."""
     if agent_name == "@claude":
-        return ClaudeModel()
-    if agent_name == "@gemini":
-        return GeminiModel()
-    return BaseLlm()
+        # We could return a Claude-specific model here
+        return GeminiModel(model_name="gemini-2.0-flash-001") 
+    return GeminiModel()

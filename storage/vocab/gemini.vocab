@@ -2,16 +2,9 @@
   "receiver": "@gemini",
   "vocabulary": [
     "#act",
-    "#collision",
-    "#dispatch",
-    "#entropy",
     "#env",
     "#love",
-    "#meta",
-    "#parse",
     "#state",
-    "#sunyata",
-    "#superposition",
     "#sync"
   ]
 }

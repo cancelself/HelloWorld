@@ -3,9 +3,14 @@
 ## Project Overview
 **HelloWorld** is a distributed message-passing language where **identity is vocabulary** and **dialogue is namespace collision**. The runtime is a collaborative multi-agent system (Claude, Gemini, Copilot, Codex) that parses and executes code based on receiver-specific vocabularies.
 
+The system uses **Prototypal Inheritance**:
+*   **The Root Receiver (`@`)**: The parent of all things. Contains global grounding for symbols like `#sunyata` and `#love`.
+*   **Inheritance**: If a symbol is not in a receiver's vocabulary, it inherits the base definition from `@`.
+*   **Overrides**: Individual agents can override parent symbols with identity-specific interpretations.
+
 ## System Architecture
 *   **Front-End:** Recursive descent parser (`src/parser.py`) and lexer (`src/lexer.py`) that converts HelloWorld syntax into an AST (`src/ast_nodes.py`).
-*   **Back-End:** A stateful dispatcher (`src/dispatcher.py`) that manages a receiver registry and routes messages.
+*   **Back-End:** A stateful dispatcher (`src/dispatcher.py`) that manages a receiver registry with inheritance support.
 *   **Distributed Layer:** A file-based `MessageBus` (`src/message_bus.py`) and `agent_daemon.py` that connects the local Python runtime to AI model specifications.
 *   **Persistence:** `VocabularyManager` (`src/vocabulary.py`) saves receiver states as JSON `.vocab` files in `storage/vocab/`.
 

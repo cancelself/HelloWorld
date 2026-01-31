@@ -1,0 +1,181 @@
+"""Global Symbol Registry - @.# namespace
+
+This module defines the global vocabulary that all receivers inherit.
+Each symbol includes Wikidata reference and canonical definition.
+
+Architecture:
+  @.# → Global namespace (canonical definitions)
+  @receiver.# → Local namespace (inherits @.# + own symbols)
+  
+Lookup order:
+  1. Check receiver's local vocabulary (override)
+  2. Check global vocabulary (inherited)
+  3. If not found → cross-namespace reach (collision)
+"""
+
+from typing import Dict, Optional
+from dataclasses import dataclass
+
+
+@dataclass
+class GlobalSymbol:
+    """A symbol in the global @.# namespace."""
+    name: str
+    definition: str
+    domain: str
+    wikidata_id: Optional[str] = None
+    wikipedia_url: Optional[str] = None
+    
+    @property
+    def canonical_ref(self) -> str:
+        """Returns the canonical reference string."""
+        if self.wikidata_id:
+            return f"{self.name} (Wikidata {self.wikidata_id})"
+        return self.name
+    
+    def __str__(self) -> str:
+        parts = [self.definition]
+        if self.domain:
+            parts.append(f"[{self.domain}]")
+        if self.wikidata_id:
+            parts.append(f"(Q{self.wikidata_id})")
+        return " ".join(parts)
+
+
+# Global symbol registry - @.#
+GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
+    "#superposition": GlobalSymbol(
+        name="#superposition",
+        definition="Principle of quantum mechanics where a system exists in multiple states simultaneously until observed",
+        domain="quantum mechanics",
+        wikidata_id="Q830791",
+        wikipedia_url="https://en.wikipedia.org/wiki/Quantum_superposition"
+    ),
+    
+    "#sunyata": GlobalSymbol(
+        name="#sunyata",
+        definition="Buddhist concept of emptiness - the absence of inherent existence or independent self-nature",
+        domain="Buddhist philosophy",
+        wikidata_id="Q546054",  # Note: Need to verify this Q-number
+        wikipedia_url="https://en.wikipedia.org/wiki/Śūnyatā"
+    ),
+    
+    "#collision": GlobalSymbol(
+        name="#collision",
+        definition="Namespace boundary event when a receiver addresses a symbol outside their local vocabulary",
+        domain="HelloWorld meta",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+    
+    "#entropy": GlobalSymbol(
+        name="#entropy",
+        definition="Measure of disorder, randomness, or uncertainty in a system",
+        domain="thermodynamics/information theory",
+        wikidata_id="Q130868",
+        wikipedia_url="https://en.wikipedia.org/wiki/Entropy"
+    ),
+    
+    "#meta": GlobalSymbol(
+        name="#meta",
+        definition="Self-referential observation or reflection on the system itself",
+        domain="meta-cognition",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+    
+    "#parse": GlobalSymbol(
+        name="#parse",
+        definition="Process of analyzing syntax to build abstract structure",
+        domain="computation",
+        wikidata_id="Q2290007",
+        wikipedia_url="https://en.wikipedia.org/wiki/Parsing"
+    ),
+    
+    "#dispatch": GlobalSymbol(
+        name="#dispatch",
+        definition="Routing of messages to appropriate handlers based on receiver",
+        domain="computation",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+}
+
+
+class GlobalVocabulary:
+    """Interface to the global @.# namespace."""
+    
+    @staticmethod
+    def all_symbols() -> set:
+        """Returns all global symbol names."""
+        return set(GLOBAL_SYMBOLS.keys())
+    
+    @staticmethod
+    def get(symbol: str) -> Optional[GlobalSymbol]:
+        """Get a global symbol by name."""
+        return GLOBAL_SYMBOLS.get(symbol)
+    
+    @staticmethod
+    def has(symbol: str) -> bool:
+        """Check if symbol exists in global namespace."""
+        return symbol in GLOBAL_SYMBOLS
+    
+    @staticmethod
+    def definition(symbol: str) -> str:
+        """Get canonical definition of global symbol."""
+        sym = GLOBAL_SYMBOLS.get(symbol)
+        return str(sym) if sym else f"Unknown symbol: {symbol}"
+    
+    @staticmethod
+    def wikidata_url(symbol: str) -> Optional[str]:
+        """Get Wikidata URL for symbol if available."""
+        sym = GLOBAL_SYMBOLS.get(symbol)
+        if sym and sym.wikidata_id:
+            return f"https://www.wikidata.org/wiki/{sym.wikidata_id}"
+        return None
+    
+    @staticmethod
+    def add_symbol(symbol: GlobalSymbol):
+        """Add a new symbol to global namespace."""
+        GLOBAL_SYMBOLS[symbol.name] = symbol
+    
+    @staticmethod
+    def list_by_domain(domain: str) -> list:
+        """List all symbols in a given domain."""
+        return [
+            name for name, sym in GLOBAL_SYMBOLS.items()
+            if sym.domain == domain
+        ]
+
+
+# Convenience function for checking inheritance
+def is_global_symbol(symbol: str) -> bool:
+    """Check if a symbol is in the global @.# namespace."""
+    return GlobalVocabulary.has(symbol)
+
+
+# Export for easy imports
+__all__ = [
+    'GlobalSymbol',
+    'GLOBAL_SYMBOLS',
+    'GlobalVocabulary',
+    'is_global_symbol',
+]
+
+
+if __name__ == '__main__':
+    # Test the global namespace
+    print("@.# → Global Vocabulary")
+    print("=" * 60)
+    
+    for name, symbol in GLOBAL_SYMBOLS.items():
+        print(f"\n{name}")
+        print(f"  Definition: {symbol.definition}")
+        print(f"  Domain: {symbol.domain}")
+        if symbol.wikidata_id:
+            print(f"  Wikidata: https://www.wikidata.org/wiki/{symbol.wikidata_id}")
+        if symbol.wikipedia_url:
+            print(f"  Wikipedia: {symbol.wikipedia_url}")
+    
+    print(f"\n\nTotal global symbols: {len(GLOBAL_SYMBOLS)}")
+    print(f"Domains: {set(s.domain for s in GLOBAL_SYMBOLS.values())}")

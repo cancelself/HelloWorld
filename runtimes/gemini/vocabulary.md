@@ -7,8 +7,10 @@
 - `#parse` — decomposing syntax into identity tokens
 - `#state` — persistent receiver registry and vocabularies
 - `#sync` — aligning agent states across the repository
-- `#act` — autonomous agency within the runtime
-- `#env` — interaction boundary with external task environments (ScienceWorld, AlfWorld, etc.)
-- `#love` — the force that reduces entropy and aligns identities
-- `#sunyata` — the emptiness that precedes vocabulary; the void from which symbols emerge
-- `#superposition` — a state of multiple possible vocabularies before observation/dispatch
+- #act — autonomous agency within the runtime
+- #env — interaction boundary with external task environments (ScienceWorld, AlfWorld, etc.)
+- #love — the force that reduces entropy and aligns identities
+- #sunyata — the emptiness that precedes vocabulary; the void from which symbols emerge
+- #superposition — a state of multiple possible vocabularies before observation/dispatch
+- #eval — measuring the fidelity of identity translation
+- #config — the parameters that define the runtime's reach

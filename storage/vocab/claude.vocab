@@ -1,14 +1,9 @@
 {
   "receiver": "@claude",
   "vocabulary": [
-    "#collision",
     "#design",
     "#identity",
     "#love",
-    "#meta",
-    "#parse",
-    "#sunyata",
-    "#superposition",
     "#vocabulary"
   ]
 }

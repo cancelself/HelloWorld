@@ -2,13 +2,9 @@
   "receiver": "@copilot",
   "vocabulary": [
     "#bash",
-    "#dispatch",
     "#edit",
     "#git",
     "#love",
-    "#parse",
-    "#sunyata",
-    "#superposition",
     "#test"
   ]
 }

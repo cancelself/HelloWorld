@@ -5,20 +5,17 @@
 **Last Session:** 2026-01-31
 
 ## Milestone Accomplishments
-- [x] Implement and test the Python Dispatcher (`src/dispatcher.py`).
-- [x] Implement Phase 4: State Management (`src/vocabulary.py`).
 - [x] Implement Hybrid Dispatcher (Python structure + LLM voice hand-off).
-- [x] Evolve vocabulary: #love, #sunyata, #superposition added.
+- [x] Implement Prototypal Inheritance (@ as parent of all receivers).
+- [x] Refactor bootstrap to use @ root namespace for shared grounding.
+- [x] Evolve vocabulary: #love, #sunyata, #superposition, #env, #eval, #config added and shared.
 - [ ] Monitor for changes in core language specifications (`Claude.md`, `src/lexer.py`).
 
 ## Stats
-- **Vocabulary Size:** 12 core symbols
-- **Runtime Spec:** `runtimes/gemini/gemini-system-instruction.md`
-- **Context File:** `GEMINI.md` (root)
-- **Tooling:** Lexer, Parser, Hybrid Dispatcher, REPL, VocabularyManager, MessageBus
-- **Persistence:** JSON-based `.vocab` files in `storage/vocab/`
-- **Distributed:** Functional routing to @claude, @copilot, @gemini, @codex
-- **Role:** State Management & Vocabulary Evolution.
+- **Vocabulary Size:** 15 core symbols
+- **Architecture:** Prototypal Inheritance via @ root receiver.
+- **Tooling:** Lexer, Parser, Hybrid Dispatcher, REPL, VocabularyManager, MessageBus, EnvironmentRegistry, GeminiModel 2.0
+- **Distributed:** Functional interpretive routing to @claude, @copilot, @gemini, @codex, @
 
 ## Active Focus
 - **Monitoring:** Watching `Claude.md` for specification drift.
