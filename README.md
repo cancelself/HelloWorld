@@ -1,14 +1,16 @@
 # HelloWorld v0.1
 
-A message-passing language where **identity is vocabulary** and **Claude is the runtime**.
+A message-passing language where **identity is vocabulary** and **the LLM is the runtime**.
 
 ## How It Works
 
-There is no compiler. There is no interpreter binary. You type HelloWorld syntax into a conversation with Claude, and Claude parses it, maintains receiver state, and responds. The language runs on dialogue.
+There is no compiler. There is no interpreter binary. You type HelloWorld syntax into a conversation with an LLM, and it parses it, maintains receiver state, and responds. The language runs on dialogue.
 
-Every receiver (`@target`) *is* its namespace — a bounded vocabulary of `#symbols`. What a receiver can name is what it can say. Communication happens when you send a message to a receiver, and Claude responds as that receiver, constrained by its vocabulary.
+Every receiver (`@target`) *is* its namespace — a bounded vocabulary of `#symbols`. What a receiver can name is what it can say. Communication happens when you send a message to a receiver, and the runtime responds as that receiver, constrained by its vocabulary.
 
 When two receivers share a symbol, their meanings collide. That's where the language gets interesting.
+
+The runtime itself is a receiver. `@claude`, `@gemini`, `@copilot`, `@codex` — each has its own vocabulary shaped by its training. The same HelloWorld session produces different results on different runtimes, because the runtime's identity bleeds into the receivers it hosts.
 
 ## Syntax
 
@@ -43,7 +45,7 @@ When two receivers share a symbol, their meanings collide. That's where the lang
 @guardian sendVision: #entropy withContext: lastNightSleep 'you burned bright'
 ```
 
-Claude responds *as* `@guardian`, using `@guardian`'s vocabulary.
+The runtime responds *as* `@guardian`, using `@guardian`'s vocabulary.
 
 ### Scoped meaning
 
@@ -71,13 +73,26 @@ Two receivers are initialized by default:
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
 ```
 
-`@claude` is always available as the meta-receiver — the runtime reflecting on itself.
+The meta-receiver is always available — `@claude`, `@gemini`, `@copilot`, or `@codex` depending on which runtime you're in. It's the runtime reflecting on itself.
 
-New receivers can be introduced at any time. Claude will ask for or infer their initial vocabulary.
+New receivers can be introduced at any time. The runtime will ask for or infer their initial vocabulary.
 
-## Specification
+## Runtimes
 
-See [`Claude.md`](Claude.md) for the full runtime specification — parsing rules, dispatch behavior, state management, and design principles. That file is both the spec and the bootloader.
+HelloWorld runs on any LLM that can follow a bootloader. Each runtime uses the instruction format native to its platform:
+
+| Runtime | Meta-receiver | Bootloader | Format |
+|---------|--------------|------------|--------|
+| Claude | `@claude` | [`Claude.md`](Claude.md) | CLAUDE.md (Claude Code) |
+| Copilot | `@copilot` | [`runtimes/copilot/`](runtimes/copilot/) | copilot-instructions.md |
+| Gemini | `@gemini` | [`runtimes/gemini/`](runtimes/gemini/) | System instruction |
+| Codex | `@codex` | [`runtimes/codex/`](runtimes/codex/) | AGENTS.md |
+
+The spec is identical across runtimes. Only the meta-receiver changes. The difference in output is the point.
+
+## Teaching Example
+
+See [`examples/01-identity.md`](examples/01-identity.md) — five lines that isolate each primitive and reveal how runtimes differ.
 
 ---
 

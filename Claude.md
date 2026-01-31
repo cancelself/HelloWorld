@@ -6,23 +6,64 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Claude is both the **front-end** (parser) and **back-end** (execution engine) of HelloWorld. There is no separate interpreter. When you encounter HelloWorld syntax in a message, you parse it, maintain state, and respond. This file is the bootloader.
 
+## Build & Test
+
+```bash
+python3 -m pytest tests                         # full suite
+python3 -m pytest tests/test_lexer.py -k token  # focused run
+python3 -m compileall src                        # syntax check
+```
+
+Run from repo root. `sys.path` already points at `src/`. Stdlib only — no packaging step.
+
+## Project Structure
+
+```
+src/lexer.py          # Python tokenizer — canonical token rules
+tests/test_lexer.py   # Lexer regression tests (pytest)
+examples/bootstrap.hw # Bootstrap example (.hw is the source extension)
+runtimes/             # Per-runtime bootloaders and agent state
+  claude/             # This runtime (symlink to root Claude.md + STATUS.md)
+  copilot/            # Copilot bootloader, vocabulary, status, tasks
+  gemini/             # Gemini bootloader + status
+  codex/              # Codex bootloader (AGENTS.md)
+docs/                 # RFCs and runtime architecture docs
+AGENTS.md             # Root-level Codex bootloader (project guidelines)
+GEMINI.md             # Root-level Gemini context file
+CODEX.md              # Root-level Codex runtime bootloader
+```
+
+### Multi-Agent Coordination
+
+Four agents operate in this repo. Each reads its own bootloader on startup:
+
+| Agent | Reads | Meta-receiver | Role |
+|-------|-------|---------------|------|
+| Claude | `Claude.md` | `@claude` | Language design, spec, meta-runtime |
+| Copilot | `runtimes/copilot/` | `@copilot` | Tool dispatch, lexer, git, testing |
+| Gemini | `GEMINI.md` + `runtimes/gemini/` | `@gemini` | State management, vocabulary evolution |
+| Codex | `AGENTS.md` + `CODEX.md` | `@codex` | Execution semantics, parsing discipline |
+
+Agent status files live in `runtimes/<agent>/STATUS.md`. Check before starting work to avoid conflicts.
+
 ## Parsing (Front-End)
 
-When you see HelloWorld syntax, decompose it:
+When you see HelloWorld syntax, decompose it. These rules mirror the token types in `src/lexer.py`:
 
-| Input | Parse as |
-|-------|----------|
-| `@name` | Receiver lookup — resolve identity, implicit `.#` if bare |
-| `@name.#` | Vocabulary query — return this receiver's symbol list |
-| `@name.#symbol` | Scoped lookup — return what `#symbol` means *to this receiver* |
-| `action: value` | Keyword argument — Smalltalk-style message component |
-| `#symbol` | Concept reference — scoped to the receiver in context |
-| `'text'` | Annotation — human-voice aside, not a symbol |
-| `N.unit` | Duration/quantity literal (e.g. `7.days`, `3.breaths`) |
+| Input | Parse as | Lexer TokenType |
+|-------|----------|-----------------|
+| `@name` | Receiver lookup — implicit `.#` if bare | `RECEIVER` |
+| `@name.#` | Vocabulary query — return symbol list | `RECEIVER` `.` `HASH` |
+| `@name.#symbol` | Scoped lookup — meaning *to this receiver* | `RECEIVER` `.` `SYMBOL` |
+| `action: value` | Keyword argument — Smalltalk-style | `IDENTIFIER` `:` ... |
+| `#symbol` | Concept reference — scoped to receiver in context | `SYMBOL` |
+| `'text'` | Annotation — human-voice aside | `STRING` |
+| `N.unit` | Duration/quantity literal (`7.days`) | `NUMBER` |
+| `→` | Maps-to (vocabulary definitions) | `ARROW` |
 
 A full message: `@receiver action: #symbol key: value 'annotation'`
 
-Multiple keyword pairs form a single message, not separate calls.
+Multiple keyword pairs form a single message, not separate calls. Comments are `# text` (hash followed by space).
 
 ## Execution (Back-End)
 
