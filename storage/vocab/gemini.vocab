@@ -1,0 +1,11 @@
+{
+  "receiver": "@gemini",
+  "vocabulary": [
+    "#collision",
+    "#dispatch",
+    "#entropy",
+    "#meta",
+    "#parse",
+    "#state"
+  ]
+}

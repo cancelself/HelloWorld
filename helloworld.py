@@ -69,11 +69,11 @@ def repl():
                 continue
             
             if line == '.receivers':
-                receivers = dispatcher.registry.list_receivers()
+                receivers = dispatcher.list_receivers()
                 if receivers:
                     print("Registered receivers:")
                     for r in receivers:
-                        vocab = dispatcher.registry.vocabulary(r)
+                        vocab = dispatcher.vocabulary(r)
                         print(f"  {r}.# → {vocab}")
                 else:
                     print("No receivers registered yet.")

@@ -1,6 +1,6 @@
 """HelloWorld Dispatcher - Executes AST nodes and manages receiver state."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from ast_nodes import (
     LiteralNode,
@@ -13,12 +13,13 @@ from ast_nodes import (
     VocabularyQueryNode,
 )
 from parser import Parser
+from vocabulary import VocabularyManager
 
 
 class Receiver:
-    def __init__(self, name: str, vocabulary: List[str] = None):
+    def __init__(self, name: str, vocabulary: Set[str] = None):
         self.name = name
-        self.vocabulary = set(vocabulary) if vocabulary else set()
+        self.vocabulary = vocabulary if vocabulary is not None else set()
 
     def add_symbol(self, symbol: str):
         self.vocabulary.add(symbol)
@@ -27,47 +28,30 @@ class Receiver:
         return f"{self.name}.# → {sorted(list(self.vocabulary))}"
 
 
-class ReceiverRegistry:
-    """Dictionary-like wrapper with helper methods for REPL tooling."""
-
-    def __init__(self):
-        self._receivers: Dict[str, Receiver] = {}
-
-    def __contains__(self, name: str) -> bool:
-        return name in self._receivers
-
-    def __getitem__(self, name: str) -> Receiver:
-        return self._receivers[name]
-
-    def get_or_create(self, name: str) -> Receiver:
-        if name not in self._receivers:
-            self._receivers[name] = Receiver(name)
-        return self._receivers[name]
-
-    def register(self, name: str, symbols: Optional[List[str]] = None):
-        self._receivers[name] = Receiver(name, symbols)
-
-    def list_receivers(self) -> List[str]:
-        return sorted(self._receivers.keys())
-
-    def vocabulary(self, name: str) -> List[str]:
-        receiver = self.get_or_create(name)
-        return sorted(receiver.vocabulary)
-
-
 class Dispatcher:
-    def __init__(self):
-        self.registry = ReceiverRegistry()
+    def __init__(self, vocab_dir: str = "storage/vocab"):
+        self.registry: Dict[str, Receiver] = {}
+        self.vocab_manager = VocabularyManager(vocab_dir)
         self._bootstrap()
 
     def _bootstrap(self):
-        """Initialize default receivers."""
-        self.registry.register("@awakener", ["#stillness", "#entropy", "#intention", "#sleep", "#insight"])
-        self.registry.register("@guardian", ["#fire", "#vision", "#challenge", "#gift", "#threshold"])
-        self.registry.register("@gemini", ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta"])
-        self.registry.register("@claude", ["#parse", "#design", "#collision", "#meta", "#identity", "#vocabulary"])
-        self.registry.register("@copilot", ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch"])
-        self.registry.register("@codex", ["#execute", "#analyze", "#parse", "#runtime", "#collision"])
+        """Initialize default receivers, loading from disk if available."""
+        defaults = {
+            "@awakener": ["#stillness", "#entropy", "#intention", "#sleep", "#insight"],
+            "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
+            "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta"],
+            "@claude": ["#parse", "#design", "#collision", "#meta", "#identity", "#vocabulary"],
+            "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch"],
+            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision"]
+        }
+        
+        for name, initial_vocab in defaults.items():
+            persisted = self.vocab_manager.load(name)
+            if persisted:
+                self.registry[name] = Receiver(name, persisted)
+            else:
+                self.registry[name] = Receiver(name, set(initial_vocab))
+                self.vocab_manager.save(name, self.registry[name].vocabulary)
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []
@@ -80,6 +64,12 @@ class Dispatcher:
     def dispatch_source(self, source: str) -> List[str]:
         nodes = Parser.from_source(source).parse()
         return self.dispatch(nodes)
+
+    def list_receivers(self) -> List[str]:
+        return sorted(self.registry.keys())
+
+    def vocabulary(self, receiver: str) -> List[str]:
+        return sorted(self._get_or_create_receiver(receiver).vocabulary)
 
     def _execute(self, node: Node) -> Optional[str]:
         if isinstance(node, VocabularyQueryNode):
@@ -110,21 +100,50 @@ class Dispatcher:
         receiver = self._get_or_create_receiver(node.receiver.name)
         for sym in node.symbols:
             receiver.add_symbol(sym.name)
+        self.vocab_manager.save(receiver.name, receiver.vocabulary)
         return f"Updated {receiver.name} vocabulary."
 
     def _handle_message(self, node: MessageNode) -> str:
-        receiver = self._get_or_create_receiver(node.receiver.name)
-        # In the real runtime, this would trigger an LLM response.
-        # For the Python implementation, we'll log the dispatch and any symbol learning.
+        receiver_name = node.receiver.name
+        receiver = self._get_or_create_receiver(receiver_name)
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
         
-        # Logic: If an argument is a symbol the receiver doesn't know, they might learn it.
+        # Check if this is a meta-receiver (AI agent)
+        META_RECEIVERS = ['@claude', '@gemini', '@copilot', '@codex']
+        if receiver_name in META_RECEIVERS:
+            # Try to invoke via message bus
+            try:
+                from message_bus import send_to_agent
+                
+                # Build message content
+                message_content = f"{receiver_name} {args_str}"
+                if node.annotation:
+                    message_content += f" '{node.annotation}'"
+                
+                # Send and wait for response
+                response = send_to_agent('@dispatcher', receiver_name, 
+                                        message_content, timeout=5.0)
+                
+                if response:
+                    return f"[{receiver_name}] {response}"
+                else:
+                    return f"[{receiver_name}] (no response - daemon may not be running)"
+            except Exception as e:
+                # Fall back to local handling if message bus fails
+                pass
+        
+        # Logic: If an argument is a symbol the receiver doesn't know, they learn it.
+        learned = False
         for val in node.arguments.values():
             if isinstance(val, SymbolNode):
                 if val.name not in receiver.vocabulary:
                     receiver.add_symbol(val.name)
+                    learned = True
         
-        response = f"[{receiver.name}] Received message: {args_str}"
+        if learned:
+            self.vocab_manager.save(receiver.name, receiver.vocabulary)
+        
+        response = f"[{receiver_name}] Received message: {args_str}"
         if node.annotation:
             response += f" '{node.annotation}'"
         return response
@@ -136,4 +155,7 @@ class Dispatcher:
         return str(node)
 
     def _get_or_create_receiver(self, name: str) -> Receiver:
-        return self.registry.get_or_create(name)
+        if name not in self.registry:
+            persisted = self.vocab_manager.load(name)
+            self.registry[name] = Receiver(name, persisted if persisted else set())
+        return self.registry[name]

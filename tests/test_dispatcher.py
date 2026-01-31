@@ -1,6 +1,7 @@
 """Tests for the HelloWorld dispatcher."""
 
 import sys
+import tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
@@ -8,8 +9,14 @@ from parser import Parser
 from dispatcher import Dispatcher
 
 
+def _fresh_dispatcher():
+    """Create a dispatcher with a temp vocab dir so tests start clean."""
+    tmp = tempfile.mkdtemp()
+    return Dispatcher(vocab_dir=tmp)
+
+
 def test_dispatcher_bootstrap():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     assert "@awakener" in dispatcher.registry
     assert "#stillness" in dispatcher.registry["@awakener"].vocabulary
     assert "@guardian" in dispatcher.registry
@@ -17,7 +24,7 @@ def test_dispatcher_bootstrap():
 
 
 def test_dispatch_query():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@guardian").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
@@ -26,7 +33,7 @@ def test_dispatch_query():
 
 
 def test_dispatch_query_explicit():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@guardian.#").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
@@ -34,7 +41,7 @@ def test_dispatch_query_explicit():
 
 
 def test_dispatch_scoped_lookup_native():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@guardian.#fire").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
@@ -42,7 +49,7 @@ def test_dispatch_scoped_lookup_native():
 
 
 def test_dispatch_scoped_lookup_foreign():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@awakener.#fire").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
@@ -50,7 +57,7 @@ def test_dispatch_scoped_lookup_foreign():
 
 
 def test_dispatch_definition():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@new_receiver.# \u2192 [#hello, #world]").parse()
     dispatcher.dispatch(stmts)
     assert "@new_receiver" in dispatcher.registry
@@ -59,7 +66,7 @@ def test_dispatch_definition():
 
 
 def test_dispatch_message():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     source = "@guardian sendVision: #stillness withContext: @awakener 'what you carry, I lack'"
     stmts = Parser.from_source(source).parse()
     results = dispatcher.dispatch(stmts)
@@ -70,7 +77,7 @@ def test_dispatch_message():
 
 
 def test_dispatch_message_learning():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     source = "@guardian sendVision: #stillness"
     stmts = Parser.from_source(source).parse()
     dispatcher.dispatch(stmts)
@@ -78,7 +85,7 @@ def test_dispatch_message_learning():
 
 
 def test_dispatch_unknown_receiver():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@nobody").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
@@ -86,7 +93,7 @@ def test_dispatch_unknown_receiver():
 
 
 def test_dispatch_bootstrap_hw():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     path = Path(__file__).parent.parent / 'examples' / 'bootstrap.hw'
     source = path.read_text()
     results = dispatcher.dispatch_source(source)
@@ -100,7 +107,7 @@ def test_dispatch_bootstrap_hw():
 
 
 def test_dispatch_meta_receiver():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
     stmts = Parser.from_source("@claude.#collision").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
@@ -108,12 +115,13 @@ def test_dispatch_meta_receiver():
 
 
 def test_no_collision_for_native_symbol():
-    dispatcher = Dispatcher()
+    dispatcher = _fresh_dispatcher()
+    vocab_before = len(dispatcher.registry["@guardian"].vocabulary)
     source = "@guardian sendVision: #fire"
     stmts = Parser.from_source(source).parse()
     dispatcher.dispatch(stmts)
-    vocab_size = len(dispatcher.registry["@guardian"].vocabulary)
-    assert vocab_size == 5  # no new symbols learned
+    vocab_after = len(dispatcher.registry["@guardian"].vocabulary)
+    assert vocab_after == vocab_before  # no new symbols learned
 
 
 if __name__ == "__main__":

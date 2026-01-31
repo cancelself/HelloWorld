@@ -1,0 +1,11 @@
+{
+  "receiver": "@claude",
+  "vocabulary": [
+    "#collision",
+    "#design",
+    "#identity",
+    "#meta",
+    "#parse",
+    "#vocabulary"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "receiver": "@new_receiver",
+  "vocabulary": [
+    "#hello",
+    "#world"
+  ]
+}

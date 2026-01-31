@@ -2,7 +2,7 @@
 
 import os
 import json
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 
 class VocabularyManager:
     def __init__(self, storage_dir: str = "storage/vocab"):

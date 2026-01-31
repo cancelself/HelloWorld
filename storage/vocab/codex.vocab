@@ -1,0 +1,10 @@
+{
+  "receiver": "@codex",
+  "vocabulary": [
+    "#analyze",
+    "#collision",
+    "#execute",
+    "#parse",
+    "#runtime"
+  ]
+}

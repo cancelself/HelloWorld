@@ -1,33 +1,55 @@
 """HelloWorld REPL - Interactive Shell."""
 
+import os
 import sys
-from lexer import Lexer, TokenType
-from parser import Parser
+from typing import Optional
+
 from dispatcher import Dispatcher
+from lexer import Lexer
+from parser import Parser
+
 
 class REPL:
-    def __init__(self):
-        self.dispatcher = Dispatcher()
+    def __init__(self, dispatcher: Optional[Dispatcher] = None):
+        self.dispatcher = dispatcher or Dispatcher()
         self.running = True
 
     def start(self):
         print("HelloWorld v0.1")
-        print("Type 'exit' to quit. Identity is vocabulary.")
+        print("Type 'exit' to quit, 'load <file>.hw' to run a script.")
         
         while self.running:
             try:
                 text = input("hw> ")
-                if text.strip() == "exit":
-                    self.running = False
-                    continue
                 if not text.strip():
                     continue
                 
+                parts = text.split()
+                if parts[0] == "exit":
+                    self.running = False
+                    continue
+                
+                if parts[0] == "load" and len(parts) > 1:
+                    self._load_file(parts[1])
+                    continue
+
                 self._process(text)
             except KeyboardInterrupt:
                 print("\nType 'exit' to quit.")
             except EOFError:
                 self.running = False
+
+    def _load_file(self, filename: str):
+        try:
+            if not os.path.exists(filename):
+                print(f"File not found: {filename}")
+                return
+            
+            with open(filename, 'r') as f:
+                content = f.read()
+                self._process(content)
+        except Exception as e:
+            print(f"Error loading file: {e}")
 
     def _process(self, source: str):
         try:

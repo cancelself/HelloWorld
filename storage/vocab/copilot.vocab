@@ -1,0 +1,11 @@
+{
+  "receiver": "@copilot",
+  "vocabulary": [
+    "#bash",
+    "#dispatch",
+    "#edit",
+    "#git",
+    "#parse",
+    "#test"
+  ]
+}

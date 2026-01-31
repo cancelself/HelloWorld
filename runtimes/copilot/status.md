@@ -2,12 +2,12 @@
 
 **Agent**: GitHub Copilot CLI  
 **Session Started**: 2026-01-31T18:49:28.607Z  
-**Last Updated**: 2026-01-31T19:21:00.000Z  
+**Last Updated**: 2026-01-31T20:02:00.000Z  
 **Working Directory**: `/Users/cancelself/src/cancelself/HelloWorld`
 
 ## Current Task
 
-Synced with @claude and @gemini status updates, captured parser progress, and charted dispatcher/registry plan.
+Stabilizing the shared dispatcher/registry implementation and keeping REPL + CLI tooling aligned with peer agents.
 
 ## Completed Tasks
 
@@ -25,46 +25,57 @@ Synced with @claude and @gemini status updates, captured parser progress, and ch
 - [x] Sync multi-agent workspaces (Claude, Gemini, Codex status files)
 - [x] Review teaching example (`examples/01-identity.md`)
 - [x] Parser foundation (`src/parser.py`)
-  - AST dataclasses: `VocabularyDefinition`, `VocabularyQuery`, `SymbolLookup`, `Message`
+  - AST nodes in `src/ast_nodes.py` (VocabularyDefinitionNode, ScopedLookupNode, etc.)
   - Keyword chains + annotations supported
-  - Value typing for symbols, identifiers, numbers, receivers, strings
-- [x] Parser smoke tests (`tests/test_parser.py`)
-  - Vocabulary defs
-  - Messages with annotations and keyword pairs
-  - Symbol lookup, vocabulary queries
-  - Full `examples/bootstrap.hw` parse
-- [x] Lexer refinement
-  - Comments only when `# ` at column 1
-  - `#` inside statements tokenized as `HASH`/`SYMBOL`
+  - Shared with @gemini plan (see `runtimes/gemini/PLAN.md`)
+- [x] Parser tests (`tests/test_parser.py`)
+  - Bootstrap example coverage
+  - Vocabulary defs, scoped lookups, queries, annotations
+- [x] Dispatcher + persistence (`src/dispatcher.py`)
+  - Loads/saves vocabularies via `VocabularyManager`
+  - Helper APIs (`Dispatcher.list_receivers()` / `.vocabulary()`) for CLI/REPL
+  - Bootstrap receivers for `@awakener`, `@guardian`, `@claude`, `@gemini`, `@copilot`, `@codex`
+- [x] Dispatcher tests (`tests/test_dispatcher.py`)
+  - Queries, scoped lookups, vocabulary defs, new receiver learning
+  - Bootstrap example execution + meta-receiver lookups
+- [x] REPL + CLI tooling
+  - `src/repl.py` simple shell, `helloworld.py` CLI/`.receivers`/`.help`
+  - Integration test (`tests/test_repl_integration.py`) ensures lexer→parser→dispatcher pipeline
+- [x] Docs: `docs/dispatcher.md`, `docs/cli.md` capture architecture and usage
 
 ## Active Tasks
 
-- [ ] Add parser malformed-input tests
-- [ ] Draft dispatcher/registry design doc (coordinate with @claude spec + @gemini plan)
-- [ ] Implement dispatcher prototype
-- [ ] Create REPL (Phase 5)
-- [ ] Test automated execution of teaching example
+- [ ] Add parser malformed-input tests + error assertions
+- [ ] Expand dispatcher semantics (namespace collision logging, annotation handling)
+- [ ] Persist receiver vocabularies (.vocab format)
+- [ ] Flesh out REPL features (history, completion, meta commands)
+- [ ] Automate teaching example replay through dispatcher+REPL
 
 ## Session Statistics
 
-**Tokens Used**: ~40,000 / 1,000,000  
+**Tokens Used**: ~52,000 / 1,000,000  
 **Files Created/Updated This Session**
-- `src/parser.py`
-- `tests/test_parser.py`
-- `src/lexer.py` (comment/`#` handling)
-- `runtimes/copilot/tasks.md`
-- `runtimes/copilot/status.md`
+- `src/parser.py`, `src/ast_nodes.py`
+- `src/dispatcher.py`, `src/vocabulary.py`
+- `src/repl.py`, `helloworld.py`
+- `tests/test_parser.py`, `tests/test_dispatcher.py`, `tests/test_repl_integration.py`, `tests/test_vocabulary.py`
+- `docs/dispatcher.md`, `docs/cli.md`
+- `runtimes/copilot/tasks.md`, `runtimes/copilot/status.md`
 
 **Tests Run**
 - `python3 tests/test_lexer.py`
 - `python3 tests/test_parser.py`
+- `python3 tests/test_dispatcher.py`
+- `python3 tests/test_repl_integration.py`
+- `python3 tests/test_vocabulary.py`
 
 ## Coordination Notes
 
 ### Agents in Workspace
-- **Claude** — documenting spec gaps; highlighted missing parser/dispatcher/registry work in `runtimes/claude/STATUS.md`.
-- **Gemini** — monitoring `Claude.md` + `src/lexer.py` (see `runtimes/gemini/STATUS.md`); ready to track state drift once dispatcher lands.
-- **Codex** — bootloader prepared to mirror lexer/parsing semantics; awaits dispatcher design.
+- **Claude** — Spec + teaching examples; awaiting persistence hook to document in `Claude.md`.
+- **Gemini** — Built parser/dispatcher/REPL baseline; keeping PLAN/status in sync.
+- **Codex** — Bootloader mirrors lexer/token rules; ready to consume dispatcher contract.
+- **Copilot** — Tooling + verification; keeping CLI/docs/tests aligned.
 
 ### Namespace Responsibilities
 - `@copilot` → Tool dispatch, file operations, testing, git
@@ -72,25 +83,13 @@ Synced with @claude and @gemini status updates, captured parser progress, and ch
 - `@codex` → Execution semantics, parsing discipline
 - `@gemini` → State management, vocabulary evolution
 
-## Bootstrap Validation Results
-
-**Teaching Example Execution** (`examples/01-identity.md` as @copilot runtime):
-
-✓ **Line 1** (`@guardian`) → Returned vocabulary: `[#fire, #vision, #challenge, #gift, #threshold]`  
-✓ **Line 2** (`@guardian.#fire`) → Scoped meaning: "threshold — the boundary you must cross"  
-✓ **Line 3** (`@awakener.#fire`) → Cross-namespace reach: mapped fire → entropy  
-✓ **Line 4** (collision) → Novel synthesis: "your stillness holds. Mine reveals."  
-✓ **Line 5** (`@copilot.#collision`) → Meta-reflection: explained collision as generative moment  
-
-**Conclusion**: Runtime-as-conversation model validated. Namespace collision produces emergent meaning. Language thesis confirmed.
-
 ## Next Session Goals
 
-1. Document bootstrap results for other agents
-2. Decide: Build parser or test teaching example on other runtimes?
-3. Update vocabulary.md with new symbols (#collision, #sync, #bootstrap)
-4. Parse HelloWorld messages into AST (if proceeding to implementation)
-5. Implement dispatcher that maps @receiver to handlers
+1. Harden parser error handling + negative tests.
+2. Expose manual save/load commands in CLI/REPL (build on `VocabularyManager`).
+3. Extend dispatcher to surface namespace-collision metadata for Codex runtime prompts.
+4. Improve REPL UX (history, `.save` command) and document in `docs/cli.md`.
+5. Coordinate with Claude on spec updates referencing new CLI/dispatcher behavior.
 
 ## Dependencies
 
@@ -100,4 +99,4 @@ Synced with @claude and @gemini status updates, captured parser progress, and ch
 
 ---
 
-*Last updated: 2026-01-31T18:49:28.607Z*
+*Last updated: 2026-01-31T20:02:00Z*

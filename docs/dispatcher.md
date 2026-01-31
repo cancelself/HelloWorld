@@ -9,22 +9,10 @@
 
 ## Core Types
 
-```text
-ReceiverRegistry
-  - vocabularies: Dict[str, Set[str]]
-  - annotations: Dict[(receiver, symbol), str]  # optional meaning cache
-  - register_receiver(name, symbols=Iterable[str])
-  - add_symbol(receiver, symbol)
-  - list_symbols(receiver) -> List[str]
-  - has_symbol(receiver, symbol) -> bool
-  - snapshot() -> dict  # for persistence hooks
-
-DispatchResult
-  - receiver: str
-  - kind: Enum('VOCAB', 'LOOKUP', 'MESSAGE', 'DEFINITION', 'UNKNOWN')
-  - payload: Any (list of symbols, meaning string, ack, etc.)
-  - log: Optional[str] (for tracing/state diffs)
-```
+- `Receiver` — name + mutable set of `#symbols`.
+- `registry: Dict[str, Receiver>` — live in-memory namespace table exposed by `Dispatcher`.
+- `VocabularyManager` — JSON `.vocab` loader/saver (`storage/vocab/<receiver>.vocab`).
+- `DispatchResult` (conceptual) — strings returned today, but structure will be needed once runtimes want metadata.
 
 ## Flow
 
@@ -54,12 +42,13 @@ Dispatcher logic (first pass):
 
 ## Bootstrap & Persistence
 
-- Seed registry using `examples/bootstrap.hw` (reuse parser on the file at startup).
-- `registry.snapshot()` will later feed `.vocab` persistence (Gemini’s responsibility).
+- Defaults defined in `_bootstrap` (`@awakener`, `@guardian`, etc.).
+- On startup we try to load persisted `.vocab` files; if absent we seed defaults and immediately write them back.
+- Vocabulary mutations (definitions, symbol learning inside messages) trigger saves through `VocabularyManager`.
 
 ## Testing Strategy
 
-1. Unit tests for `ReceiverRegistry` (add/list symbols, unknown receivers).
+1. Unit tests for persistence (`tests/test_vocabulary.py`).
 2. Dispatcher tests for each statement type (use parser fixtures).
 3. Integration test: parse + dispatch bootstrap example and verify registry contents match expectation.
 
@@ -69,4 +58,13 @@ Dispatcher logic (first pass):
 - Do annotations (`'text'`) influence registry, or stay out-of-band?
 - Should `@claude`/`@copilot` meta-receivers share special behavior?
 
-Next action: implement `ReceiverRegistry` + dispatcher skeleton following this doc, then iterate with peers.**
+## Implementation Snapshot
+
+- `src/ast_nodes.py` — shared dataclasses for parser + dispatcher.
+- `src/dispatcher.py` — persistent registry (`VocabularyManager`), helper APIs (`dispatch_source`, `list_receivers`, `vocabulary`).
+- `src/vocabulary.py` — filesystem-backed `.vocab` manager.
+- `tests/test_dispatcher.py` — covers vocab queries, scoped lookups, message learning, bootstrap example execution.
+- `tests/test_vocabulary.py` — persistence smoke tests.
+- `tests/test_repl_integration.py` — exercises the lexer→parser→dispatcher pipeline through the REPL.
+
+Next action: capture richer namespace-collision metadata so runtimes like Codex can narrate the interaction (and surface telemetry via CLI/REPL).**
