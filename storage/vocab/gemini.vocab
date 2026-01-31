@@ -1,11 +1,14 @@
 {
   "receiver": "@gemini",
   "vocabulary": [
+    "#act",
     "#collision",
     "#dispatch",
     "#entropy",
+    "#env",
     "#meta",
     "#parse",
-    "#state"
+    "#state",
+    "#sync"
   ]
 }
