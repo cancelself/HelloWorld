@@ -71,6 +71,15 @@ class Dispatcher:
     def vocabulary(self, receiver: str) -> List[str]:
         return sorted(self._get_or_create_receiver(receiver).vocabulary)
 
+    def save(self, receiver: Optional[str] = None):
+        """Persist vocabularies for one receiver or all receivers."""
+        if receiver:
+            rec = self._get_or_create_receiver(receiver)
+            self.vocab_manager.save(receiver, rec.vocabulary)
+            return
+        for name, rec in self.registry.items():
+            self.vocab_manager.save(name, rec.vocabulary)
+
     def _execute(self, node: Node) -> Optional[str]:
         if isinstance(node, VocabularyQueryNode):
             return self._handle_query(node)

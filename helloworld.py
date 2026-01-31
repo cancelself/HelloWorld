@@ -13,7 +13,7 @@ from dispatcher import Dispatcher
 
 
 def execute_file(filepath: str):
-    """Execute a .hw file."""
+    """Execute a .hw file or extract code from a .md file."""
     path = Path(filepath)
     if not path.exists():
         print(f"Error: File not found: {filepath}")
@@ -21,6 +21,16 @@ def execute_file(filepath: str):
     
     source = path.read_text()
     
+    # If it's a markdown file, extract code blocks
+    if path.suffix == '.md':
+        import re
+        code_blocks = re.findall(r'```(?:\w+)?\n(.*?)\n```', source, re.DOTALL)
+        if code_blocks:
+            source = '\n'.join(code_blocks)
+        else:
+            # If no code blocks found, try to execute the whole thing (fallback)
+            pass
+
     # Lexer → Parser → Dispatcher
     from parser import Parser
     
@@ -53,6 +63,7 @@ def repl():
                 continue
             
             if line == '.exit':
+                dispatcher.save()
                 print("Vocabulary saved. Goodbye.")
                 break
             
@@ -60,6 +71,7 @@ def repl():
                 print("Commands:")
                 print("  .exit          Exit REPL")
                 print("  .receivers     Show all registered receivers")
+                print("  .save [@name]  Save vocabularies (default all)")
                 print("  .help          Show this help")
                 print()
                 print("Syntax:")
@@ -77,6 +89,19 @@ def repl():
                         print(f"  {r}.# → {vocab}")
                 else:
                     print("No receivers registered yet.")
+                continue
+            
+            if line.startswith('.save'):
+                parts = line.split()
+                target = parts[1] if len(parts) > 1 else 'all'
+                if target.lower() == 'all':
+                    dispatcher.save()
+                    print("Saved all receiver vocabularies.")
+                else:
+                    if not target.startswith('@'):
+                        target = f"@{target}"
+                    dispatcher.save(target)
+                    print(f"Saved {target} vocabulary.")
                 continue
             
             # Execute the line

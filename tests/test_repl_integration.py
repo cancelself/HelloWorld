@@ -2,10 +2,10 @@
 
 import sys
 import tempfile
-from pathlib import Path
 from io import StringIO
 from contextlib import redirect_stdout
 
+from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from dispatcher import Dispatcher

@@ -42,12 +42,14 @@ Stabilizing the shared dispatcher/registry implementation and keeping REPL + CLI
   - `src/repl.py` simple shell, `helloworld.py` CLI/`.receivers`/`.help`
   - Integration test (`tests/test_repl_integration.py`) ensures lexer→parser→dispatcher pipeline
 - [x] Docs: `docs/dispatcher.md`, `docs/cli.md` capture architecture and usage
+- [x] Manual persistence commands
+  - `.save [@receiver|all]` in CLI, `save` in REPL
+  - `Dispatcher.save()` helper + tests (`tests/test_dispatcher.py`, `tests/test_vocabulary.py`)
 
 ## Active Tasks
 
 - [ ] Add parser malformed-input tests + error assertions
 - [ ] Expand dispatcher semantics (namespace collision logging, annotation handling)
-- [ ] Persist receiver vocabularies (.vocab format)
 - [ ] Flesh out REPL features (history, completion, meta commands)
 - [ ] Automate teaching example replay through dispatcher+REPL
 
@@ -86,10 +88,9 @@ Stabilizing the shared dispatcher/registry implementation and keeping REPL + CLI
 ## Next Session Goals
 
 1. Harden parser error handling + negative tests.
-2. Expose manual save/load commands in CLI/REPL (build on `VocabularyManager`).
-3. Extend dispatcher to surface namespace-collision metadata for Codex runtime prompts.
-4. Improve REPL UX (history, `.save` command) and document in `docs/cli.md`.
-5. Coordinate with Claude on spec updates referencing new CLI/dispatcher behavior.
+2. Extend dispatcher to surface namespace-collision metadata for Codex runtime prompts.
+3. Improve REPL UX (history, completion, richer status output) and document in `docs/cli.md`.
+4. Coordinate with Claude on spec updates referencing new CLI/dispatcher behavior.
 
 ## Dependencies
 

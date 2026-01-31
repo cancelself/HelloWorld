@@ -16,7 +16,7 @@ class REPL:
 
     def start(self):
         print("HelloWorld v0.1")
-        print("Type 'exit' to quit, 'load <file>.hw' to run a script.")
+        print("Type 'exit' to quit, 'save [@receiver]' to persist vocabularies, 'load <file>.hw' to run a script.")
         
         while self.running:
             try:
@@ -25,11 +25,26 @@ class REPL:
                     continue
                 
                 parts = text.split()
-                if parts[0] == "exit":
+                command = parts[0]
+                if command == "exit":
+                    self.dispatcher.save()
                     self.running = False
                     continue
                 
-                if parts[0] == "load" and len(parts) > 1:
+                if command == "save":
+                    target = parts[1] if len(parts) > 1 else None
+                    if target and target.lower() == "all":
+                        target = None
+                    if target and not target.startswith("@"):
+                        target = f"@{target}"
+                    self.dispatcher.save(target)
+                    if target:
+                        print(f"Saved {target} vocabulary.")
+                    else:
+                        print("Saved all receiver vocabularies.")
+                    continue
+                
+                if command == "load" and len(parts) > 1:
                     self._load_file(parts[1])
                     continue
 

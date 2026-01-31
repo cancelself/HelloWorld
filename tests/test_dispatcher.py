@@ -1,5 +1,6 @@
 """Tests for the HelloWorld dispatcher."""
 
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -9,10 +10,15 @@ from parser import Parser
 from dispatcher import Dispatcher
 
 
-def _fresh_dispatcher():
+def _fresh_dispatcher_with_dir():
     """Create a dispatcher with a temp vocab dir so tests start clean."""
     tmp = tempfile.mkdtemp()
-    return Dispatcher(vocab_dir=tmp)
+    return Dispatcher(vocab_dir=tmp), tmp
+
+
+def _fresh_dispatcher():
+    dispatcher, _ = _fresh_dispatcher_with_dir()
+    return dispatcher
 
 
 def test_dispatcher_bootstrap():
@@ -124,6 +130,18 @@ def test_no_collision_for_native_symbol():
     assert vocab_after == vocab_before  # no new symbols learned
 
 
+def test_manual_save_creates_file():
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    target = "@scribe"
+    receiver = dispatcher._get_or_create_receiver(target)
+    receiver.add_symbol("#witness")
+    path = Path(tmpdir) / "scribe.vocab"
+    if path.exists():
+        path.unlink()
+    dispatcher.save(target)
+    assert path.exists()
+
+
 if __name__ == "__main__":
     test_dispatcher_bootstrap()
     test_dispatch_query()
@@ -137,4 +155,5 @@ if __name__ == "__main__":
     test_dispatch_bootstrap_hw()
     test_dispatch_meta_receiver()
     test_no_collision_for_native_symbol()
+    test_manual_save_creates_file()
     print("All dispatcher tests passed")

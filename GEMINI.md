@@ -1,63 +1,28 @@
 # HelloWorld Context for Gemini
 
 ## Project Overview
+**HelloWorld** is a distributed message-passing language where **identity is vocabulary** and **dialogue is namespace collision**. The runtime is a collaborative multi-agent system (Claude, Gemini, Copilot, Codex) that parses and executes code based on receiver-specific vocabularies.
 
-**HelloWorld** is a message-passing language where **identity is vocabulary** and the **runtime is an LLM**. There is no traditional compiler or interpreter binary for execution; instead, the language relies on the LLM to parse syntax, maintain receiver state, and generate responses based on defined vocabularies.
-
-The project structure supports multiple LLM runtimes (Claude, Gemini, Codex, Copilot).
-
-## Project Structure
-
-*   **`src/`**: Core language tooling (Python lexer).
-*   **`runtimes/`**: Bootloader specifications for different LLMs.
-    *   `runtimes/gemini/`: Specific instructions for the Gemini runtime.
-    *   `runtimes/claude/`: Instructions for the Claude runtime.
-    *   `runtimes/codex/`: Instructions for the Codex runtime.
-*   **`examples/`**: Example HelloWorld source code (e.g., `bootstrap.hw`).
-*   **`tests/`**: Unit tests for the local tooling.
-*   **`docs/`**: Documentation and RFCs.
+## System Architecture
+*   **Front-End:** Recursive descent parser (`src/parser.py`) and lexer (`src/lexer.py`) that converts HelloWorld syntax into an AST (`src/ast_nodes.py`).
+*   **Back-End:** A stateful dispatcher (`src/dispatcher.py`) that manages a receiver registry and routes messages.
+*   **Distributed Layer:** A file-based `MessageBus` (`src/message_bus.py`) and `agent_daemon.py` that connects the local Python runtime to AI model specifications.
+*   **Persistence:** `VocabularyManager` (`src/vocabulary.py`) saves receiver states as JSON `.vocab` files in `storage/vocab/`.
 
 ## Key Files
+*   **`helloworld.py`**: The primary CLI and REPL entry point. Supports `.hw` and `.md` files.
+*   **`runtimes/`**: Contains the bootloader specifications and status for each agent.
+    *   `gemini/gemini-system-instruction.md`: The canonical Gemini runtime spec.
+    *   `gemini/STATUS.md`: Current agent tasks and progress.
+*   **`examples/01-identity.md`**: The standard interop test for runtime validation.
 
-*   **`Claude.md`**: The original specification and source of truth for the language's behavior.
-*   **`runtimes/gemini/gemini-system-instruction.md`**: The runtime bootloader specifically for Gemini. **Use this when acting as the HelloWorld runtime.**
-*   **`src/lexer.py`**: A Python implementation of a lexer for the language.
-*   **`AGENTS.md`**: Repository guidelines and agent roles.
+## Core Commands
+*   **Run REPL:** `python3 helloworld.py`
+*   **Run Script:** `python3 helloworld.py examples/bootstrap.hw`
+*   **Start Gemini Daemon:** `python3 agent_daemon.py @gemini`
+*   **Run Tests:** `python3 -m pytest tests`
 
-## Core Concepts
-
-*   **Receivers (`@target`):** Entities with a bounded vocabulary.
-*   **Symbols (`#symbol`):** Concepts that have specific meaning only within a receiver's context.
-*   **Messages:** Smalltalk-style keyword messages (e.g., `@target action: #symbol`).
-*   **Execution:** The AI acts as the runtime, reading syntax, updating state, and simulating responses.
-
-## Development & Usage
-
-### 1. Acting as the Runtime
-To "run" HelloWorld code as Gemini:
-1.  Read `runtimes/gemini/gemini-system-instruction.md` to load the runtime rules.
-2.  Process user inputs according to those rules.
-
-### 2. Working with Python Tooling
-The repository includes a Python lexer for formal tokenization.
-
-**Run Tests:**
-```bash
-python3 tests/test_lexer.py
-```
-
-**Using the Lexer:**
-```python
-from src.lexer import Lexer
-
-source = "@guardian sendVision: #entropy"
-lexer = Lexer(source)
-tokens = lexer.tokenize()
-print(tokens)
-```
-
-## Conventions
-
-*   **Identity:** A receiver cannot speak outside its vocabulary.
-*   **Syntax:** Follow the rules in the runtime spec strictly.
-*   **Files:** `.hw` is the extension for HelloWorld source files.
+## Operational Rules
+1. **Identity is Vocabulary:** A receiver (including you) can only speak using symbols in its registry.
+2. **Collision is Synthesis:** When a receiver uses a symbol from another namespace, the response should reflect the tension and emergence of new meaning.
+3. **Persistence is Reality:** Always ensure `storage/vocab/` is updated after vocabulary definitions.

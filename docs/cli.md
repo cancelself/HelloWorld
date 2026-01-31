@@ -21,8 +21,9 @@ python3 helloworld.py
 ```
 
 REPL commands:
-- `.exit` — Exit REPL
+- `.exit` — Save vocabularies and exit REPL
 - `.receivers` — Show all registered receivers
+- `.save [@name|all]` — Persist vocabularies (defaults to all receivers)
 - `.help` — Show help
 
 ## Implementation

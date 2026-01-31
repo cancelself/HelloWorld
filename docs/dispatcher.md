@@ -44,7 +44,7 @@ Dispatcher logic (first pass):
 
 - Defaults defined in `_bootstrap` (`@awakener`, `@guardian`, etc.).
 - On startup we try to load persisted `.vocab` files; if absent we seed defaults and immediately write them back.
-- Vocabulary mutations (definitions, symbol learning inside messages) trigger saves through `VocabularyManager`.
+- Vocabulary mutations (definitions, symbol learning inside messages) trigger saves through `VocabularyManager`; manual saves are exposed via `Dispatcher.save()` and surfaced in the CLI/REPL as `.save` / `save`.
 
 ## Testing Strategy
 

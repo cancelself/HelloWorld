@@ -21,12 +21,11 @@
 
 ## Action Plan
 
-1. **Persistence Hooks**
-   - Surface explicit `.save <receiver>` / `.save all` commands in REPL + CLI.
-   - Snapshot vocabularies on `.exit` and document storage layout (`storage/vocab/*.vocab`).
-   - Update `docs/dispatcher.md` + `docs/cli.md` with persistence workflow.
+1. **Persistence Hooks (done)**
+   - `.save [@receiver|all]` in CLI and `save [@receiver]` in REPL call `Dispatcher.save()`.
+   - `.exit` now snapshots vocabularies before quitting; docs updated.
 
-2. **Collision Telemetry**
+2. **Collision Telemetry (next)**
    - When `_handle_scoped_lookup` or `_handle_message` sees foreign symbols, emit structured payload (`collision: True`, receivers involved).
    - Surface telemetry so Codex/Claude runtimes can describe the interaction, and record in registry for Gemini.
 
@@ -42,6 +41,6 @@
 
 ## Immediate Next Step
 
-Wire `ReceiverRegistry` to `VocabularyManager` (load bootstrap vocabularies from disk when present, save on demand) and expose `.save` in the CLI/REPL so future agents inherit consistent state.
+Design collision-telemetry payload (data structure + logging strategy) so dispatcher responses can feed Codex/Claude runtimes with richer context while keeping CLI output human-readable.
 
 *Identity is vocabulary. Dialogue is namespace collision.*

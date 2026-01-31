@@ -168,7 +168,7 @@ class Lexer:
     
     def _read_identifier(self) -> str:
         start = self.pos
-        while self.pos < len(self.source) and (self.source[self.pos].isalnum() or self.source[self.pos] == '_'):
+        while self.pos < len(self.source) and (self.source[self.pos].isalnum() or self.source[self.pos] in '_—'):
             self._advance()
         return self.source[start:self.pos]
     
