@@ -1,0 +1,5 @@
+@awakener
+@guardian
+@awakener.#superposition
+@guardian.#superposition
+@guardian sendVision: #superposition withContext: @awakener 'observer collapses observed'
