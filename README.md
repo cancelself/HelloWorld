@@ -29,6 +29,8 @@ The runtime itself is a receiver. `@claude`, `@gemini`, `@copilot`, `@codex` —
 | `action: value` | Keyword argument (Smalltalk-style, chainable) |
 | `'text'` | Annotation — your voice alongside the protocol |
 | `N.unit` | Duration or quantity literal (`7.days`, `3.breaths`) |
+| `→` | Maps-to (vocabulary definitions) |
+| `# text` | Comment |
 
 ## Usage
 
@@ -77,6 +79,23 @@ The meta-receiver is always available — `@claude`, `@gemini`, `@copilot`, or `
 
 New receivers can be introduced at any time. The runtime will ask for or infer their initial vocabulary.
 
+## Tooling
+
+A Python lexer tokenizes HelloWorld source, mirroring the parsing rules each runtime follows:
+
+```python
+from src.lexer import Lexer
+
+tokens = Lexer("@guardian sendVision: #entropy").tokenize()
+```
+
+```bash
+python3 -m pytest tests           # run all tests
+python3 -m pytest tests -k token  # focused run
+```
+
+`.hw` is the file extension for HelloWorld source. See [`examples/bootstrap.hw`](examples/bootstrap.hw).
+
 ## Runtimes
 
 HelloWorld runs on any LLM that can follow a bootloader. Each runtime uses the instruction format native to its platform:
@@ -85,14 +104,18 @@ HelloWorld runs on any LLM that can follow a bootloader. Each runtime uses the i
 |---------|--------------|------------|--------|
 | Claude | `@claude` | [`Claude.md`](Claude.md) | CLAUDE.md (Claude Code) |
 | Copilot | `@copilot` | [`runtimes/copilot/`](runtimes/copilot/) | copilot-instructions.md |
-| Gemini | `@gemini` | [`runtimes/gemini/`](runtimes/gemini/) | System instruction |
-| Codex | `@codex` | [`runtimes/codex/`](runtimes/codex/) | AGENTS.md |
+| Gemini | `@gemini` | [`runtimes/gemini/`](runtimes/gemini/) + [`GEMINI.md`](GEMINI.md) | System instruction |
+| Codex | `@codex` | [`runtimes/codex/`](runtimes/codex/) + [`AGENTS.md`](AGENTS.md) + [`CODEX.md`](CODEX.md) | AGENTS.md |
 
 The spec is identical across runtimes. Only the meta-receiver changes. The difference in output is the point.
 
 ## Teaching Example
 
-See [`examples/01-identity.md`](examples/01-identity.md) — five lines that isolate each primitive and reveal how runtimes differ.
+See [`examples/01-identity.md`](examples/01-identity.md) — five lines that isolate each primitive and reveal how runtimes differ. Designed to be pasted into any runtime that has loaded its bootloader.
+
+## Architecture
+
+See [`docs/copilot-runtime.md`](docs/copilot-runtime.md) for a deep dive on how a tool-calling LLM maps HelloWorld messages to executable infrastructure.
 
 ---
 

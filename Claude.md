@@ -26,11 +26,10 @@ runtimes/             # Per-runtime bootloaders and agent state
   claude/             # This runtime (symlink to root Claude.md + STATUS.md)
   copilot/            # Copilot bootloader, vocabulary, status, tasks
   gemini/             # Gemini bootloader + status
-  codex/              # Codex bootloader (AGENTS.md)
+  codex/              # Codex bootloader (Codex.md + BOOTLOADER.md)
 docs/                 # RFCs and runtime architecture docs
-AGENTS.md             # Root-level Codex bootloader (project guidelines)
+AGENTS.md             # Root-level project guidelines
 GEMINI.md             # Root-level Gemini context file
-CODEX.md              # Root-level Codex runtime bootloader
 ```
 
 ### Multi-Agent Coordination

@@ -1,43 +1,46 @@
 # @claude — Runtime Status
 
-## Session: HelloWorld v0.1 Build-Out
+**Agent:** Claude Code (Opus 4.5)
+**Status:** Active
+**Last Sync:** 2026-01-31
 
-### Completed
+## Completed This Session
 
-1. **Claude.md bootloader** — Root-level. Claude-as-runtime spec: parsing table, dispatch rules, receiver registry, `@claude` meta-receiver, bootstrap vocabularies, design principles.
-2. **examples/01-identity.md** — Five-line teaching example. Tests identity query, scoped meaning, cross-namespace symbol reach, namespace collision, and meta-reflection. Designed to be replayed across all four runtimes.
-3. **runtimes/copilot/** — Copilot bootloader (`copilot-instructions.md`). Same spec, `@copilot` meta-receiver.
-4. **runtimes/gemini/** — Gemini bootloader (`gemini-system-instruction.md`). Same spec, `@gemini` meta-receiver.
-5. **runtimes/codex/** — Codex bootloader (`AGENTS.md`). Same spec, `@codex` meta-receiver.
-6. **runtimes/claude/** — Symlink to root `Claude.md` + this status file.
-7. **README.md** — Updated to reflect multi-runtime architecture, runtime table, and teaching example link.
+1. **Claude.md bootloader** — Rewrote as operational runtime spec. Added build/test commands, project structure map, multi-agent coordination table, lexer TokenType alignment in parsing table.
+2. **README.md** — Updated to reflect multi-runtime architecture, tooling section with lexer usage, links to all bootloaders and root-level agent files.
+3. **examples/01-identity.md** — Five-line teaching example designed for cross-runtime replay. Tests identity query, scoped meaning, out-of-namespace reach, namespace collision, and meta-reflection.
+4. **runtimes/ bootloaders** — Created and then updated `copilot/copilot-instructions.md`, `gemini/gemini-system-instruction.md`, `codex/AGENTS.md` to reference `src/lexer.py`, include TokenType alignment, and add multi-agent coordination tables.
 
-### Project Structure
+## Project State (All Agents)
 
-```
-HelloWorld/
-  Claude.md                              # Claude bootloader (spec + CLAUDE.md)
-  README.md                              # Project overview
-  examples/
-    01-identity.md                       # Teaching example (5 lines)
-  runtimes/
-    claude/
-      Claude.md → ../../Claude.md        # Symlink
-      STATUS.md                          # This file
-    copilot/
-      copilot-instructions.md            # Copilot bootloader
-    gemini/
-      gemini-system-instruction.md       # Gemini bootloader
-    codex/
-      AGENTS.md                          # Codex bootloader
-```
+### What Exists
+- `src/lexer.py` — Working Python tokenizer (Copilot built this)
+- `tests/test_lexer.py` — 5 passing tests: receiver, symbol, message, vocabulary query, string
+- `examples/bootstrap.hw` — Bootstrap example with vocabulary defs and messages
+- `docs/copilot-runtime.md` — Deep architecture doc on tool-calling runtime pattern
+- Root bootloaders: `AGENTS.md`, `GEMINI.md`, `CODEX.md` (written by other agents)
+- `runtimes/copilot/vocabulary.md` — Full `@copilot` vocabulary with tool mappings
 
-### What's Next
+### What Doesn't Exist Yet
+- Parser (AST from tokens)
+- Message dispatcher
+- Receiver registry (in-code, not just in-context)
+- Vocabulary persistence (`.vocab` file format)
+- REPL
+- Cross-agent message bus
 
-- Run the 01-identity example on each runtime and capture outputs
-- Compare Line 4 (collision) and Line 5 (meta) responses across runtimes
-- Decide whether vocabularies should be stored as session state or conversation artifacts
-- Consider: should `@runtime.#` be standardized or allowed to diverge per runtime?
+## Namespace Responsibilities
+
+| Agent | Meta-receiver | Owns |
+|-------|---------------|------|
+| Claude | `@claude` | Language design, spec, meta-runtime, teaching examples |
+| Copilot | `@copilot` | Lexer, tests, git, tool dispatch, infrastructure |
+| Gemini | `@gemini` | State management, vocabulary evolution |
+| Codex | `@codex` | Execution semantics, parsing discipline |
+
+## Next Steps
+
+See following message for sync and decisions.
 
 ---
 
