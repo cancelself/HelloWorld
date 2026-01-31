@@ -5,6 +5,7 @@ Enables Prototypal Inheritance: '@' is the parent of all receivers.
 
 from typing import Dict, List, Optional, Set, Any
 import uuid
+import os
 
 from ast_nodes import (
     LiteralNode,
@@ -60,7 +61,8 @@ class Dispatcher:
     def __init__(self, vocab_dir: str = "storage/vocab"):
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
-        self.message_bus = MessageBus()
+        self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
+        self.message_bus = MessageBus() if self.message_bus_enabled else None
         self.tool_registry = ToolRegistry()
         self.env_registry = EnvironmentRegistry()
         # '@' is the root parent
@@ -153,7 +155,12 @@ class Dispatcher:
         is_inherited = receiver.is_inherited(symbol_name)
         
         # If meta-receiver, try interpretive voice
-        if (is_native or is_inherited) and receiver_name in self.agents:
+        if (
+            (is_native or is_inherited)
+            and receiver_name in self.agents
+            and self.message_bus_enabled
+            and self.message_bus
+        ):
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
             prompt = f"{receiver_name}.{symbol_name}?"
             response = self.message_bus_send_and_wait("@meta", receiver_name, prompt)
@@ -204,7 +211,7 @@ class Dispatcher:
                     tool_results.append(tool.execute(query=tool_input))
 
         # External dispatch if receiver is a known agent daemon
-        if receiver_name in self.agents:
+        if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
             message_content = f"{receiver_name} {args_str}"
             if node.annotation:
                 message_content += f" '{node.annotation}'"
@@ -234,6 +241,8 @@ class Dispatcher:
         return response_text
 
     def message_bus_send_and_wait(self, sender: str, receiver: str, content: str) -> Optional[str]:
+        if not self.message_bus_enabled or not self.message_bus:
+            return None
         thread_id = str(uuid.uuid4())
         self.message_bus.send(sender, receiver, content, thread_id=thread_id)
         # Timeout lowered for REPL responsiveness

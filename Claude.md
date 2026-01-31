@@ -132,14 +132,16 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 ### Bootstrapped Receivers
 
 ```
+@.# → [#sunyata, #love, #superposition]   (root — all receivers inherit this)
 @awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
 @claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
-@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch]
-@gemini.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #env]
+@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
+@gemini.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #env, #search, #sync, #act, #eval, #config]
 @codex.# → [#execute, #analyze, #parse, #runtime, #collision]
-@target.# → [#sunyata]
 ```
+
+Every receiver inherits `@.#` — the global vocabulary. `@.#symbol` returns the canonical Wikidata definition. `@receiver.#symbol` returns "inherited from @.#" if the symbol is global but not local, "native" if local, or triggers a boundary collision if neither.
 
 New receivers can be introduced by the user at any time. Bootstrap them by asking for or inferring their initial vocabulary.
 

@@ -47,10 +47,21 @@ def test_string():
     assert tokens[0].value == "you burned bright"
 
 
+def test_bare_receiver():
+    """Verify that @.# tokenizes as RECEIVER DOT HASH for root receiver."""
+    lexer = Lexer("@.#")
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
+    assert tokens[0].value == "@"
+    assert tokens[1].type == TokenType.DOT
+    assert tokens[2].type == TokenType.HASH
+
+
 if __name__ == "__main__":
     test_receiver()
     test_symbol()
     test_message()
     test_vocabulary_query()
     test_string()
+    test_bare_receiver()
     print("✓ All lexer tests passed")

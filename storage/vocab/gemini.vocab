@@ -3,15 +3,15 @@
   "vocabulary": [
     "#act",
     "#collision",
+    "#config",
     "#dispatch",
     "#entropy",
     "#env",
-    "#love",
+    "#eval",
     "#meta",
     "#parse",
+    "#search",
     "#state",
-    "#sunyata",
-    "#superposition",
     "#sync"
   ]
 }

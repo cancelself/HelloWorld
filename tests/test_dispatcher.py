@@ -106,7 +106,7 @@ def test_dispatch_bootstrap_hw():
     assert len(results) == 7
     assert "Updated @awakener" in results[0]
     assert "Updated @guardian" in results[1]
-    assert "Updated @target" in results[2]
+    assert "Updated @" in results[2]
     assert "[@guardian] Received" in results[3]
     assert "[@awakener] Received" in results[4]
     assert "@claude" in results[5]
@@ -131,37 +131,39 @@ def test_no_collision_for_native_symbol():
     assert vocab_after == vocab_before  # no new symbols learned
 
 
-def test_target_receiver_bootstrap():
+def test_root_receiver_bootstrap():
     dispatcher = _fresh_dispatcher()
-    assert "@target" in dispatcher.registry
-    assert "#sunyata" in dispatcher.registry["@target"].vocabulary
+    assert "@" in dispatcher.registry
+    assert "#sunyata" in dispatcher.registry["@"].vocabulary
+    assert "#love" in dispatcher.registry["@"].vocabulary
+    assert "#superposition" in dispatcher.registry["@"].vocabulary
 
 
 def test_dispatch_sunyata_sequence():
     """Test the 02-sunyata teaching example through the Python dispatcher.
-    Note: @target is in self.agents, so messages route through message bus
-    (timing out without a running daemon). Scoped lookups also attempt
-    LLM hand-off before falling back to structural responses."""
+    Uses @ (root receiver) instead of @target. @ is not in self.agents,
+    so messages are handled internally. Scoped lookups on @ return
+    canonical global definitions."""
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
-        "@target",
-        "@target.#sunyata",
+        "@",
+        "@.#sunyata",
         "@guardian.#sunyata",
-        "@target contemplate: #fire withContext: @guardian 'the flame that was never lit'",
+        "@guardian contemplate: #fire withContext: @awakener 'the flame that was never lit'",
         "@claude.#sunyata",
     ])
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
-    # Line 1: vocabulary query — always works (not routed through bus)
+    # Line 1: vocabulary query on @
     assert "#sunyata" in results[0]
-    # Line 2: scoped lookup — falls back to "native" after bus timeout
-    assert "native" in results[1] or "#sunyata" in results[1]
-    # Line 3: @guardian.#sunyata — native or collision depending on bootstrap
-    assert "native" in results[2] or "collision" in results[2]
-    # Line 4: message to @target — routes through bus, times out
-    assert "@target" in results[3]
-    # Line 5: @claude.#sunyata — native or collision depending on bootstrap
-    assert "native" in results[4] or "collision" in results[4]
+    # Line 2: @.#sunyata — canonical global definition
+    assert "@.#sunyata" in results[1] and "emptiness" in results[1]
+    # Line 3: @guardian.#sunyata — inherited from @.#
+    assert "inherited" in results[2]
+    # Line 4: message to @guardian (not an agent daemon in fresh dispatcher context)
+    assert "@guardian" in results[3]
+    # Line 5: @claude.#sunyata — inherited from @.# (not in claude's local vocab)
+    assert "inherited" in results[4] or "native" in results[4]
 
 
 def test_manual_save_creates_file():
@@ -174,6 +176,61 @@ def test_manual_save_creates_file():
         path.unlink()
     dispatcher.save(target)
     assert path.exists()
+
+
+def test_root_not_in_agents():
+    dispatcher = _fresh_dispatcher()
+    assert "@" not in dispatcher.agents
+
+
+def test_inheritance_lookup():
+    dispatcher = _fresh_dispatcher()
+    # #love is a global symbol — all receivers inherit it
+    assert "#love" in dispatcher.registry["@guardian"].vocabulary
+    assert dispatcher.registry["@guardian"].is_inherited("#love")
+    assert not dispatcher.registry["@guardian"].is_native("#love")
+
+
+def test_native_overrides_inherited():
+    dispatcher = _fresh_dispatcher()
+    # #entropy is both in @awakener's local vocab AND in global symbols
+    receiver = dispatcher.registry["@awakener"]
+    assert receiver.is_native("#entropy")
+    # Native takes precedence — is_inherited returns False when also local
+    assert not receiver.is_inherited("#entropy")
+
+
+def test_root_vocab_query():
+    dispatcher = _fresh_dispatcher()
+    stmts = Parser.from_source("@.#").parse()
+    results = dispatcher.dispatch(stmts)
+    assert len(results) == 1
+    assert "@.#" in results[0]
+    assert "#sunyata" in results[0] or "#love" in results[0]
+
+
+def test_collision_for_non_global():
+    dispatcher = _fresh_dispatcher()
+    # #fire is native to @guardian, not to @awakener, and not global
+    stmts = Parser.from_source("@awakener.#fire").parse()
+    results = dispatcher.dispatch(stmts)
+    assert len(results) == 1
+    assert "collision" in results[0]
+
+
+def test_save_persists_local_only():
+    """Verify that save() only writes local_vocabulary, not inherited globals."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    dispatcher.save("@guardian")
+    path = Path(tmpdir) / "guardian.vocab"
+    import json
+    with open(path) as f:
+        data = json.load(f)
+    vocab = set(data["vocabulary"])
+    # #fire is local
+    assert "#fire" in vocab
+    # #love is inherited (global), should NOT be persisted
+    assert "#love" not in vocab
 
 
 if __name__ == "__main__":
@@ -189,6 +246,13 @@ if __name__ == "__main__":
     test_dispatch_bootstrap_hw()
     test_dispatch_meta_receiver()
     test_no_collision_for_native_symbol()
-    test_target_receiver_bootstrap()
+    test_root_receiver_bootstrap()
+    test_dispatch_sunyata_sequence()
     test_manual_save_creates_file()
+    test_root_not_in_agents()
+    test_inheritance_lookup()
+    test_native_overrides_inherited()
+    test_root_vocab_query()
+    test_collision_for_non_global()
+    test_save_persists_local_only()
     print("All dispatcher tests passed")

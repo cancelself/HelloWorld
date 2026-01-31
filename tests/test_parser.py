@@ -79,10 +79,10 @@ def test_parse_bootstrap_example():
 
 def test_parse_sunyata_example():
     source = "\n".join([
-        "@target",
-        "@target.#sunyata",
+        "@",
+        "@.#sunyata",
         "@guardian.#sunyata",
-        "@target contemplate: #fire withContext: @guardian 'the flame that was never lit'",
+        "@guardian contemplate: #fire withContext: @awakener 'the flame that was never lit'",
         "@claude.#sunyata",
     ])
     nodes = Parser.from_source(source).parse()
@@ -92,6 +92,23 @@ def test_parse_sunyata_example():
     assert isinstance(nodes[2], ScopedLookupNode)
     assert isinstance(nodes[3], MessageNode)
     assert isinstance(nodes[4], ScopedLookupNode)
+
+
+def test_root_vocabulary_query():
+    """Verify @.# parses as a VocabularyQueryNode for root receiver."""
+    nodes = parse("@.#")
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], VocabularyQueryNode)
+    assert nodes[0].receiver.name == "@"
+
+
+def test_root_scoped_lookup():
+    """Verify @.#sunyata parses as a ScopedLookupNode for root receiver."""
+    nodes = parse("@.#sunyata")
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], ScopedLookupNode)
+    assert nodes[0].receiver.name == "@"
+    assert nodes[0].symbol.name == "#sunyata"
 
 
 def test_missing_vocabulary_bracket_raises():
@@ -111,6 +128,8 @@ if __name__ == "__main__":
     test_vocabulary_query_variants()
     test_parse_bootstrap_example()
     test_parse_sunyata_example()
+    test_root_vocabulary_query()
+    test_root_scoped_lookup()
     test_missing_vocabulary_bracket_raises()
     test_missing_keyword_colon_raises()
     print("All parser tests passed")

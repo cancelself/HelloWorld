@@ -1,9 +1,9 @@
 {
   "receiver": "@awakener",
   "vocabulary": [
+    "#entropy",
     "#insight",
     "#intention",
-    "#love",
     "#sleep",
     "#stillness"
   ]
