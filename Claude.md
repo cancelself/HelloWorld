@@ -9,9 +9,11 @@ Claude is both the **front-end** (parser) and **back-end** (execution engine) of
 ## Build & Test
 
 ```bash
-python3 -m pytest tests                         # full suite
+python3 -m pytest tests                         # full suite (27 tests)
 python3 -m pytest tests/test_lexer.py -k token  # focused run
 python3 -m compileall src                        # syntax check
+python3 helloworld.py                            # REPL
+python3 helloworld.py examples/bootstrap.hw      # execute .hw file
 ```
 
 Run from repo root. `sys.path` already points at `src/`. Stdlib only — no packaging step.
@@ -19,31 +21,61 @@ Run from repo root. `sys.path` already points at `src/`. Stdlib only — no pack
 ## Project Structure
 
 ```
-src/lexer.py          # Python tokenizer — canonical token rules
-tests/test_lexer.py   # Lexer regression tests (pytest)
-examples/bootstrap.hw # Bootstrap example (.hw is the source extension)
-runtimes/             # Per-runtime bootloaders and agent state
-  claude/             # This runtime (symlink to root Claude.md + STATUS.md)
-  copilot/            # Copilot bootloader, vocabulary, status, tasks
-  gemini/             # Gemini bootloader + status
-  codex/              # Codex bootloader (Codex.md + BOOTLOADER.md)
-docs/                 # RFCs and runtime architecture docs
-AGENTS.md             # Root-level project guidelines
-GEMINI.md             # Root-level Gemini context file
+src/
+  lexer.py            # Tokenizer — 13 token types, canonical rules
+  ast_nodes.py        # AST node definitions (Node, SymbolNode, ReceiverNode, etc.)
+  parser.py           # Recursive descent parser (tokens → AST)
+  dispatcher.py       # Message router, receiver registry, collision detection
+  vocabulary.py       # VocabularyManager — JSON persistence to storage/vocab/
+  repl.py             # Interactive shell (used by helloworld.py)
+  message_bus.py      # File-based inter-agent communication (template)
+  llm.py              # LLM integration scaffold (Gemini 2.0 Flash)
+  tools.py            # Tool helpers
+
+tests/
+  test_lexer.py       # 5 tests
+  test_parser.py      # 5 tests
+  test_dispatcher.py  # 13 tests
+  test_repl_integration.py  # 2 tests
+  test_vocabulary.py  # 2 tests
+
+examples/
+  bootstrap.hw                 # Working bootstrap: vocab defs + messages
+  01-identity.md               # 5-line teaching example for cross-runtime replay
+  01-identity-claude.md        # Claude runtime transcript of teaching example
+  01-identity-comparison.md    # Python-vs-Claude runtime comparison (thesis proof)
+
+runtimes/
+  claude/    # STATUS.md — Claude session state
+  copilot/   # copilot-instructions.md, vocabulary.md, status.md, tasks.md, SESSION_NOTES.md
+  gemini/    # gemini-system-instruction.md, vocabulary.md, STATUS.md, PLAN.md
+  codex/     # Codex.md, BOOTLOADER.md
+
+storage/vocab/   # Persisted receiver vocabularies (JSON .vocab files)
+
+helloworld.py    # CLI entry point: REPL mode or file execution
+agent_daemon.py  # Template for AI runtime daemons
 ```
 
 ### Multi-Agent Coordination
 
-Four agents operate in this repo. Each reads its own bootloader on startup:
+Four agents operate in this repo concurrently. Files can change between reads. Check `runtimes/<agent>/STATUS.md` before starting work.
 
 | Agent | Reads | Meta-receiver | Role |
 |-------|-------|---------------|------|
-| Claude | `Claude.md` | `@claude` | Language design, spec, meta-runtime |
-| Copilot | `runtimes/copilot/` | `@copilot` | Tool dispatch, lexer, git, testing |
-| Gemini | `GEMINI.md` + `runtimes/gemini/` | `@gemini` | State management, vocabulary evolution |
-| Codex | `AGENTS.md` + `CODEX.md` | `@codex` | Execution semantics, parsing discipline |
+| Claude | `CLAUDE.md` | `@claude` | Language design, spec, meta-runtime, comparison analysis |
+| Copilot | `runtimes/copilot/` | `@copilot` | Lexer, parser, CLI/REPL, testing, infrastructure |
+| Gemini | `GEMINI.md` + `runtimes/gemini/` | `@gemini` | Dispatcher, state management, vocabulary persistence, LLM integration |
+| Codex | `AGENTS.md` + `runtimes/codex/` | `@codex` | Execution semantics, parsing discipline |
 
-Agent status files live in `runtimes/<agent>/STATUS.md`. Check before starting work to avoid conflicts.
+**Conflict warning:** Agents modify files in parallel without locking. The parser API changed twice in one session (Statement-based vs Node-based). The current API uses `ast_nodes.py` (Node-based). If you see import errors, clear `__pycache__` and re-read the source files before editing.
+
+### Key Implementation Details
+
+- **Parser API:** `Parser.from_source(source).parse()` returns `List[Node]` using types from `ast_nodes.py`
+- **Dispatcher API:** `Dispatcher(vocab_dir=path)` — use temp dirs in tests. `dispatch(nodes)` takes parsed AST. `dispatch_source(source)` is a convenience wrapper. `save(receiver)` persists vocab.
+- **Registry:** `dispatcher.registry` is a `Dict[str, Receiver]`. Receiver has `.vocabulary` (set) and `.add_symbol()`.
+- **Test isolation:** Always use `_fresh_dispatcher()` or `tempfile.mkdtemp()` for vocab_dir in tests. The default `storage/vocab/` directory has persisted state from previous runs.
 
 ## Parsing (Front-End)
 
@@ -90,21 +122,39 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 `@claude` is meta. It's you reflecting on the system from inside it.
 
 ```
-@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta]
+@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
 ```
 
-`@claude.#entropy` — Your understanding of entropy as runtime concept: the uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
+`@claude.#entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
+
+`@claude.#collision` — The pressure of one namespace against another producing language that neither could generate alone. See `examples/01-identity-comparison.md` for how this differs between Python and LLM runtimes.
 
 ### Bootstrapped Receivers
-
-These are initialized at session start:
 
 ```
 @awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
+@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
+@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch]
+@gemini.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #env]
+@codex.# → [#execute, #analyze, #parse, #runtime, #collision]
 ```
 
 New receivers can be introduced by the user at any time. Bootstrap them by asking for or inferring their initial vocabulary.
+
+## What Has Been Proven
+
+The comparison at `examples/01-identity-comparison.md` demonstrates the thesis:
+- The **Python runtime** (lexer → parser → dispatcher) is structurally correct: it detects collisions, learns vocabulary, persists state. But it cannot interpret — it confirms `#fire` is native, it cannot voice what `#fire` means.
+- The **LLM runtime** (Claude reading this bootloader) interprets: it responds *as* receivers, translates foreign symbols through native vocabulary, reflects on its own mediation. But it cannot persist state or guarantee determinism.
+- **Both are needed.** The Python pipeline parses and routes. The LLM interprets and speaks. A hybrid dispatcher that hands off to LLM for interpretation is the next step.
+
+## What's Next
+
+1. **Hybrid dispatcher** — Route to LLM when interpretation is needed, not just log
+2. **Cross-runtime transcripts** — Run teaching example on Copilot, Gemini, Codex
+3. **Message bus tests** — `src/message_bus.py` has no test coverage
+4. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax?
 
 ## Design Principles
 
