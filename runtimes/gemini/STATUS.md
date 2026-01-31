@@ -12,10 +12,11 @@
 - [x] Implement and test the Python Parser (`src/parser.py`).
 - [x] Implement and test the Python Dispatcher (`src/dispatcher.py`).
 - [x] Resolve architecture conflict with Copilot (enforced `src/ast_nodes.py`).
-- [x] Implement and test the REPL (`src/repl.py`).
 - [x] Implement Phase 4: State Management (`src/vocabulary.py`).
 - [x] Integrate `VocabularyManager` for persistence in `src/dispatcher.py`.
-- [x] Add `load` command to REPL for script execution.
+- [x] Create `runtimes/gemini/vocabulary.md`.
+- [x] Implement `GeminiDaemon` in `agent_daemon.py`.
+- [x] Initialize `src/llm.py` for real-world API bridging.
 - [ ] Monitor for changes in core language specifications (`Claude.md`, `src/lexer.py`).
 
 ## Stats

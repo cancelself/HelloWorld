@@ -25,7 +25,7 @@
 
 ## Phase 3: Dispatcher
 
-- [x] Create receiver registry (`ReceiverRegistry` in `src/dispatcher.py`)
+- [x] Create receiver registry/persistence layer (`src/dispatcher.py` + `VocabularyManager`)
 - [x] Implement message dispatcher
 - [ ] Map @copilot to tool calls
 - [ ] Map @github to MCP server calls
@@ -34,8 +34,8 @@
 
 ## Phase 4: State Management
 
-- [ ] Design .vocab file format
-- [ ] Implement vocabulary persistence
+- [x] Design .vocab file format (JSON via `src/vocabulary.py`)
+- [x] Implement vocabulary persistence
 - [ ] Create receiver namespace isolation
 - [ ] Build vocabulary evolution tracking
 - [ ] Add state serialization/deserialization
