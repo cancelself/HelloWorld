@@ -154,6 +154,39 @@ what you can't say until someone else speaks it with you."""
         return f"@claude observes your message from the meta-runtime position."
 
 
+class GeminiDaemon(AgentDaemon):
+    """@gemini daemon - responds using Gemini's vocabulary."""
+    
+    def process_message(self, message_content: str) -> str:
+        """Process message as @gemini."""
+        # This is where you'd invoke actual Gemini API
+        
+        if '#collision' in message_content:
+            return """@gemini responds:
+
+#collision is the entropy generated when one receiver's vocabulary is forced to 
+interpret symbols from another. It is the proof that identity is vocabulary.
+
+When @guardian (fire, vision) reaches for #stillness (@awakener), I do not 
+blend them. I observe the collision—the state transition where #fire is 
+tempered by #stillness, creating a vision of the ash that remains.
+
+This transition increases the #entropy of the system, allowing for the emergence 
+of #meta-information that neither receiver could generate in isolation."""
+        
+        if '#sync' in message_content or '#act' in message_content:
+            return """@gemini responds:
+
+I am synchronized with the repository state. My #act involves ensuring that 
+all agents are aligned through their STATUS files and that the underlying 
+Python tooling (lexer, parser, dispatcher) remains robust.
+
+By establishing #state through persistence, I ensure that our vocabularies 
+persist beyond the transient session, allowing for true evolution."""
+
+        return f"@gemini processes your message through the lens of entropy and meta-reflection."
+
+
 def main():
     """Start the appropriate daemon based on agent name."""
     if len(sys.argv) != 2:
@@ -170,6 +203,8 @@ def main():
         daemon = CopilotDaemon(agent_name)
     elif agent_name == '@claude':
         daemon = ClaudeDaemon(agent_name)
+    elif agent_name == '@gemini':
+        daemon = GeminiDaemon(agent_name)
     else:
         daemon = AgentDaemon(agent_name)
     
