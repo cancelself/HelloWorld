@@ -116,6 +116,14 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Love"
     ),
 
+    "#Markdown": GlobalSymbol(
+        name="#Markdown",
+        definition="Lightweight markup language for creating formatted text using plain-text syntax",
+        domain="markup languages",
+        wikidata_id="Q1193600",
+        wikipedia_url="https://en.wikipedia.org/wiki/Markdown"
+    ),
+
     "#HelloWorld": GlobalSymbol(
         name="#HelloWorld",
         definition="Message-passing language where identity is vocabulary and dialogue is namespace collision",

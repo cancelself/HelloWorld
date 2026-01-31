@@ -53,6 +53,12 @@
     "domain": "programming languages",
     "wikipedia_url": "https://en.wikipedia.org/wiki/Smalltalk"
   },
+  "#Markdown": {
+    "wikidata_id": "Q1193600",
+    "definition": "Lightweight markup language for creating formatted text using plain-text syntax",
+    "domain": "markup languages",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Markdown"
+  },
   "#HelloWorld": {
     "wikidata_id": null,
     "definition": "Message-passing language where identity is vocabulary and dialogue is namespace collision",

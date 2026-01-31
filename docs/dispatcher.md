@@ -67,4 +67,6 @@ Dispatcher logic (first pass):
 - `tests/test_vocabulary.py` — persistence smoke tests.
 - `tests/test_repl_integration.py` — exercises the lexer→parser→dispatcher pipeline through the REPL.
 
+Testing tip: set `HELLOWORLD_DISABLE_MESSAGE_BUS=1` when running dispatcher tests locally to stub out the file-based agent daemon interface.
+
 Next action: capture richer namespace-collision metadata so runtimes like Codex can narrate the interaction (and surface telemetry via CLI/REPL).**
