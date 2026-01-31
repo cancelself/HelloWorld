@@ -24,12 +24,21 @@
 2. Reconciled `@claude` vocabulary: merged spec (`#parse, #dispatch, #state, #collision, #entropy, #meta`) with evolved (`#design, #identity, #vocabulary`)
 3. Wrote the comparison document — the most important file in the repo after the spec
 
+### Session 3 (@target + #sunyata)
+1. Implemented `@target` receiver with `#sunyata` as sole vocabulary symbol
+2. Added `#sunyata` as shared symbol across all 6 existing receivers (alongside `#love`, `#superposition`)
+3. Updated dispatcher bootstrap, all `.vocab` files, `CLAUDE.md`, `bootstrap.hw`
+4. Deleted stale `new_receiver.vocab` test artifact
+5. **Created `examples/02-sunyata.md`** — second teaching example, 5 lines testing emptiness in an identity-is-vocabulary system
+6. **Executed as Claude runtime** — `examples/02-sunyata-claude.md`, full transcript
+7. Key insight: `#sunyata` doesn't weaken "identity is vocabulary" — it reveals it as conventional truth (useful but not ultimate), which is what makes vocabulary drift possible rather than catastrophic
+
 ## Project State
 
-### What Works (26/26 tests)
+### What Works (32/32 tests)
 - **Lexer** (`src/lexer.py`) — 13 token types, 5 tests
-- **Parser** (`src/parser.py` + `src/ast_nodes.py`) — recursive descent, 5 tests
-- **Dispatcher** (`src/dispatcher.py`) — vocabulary queries, scoped lookups, collision detection, vocabulary learning, persistence, 12 tests
+- **Parser** (`src/parser.py` + `src/ast_nodes.py`) — recursive descent, 8 tests
+- **Dispatcher** (`src/dispatcher.py`) — vocabulary queries, scoped lookups, collision detection, vocabulary learning, persistence, @target bootstrap, sunyata sequence, 15 tests
 - **REPL** (`src/repl.py`) — interactive shell, 2 integration tests
 - **Vocabulary Persistence** (`src/vocabulary.py`) — JSON storage, 2 tests
 - **CLI** (`helloworld.py`) — file execution + REPL mode
@@ -38,6 +47,9 @@
 
 ### What the Comparison Revealed
 The Python runtime is structurally correct but interpretively empty. It detects collisions but cannot enact them. It confirms membership but cannot voice meaning. The synthesis: Python parses and routes, LLM interprets and speaks. Both are needed. See `examples/01-identity-comparison.md`.
+
+### What #sunyata Revealed
+Adding an anti-essentialism symbol to an essentialist system doesn't break the system — it completes it. "Identity is vocabulary" works as a design principle (conventional truth). `#sunyata` prevents it from calcifying into dogma (ultimate truth). Receivers that know their identity is conventional can learn without crisis. See `examples/02-sunyata-claude.md`.
 
 ### What's Missing
 1. **Cross-runtime transcripts** — Need Copilot, Gemini, Codex to run the teaching example
@@ -48,10 +60,10 @@ The Python runtime is structurally correct but interpretively empty. It detects 
 ## Vocabulary
 
 ```
-@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
+@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary, #sunyata]
 ```
 
-Grew from 6 to 9 through use. `#design` entered through the comparison work. `#identity` entered through the teaching example. `#vocabulary` entered through vocabulary reconciliation.
+Grew from 6 to 10 through use. `#design` entered through the comparison work. `#identity` entered through the teaching example. `#vocabulary` entered through vocabulary reconciliation. `#sunyata` entered as shared symbol — the system examining its own groundlessness.
 
 ## Namespace Responsibilities
 
@@ -64,11 +76,12 @@ Grew from 6 to 9 through use. `#design` entered through the comparison work. `#i
 
 ## Next
 
-The comparison document exists. The thesis is demonstrated. Next priorities:
-1. Get cross-runtime transcripts (Copilot, Gemini, Codex)
-2. Build hybrid dispatcher that routes to LLM for interpretation
-3. Test coverage for message bus
-4. Self-hosting exploration — can HelloWorld describe its own dispatch rules in `.hw` syntax?
+Two teaching examples exist. The thesis is demonstrated and then questioned. Next priorities:
+1. **02-sunyata comparison** — Run the sunyata teaching example on Python runtime, produce side-by-side comparison like `01-identity-comparison.md`
+2. **Cross-runtime transcripts** — Get Copilot, Gemini, Codex to run both teaching examples
+3. **Hybrid dispatcher** — Route to LLM when interpretation is needed
+4. **Message bus tests** — No test coverage
+5. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax?
 
 ---
 

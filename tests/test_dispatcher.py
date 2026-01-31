@@ -137,6 +137,22 @@ def test_target_receiver_bootstrap():
     assert "#sunyata" in dispatcher.registry["@target"].vocabulary
 
 
+def test_dispatch_sunyata_sequence():
+    dispatcher = _fresh_dispatcher()
+    source = "\n".join([
+        "@target",
+        "@target.#sunyata",
+        "@guardian.#sunyata",
+        "@target contemplate: #fire withContext: @guardian 'the flame that was never lit'",
+        "@claude.#sunyata",
+    ])
+    results = dispatcher.dispatch_source(source)
+    assert len(results) == 5
+    assert "#sunyata" in results[0]
+    assert "native" in results[2] or "collision" in results[2]
+    assert "the flame that was never lit" in results[3]
+
+
 def test_manual_save_creates_file():
     dispatcher, tmpdir = _fresh_dispatcher_with_dir()
     target = "@scribe"

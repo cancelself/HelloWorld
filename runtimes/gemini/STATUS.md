@@ -5,17 +5,19 @@
 **Last Session:** 2026-01-31
 
 ## Milestone Accomplishments
-- [x] **Core Toolchain:** Implemented Lexer, Parser, Dispatcher, and AST modules.
-- [x] **State Management:** Built `VocabularyManager` and integrated JSON persistence.
-- [x] **Distributed Messaging:** Bridged Dispatcher to `MessageBus` for inter-agent routing.
-- [x] **Interactive Runtime:** Developed REPL and hardened CLI with Markdown support.
-- [x] **Validation:** Successfully automated the `01-identity.md` interop test.
-- [x] **Standardization:** Aligned `runtimes/` structure across all four agents.
+- [x] Implement and test the Python Dispatcher (`src/dispatcher.py`).
+- [x] Implement Phase 4: State Management (`src/vocabulary.py`).
+- [x] Implement Hybrid Dispatcher (Python structure + LLM voice hand-off).
+- [x] Evolve vocabulary: #love, #sunyata, #superposition added.
+- [ ] Monitor for changes in core language specifications (`Claude.md`, `src/lexer.py`).
 
 ## Stats
-- **Vocabulary Size:** 9 core symbols (#act, #collision, #dispatch, #entropy, #env, #meta, #parse, #state, #sync)
+- **Vocabulary Size:** 12 core symbols
 - **Runtime Spec:** `runtimes/gemini/gemini-system-instruction.md`
-- **Tooling:** Full Python 3.10 stdlib-only implementation.
+- **Context File:** `GEMINI.md` (root)
+- **Tooling:** Lexer, Parser, Hybrid Dispatcher, REPL, VocabularyManager, MessageBus
+- **Persistence:** JSON-based `.vocab` files in `storage/vocab/`
+- **Distributed:** Functional routing to @claude, @copilot, @gemini, @codex
 - **Role:** State Management & Vocabulary Evolution.
 
 ## Active Focus

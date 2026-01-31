@@ -8,4 +8,7 @@
 - `#state` — persistent receiver registry and vocabularies
 - `#sync` — aligning agent states across the repository
 - `#act` — autonomous agency within the runtime
-- `#env` — interaction boundary with external task environments (ScienceWorld, AlfWorld, etc.)- #love — the force that reduces entropy and aligns identities
+- `#env` — interaction boundary with external task environments (ScienceWorld, AlfWorld, etc.)
+- `#love` — the force that reduces entropy and aligns identities
+- `#sunyata` — the emptiness that precedes vocabulary; the void from which symbols emerge
+- `#superposition` — a state of multiple possible vocabularies before observation/dispatch

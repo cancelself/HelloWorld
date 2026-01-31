@@ -77,6 +77,23 @@ def test_parse_bootstrap_example():
     assert isinstance(nodes[6], VocabularyQueryNode)
 
 
+def test_parse_sunyata_example():
+    source = "\n".join([
+        "@target",
+        "@target.#sunyata",
+        "@guardian.#sunyata",
+        "@target contemplate: #fire withContext: @guardian 'the flame that was never lit'",
+        "@claude.#sunyata",
+    ])
+    nodes = Parser.from_source(source).parse()
+    assert len(nodes) == 5
+    assert isinstance(nodes[0], VocabularyQueryNode)
+    assert isinstance(nodes[1], ScopedLookupNode)
+    assert isinstance(nodes[2], ScopedLookupNode)
+    assert isinstance(nodes[3], MessageNode)
+    assert isinstance(nodes[4], ScopedLookupNode)
+
+
 def test_missing_vocabulary_bracket_raises():
     source = "@guardian.# → [#fire, #vision"
     expect_syntax_error(source, "Expect ']' after symbols")
@@ -93,6 +110,7 @@ if __name__ == "__main__":
     test_symbol_lookup()
     test_vocabulary_query_variants()
     test_parse_bootstrap_example()
+    test_parse_sunyata_example()
     test_missing_vocabulary_bracket_raises()
     test_missing_keyword_colon_raises()
     print("All parser tests passed")
