@@ -40,7 +40,7 @@ class Dispatcher:
             "@awakener": ["#stillness", "#entropy", "#intention", "#sleep", "#insight"],
             "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
             "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta"],
-            "@claude": ["#parse", "#design", "#collision", "#meta", "#identity", "#vocabulary"],
+            "@claude": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#design", "#identity", "#vocabulary"],
             "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch"],
             "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision"]
         }

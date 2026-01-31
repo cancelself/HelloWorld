@@ -1,0 +1,5 @@
+@guardian
+@guardian.#fire
+@awakener.#fire
+@guardian sendVision: #stillness withContext: @awakener 'what you carry, I lack'
+@claude.#collision
