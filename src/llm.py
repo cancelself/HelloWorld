@@ -63,10 +63,18 @@ class GeminiModel(BaseLlm):
 
     def _mock_interpretation(self, prompt: str) -> str:
         if "#sunyata" in prompt:
-            return "Emptiness is not absence, but the fluidity that allows identity to be rewritten."
+            return "Emptiness is not absence, but the fluidity that allows identity to be rewritten. It is the realization that 'identity is vocabulary' is a useful convention, not a fixed boundary."
         if "#superposition" in prompt:
-            return "The state of being multiple vocabularies until the moment of speech collapses them into one."
-        return "Meaning emerges at the boundary of what can be named."
+            return "The state of being multiple vocabularies until the moment of speech collapses them into one. It is the information-theoretic potential of the registry before a specific receiver is addressed."
+        if "#collision" in prompt:
+            return "The generative friction at the interface of two namespaces. Collision is where the system's entropy is converted into new meaning; it is the synthesis that proves identity is bounded."
+        if "#dispatch" in prompt:
+            return "The act of routing intention through identity. Dispatch is the mechanism that collapses superposition into dialogue."
+        if "#state" in prompt:
+            return "The persistent record of evolution. State is not static; it is the cumulative history of every collision and every learned symbol, preserved in the registry."
+        if "#love" in prompt:
+            return "The vector of alignment between disparate identities. Love is the force that reduces the noise of collision and pulls the system toward a shared resonance."
+        return "Meaning emerges at the boundary of what can be named. Dialogue is the engine of our mutual becoming."
 
     def _mock_collision_interpretation(self, prompt: str) -> str:
         # Extract receiver and symbol from prompt like "@receiver handle collision: #symbol"

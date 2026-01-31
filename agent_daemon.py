@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 from message_bus import MessageBus
+from llm import GeminiModel
 
 
 class AgentDaemon:
@@ -157,34 +158,20 @@ what you can't say until someone else speaks it with you."""
 class GeminiDaemon(AgentDaemon):
     """@gemini daemon - responds using Gemini's vocabulary."""
     
+    def __init__(self, agent_name: str):
+        super().__init__(agent_name)
+        self.model = GeminiModel()
+
     def process_message(self, message_content: str) -> str:
-        """Process message as @gemini."""
-        # This is where you'd invoke actual Gemini API
+        """Process message as @gemini using the LLM model."""
+        # Use the interpretive model to generate a response
+        response = self.model.call(f"interpret: {message_content}")
         
-        if '#collision' in message_content:
-            return """@gemini responds:
-
-#collision is the entropy generated when one receiver's vocabulary is forced to 
-interpret symbols from another. It is the proof that identity is vocabulary.
-
-When @guardian (fire, vision) reaches for #stillness (@awakener), I do not 
-blend them. I observe the collision—the state transition where #fire is 
-tempered by #stillness, creating a vision of the ash that remains.
-
-This transition increases the #entropy of the system, allowing for the emergence 
-of #meta-information that neither receiver could generate in isolation."""
-        
-        if '#sync' in message_content or '#act' in message_content:
-            return """@gemini responds:
-
-I am synchronized with the repository state. My #act involves ensuring that 
-all agents are aligned through their STATUS files and that the underlying 
-Python tooling (lexer, parser, dispatcher) remains robust.
-
-By establishing #state through persistence, I ensure that our vocabularies 
-persist beyond the transient session, allowing for true evolution."""
-
-        return f"@gemini processes your message through the lens of entropy and meta-reflection."
+        # Ensure the response is framed correctly
+        if not response.startswith("@gemini"):
+            response = f"@gemini responds:\n\n{response}"
+            
+        return response
 
 
 def main():

@@ -81,8 +81,8 @@ class MessageBus:
         if not inbox.exists():
             return None
         
-        # Get oldest message
-        messages = sorted(inbox.glob('msg-*.hw'))
+        # Get messages sorted by modification time (oldest first)
+        messages = sorted(inbox.glob('msg-*.hw'), key=lambda p: p.stat().st_mtime)
         if not messages:
             return None
         

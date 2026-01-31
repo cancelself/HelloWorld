@@ -99,6 +99,14 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikidata_id=None,
         wikipedia_url=None
     ),
+    
+    "#Smalltalk": GlobalSymbol(
+        name="#Smalltalk",
+        definition="Object-oriented programming language where everything is an object and computation happens via message passing",
+        domain="programming languages",
+        wikidata_id="Q235086",
+        wikipedia_url="https://en.wikipedia.org/wiki/Smalltalk"
+    ),
 }
 
 
