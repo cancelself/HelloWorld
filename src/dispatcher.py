@@ -1,170 +1,141 @@
-"""HelloWorld Dispatcher - Routes parsed AST nodes to receiver handlers."""
+"""HelloWorld Dispatcher - Executes AST nodes and manages receiver state."""
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from lexer import Lexer
-from parser import (
-    Parser, Statement, VocabularyDefinition, VocabularyQuery,
-    SymbolLookup, Message, ValueType,
+from ast_nodes import (
+    LiteralNode,
+    MessageNode,
+    Node,
+    ReceiverNode,
+    ScopedLookupNode,
+    SymbolNode,
+    VocabularyDefinitionNode,
+    VocabularyQueryNode,
 )
+from parser import Parser
 
 
-@dataclass
 class Receiver:
-    name: str
-    vocabulary: List[str] = field(default_factory=list)
+    def __init__(self, name: str, vocabulary: List[str] = None):
+        self.name = name
+        self.vocabulary = set(vocabulary) if vocabulary else set()
 
+    def add_symbol(self, symbol: str):
+        self.vocabulary.add(symbol)
 
-@dataclass
-class DispatchResult:
-    kind: str  # "vocabulary", "scoped_lookup", "message", "definition", "error"
-    receiver: str
-    data: dict = field(default_factory=dict)
+    def __repr__(self):
+        return f"{self.name}.# → {sorted(list(self.vocabulary))}"
 
 
 class ReceiverRegistry:
+    """Dictionary-like wrapper with helper methods for REPL tooling."""
+
     def __init__(self):
         self._receivers: Dict[str, Receiver] = {}
 
-    def register(self, name: str, vocabulary: Optional[List[str]] = None) -> Receiver:
-        if name not in self._receivers:
-            self._receivers[name] = Receiver(name, vocabulary or [])
-        elif vocabulary:
-            self._receivers[name].vocabulary = vocabulary
-        return self._receivers[name]
-
-    def get(self, name: str) -> Optional[Receiver]:
-        return self._receivers.get(name)
-
-    def has(self, name: str) -> bool:
+    def __contains__(self, name: str) -> bool:
         return name in self._receivers
 
+    def __getitem__(self, name: str) -> Receiver:
+        return self._receivers[name]
+
+    def get_or_create(self, name: str) -> Receiver:
+        if name not in self._receivers:
+            self._receivers[name] = Receiver(name)
+        return self._receivers[name]
+
+    def register(self, name: str, symbols: List[str]):
+        self._receivers[name] = Receiver(name, symbols)
+
+    def list_receivers(self) -> List[str]:
+        return sorted(self._receivers.keys())
+
     def vocabulary(self, name: str) -> List[str]:
-        receiver = self.get(name)
-        if receiver is None:
-            return []
-        return list(receiver.vocabulary)
-
-    def has_symbol(self, receiver_name: str, symbol: str) -> bool:
-        receiver = self.get(receiver_name)
-        if receiver is None:
-            return False
-        return symbol in receiver.vocabulary
-
-    def add_symbol(self, receiver_name: str, symbol: str):
-        receiver = self.get(receiver_name)
-        if receiver and symbol not in receiver.vocabulary:
-            receiver.vocabulary.append(symbol)
-
-    def receivers(self) -> List[str]:
-        return list(self._receivers.keys())
-
-
-def _bootstrap_registry() -> ReceiverRegistry:
-    registry = ReceiverRegistry()
-    registry.register("@awakener", [
-        "#stillness", "#entropy", "#intention", "#sleep", "#insight",
-    ])
-    registry.register("@guardian", [
-        "#fire", "#vision", "#challenge", "#gift", "#threshold",
-    ])
-    registry.register("@claude", [
-        "#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta",
-    ])
-    return registry
+        receiver = self.get_or_create(name)
+        return sorted(receiver.vocabulary)
 
 
 class Dispatcher:
-    def __init__(self, registry: Optional[ReceiverRegistry] = None):
-        self.registry = registry or _bootstrap_registry()
+    def __init__(self):
+        self.registry = ReceiverRegistry()
+        self._bootstrap()
 
-    def dispatch(self, source: str) -> List[DispatchResult]:
-        statements = Parser.from_source(source).parse()
-        return self.dispatch_statements(statements)
+    def _bootstrap(self):
+        """Initialize default receivers."""
+        self.registry.register("@awakener", ["#stillness", "#entropy", "#intention", "#sleep", "#insight"])
+        self.registry.register("@guardian", ["#fire", "#vision", "#challenge", "#gift", "#threshold"])
+        self.registry.register("@gemini", ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta"])
+        self.registry.register("@claude", ["#parse", "#design", "#collision", "#meta", "#identity", "#vocabulary"])
+        self.registry.register("@copilot", ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch"])
+        self.registry.register("@codex", ["#execute", "#analyze", "#parse", "#runtime", "#collision"])
 
-    def dispatch_statements(self, statements: List[Statement]) -> List[DispatchResult]:
+    def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []
-        for stmt in statements:
-            result = self._dispatch_statement(stmt)
+        for node in nodes:
+            result = self._execute(node)
             if result:
                 results.append(result)
         return results
 
-    def _dispatch_statement(self, stmt: Statement) -> Optional[DispatchResult]:
-        if isinstance(stmt, VocabularyDefinition):
-            return self._handle_definition(stmt)
-        if isinstance(stmt, VocabularyQuery):
-            return self._handle_vocabulary_query(stmt)
-        if isinstance(stmt, SymbolLookup):
-            return self._handle_scoped_lookup(stmt)
-        if isinstance(stmt, Message):
-            return self._handle_message(stmt)
+    def dispatch_source(self, source: str) -> List[str]:
+        nodes = Parser.from_source(source).parse()
+        return self.dispatch(nodes)
+
+    def _execute(self, node: Node) -> Optional[str]:
+        if isinstance(node, VocabularyQueryNode):
+            return self._handle_query(node)
+        if isinstance(node, ScopedLookupNode):
+            return self._handle_scoped_lookup(node)
+        if isinstance(node, VocabularyDefinitionNode):
+            return self._handle_definition(node)
+        if isinstance(node, MessageNode):
+            return self._handle_message(node)
         return None
 
-    def _handle_definition(self, stmt: VocabularyDefinition) -> DispatchResult:
-        self.registry.register(stmt.receiver, list(stmt.symbols))
-        return DispatchResult(
-            kind="definition",
-            receiver=stmt.receiver,
-            data={"vocabulary": list(stmt.symbols)},
-        )
+    def _handle_query(self, node: VocabularyQueryNode) -> str:
+        receiver = self._get_or_create_receiver(node.receiver.name)
+        return str(receiver)
 
-    def _handle_vocabulary_query(self, stmt: VocabularyQuery) -> DispatchResult:
-        if not self.registry.has(stmt.receiver):
-            return DispatchResult(
-                kind="error",
-                receiver=stmt.receiver,
-                data={"error": f"Unknown receiver: {stmt.receiver}"},
-            )
-        return DispatchResult(
-            kind="vocabulary",
-            receiver=stmt.receiver,
-            data={"vocabulary": self.registry.vocabulary(stmt.receiver)},
-        )
+    def _handle_scoped_lookup(self, node: ScopedLookupNode) -> str:
+        receiver_name = node.receiver.name
+        symbol_name = node.symbol.name
+        receiver = self._get_or_create_receiver(receiver_name)
+        
+        if symbol_name in receiver.vocabulary:
+            return f"{receiver_name}.{symbol_name} is native to this identity."
+        else:
+            return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
 
-    def _handle_scoped_lookup(self, stmt: SymbolLookup) -> DispatchResult:
-        if not self.registry.has(stmt.receiver):
-            return DispatchResult(
-                kind="error",
-                receiver=stmt.receiver,
-                data={"error": f"Unknown receiver: {stmt.receiver}"},
-            )
-        native = self.registry.has_symbol(stmt.receiver, stmt.symbol)
-        return DispatchResult(
-            kind="scoped_lookup",
-            receiver=stmt.receiver,
-            data={
-                "symbol": stmt.symbol,
-                "native": native,
-                "vocabulary": self.registry.vocabulary(stmt.receiver),
-            },
-        )
+    def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
+        receiver = self._get_or_create_receiver(node.receiver.name)
+        for sym in node.symbols:
+            receiver.add_symbol(sym.name)
+        return f"Updated {receiver.name} vocabulary."
 
-    def _handle_message(self, stmt: Message) -> DispatchResult:
-        if not self.registry.has(stmt.receiver):
-            return DispatchResult(
-                kind="error",
-                receiver=stmt.receiver,
-                data={"error": f"Unknown receiver: {stmt.receiver}"},
-            )
-        arguments = {}
-        for kw in stmt.keywords:
-            arguments[kw.name] = kw.value.value
+    def _handle_message(self, node: MessageNode) -> str:
+        receiver = self._get_or_create_receiver(node.receiver.name)
+        # In the real runtime, this would trigger an LLM response.
+        # For the Python implementation, we'll log the dispatch and any symbol learning.
+        args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
+        
+        # Logic: If an argument is a symbol the receiver doesn't know, they might learn it.
+        for val in node.arguments.values():
+            if isinstance(val, SymbolNode):
+                if val.name not in receiver.vocabulary:
+                    receiver.add_symbol(val.name)
+        
+        response = f"[{receiver.name}] Received message: {args_str}"
+        if node.annotation:
+            response += f" '{node.annotation}'"
+        return response
 
-        collisions = []
-        for kw in stmt.keywords:
-            if kw.value.kind == ValueType.SYMBOL:
-                if not self.registry.has_symbol(stmt.receiver, kw.value.value):
-                    collisions.append(kw.value.value)
+    def _node_val(self, node: Node) -> str:
+        if isinstance(node, SymbolNode): return node.name
+        if isinstance(node, ReceiverNode): return node.name
+        if isinstance(node, LiteralNode): return str(node.value)
+        return str(node)
 
-        return DispatchResult(
-            kind="message",
-            receiver=stmt.receiver,
-            data={
-                "arguments": arguments,
-                "annotation": stmt.annotation,
-                "collisions": collisions,
-                "vocabulary": self.registry.vocabulary(stmt.receiver),
-            },
-        )
+    def _get_or_create_receiver(self, name: str) -> Receiver:
+        if name not in self.registry:
+            self.registry[name] = Receiver(name)
+        return self.registry[name]

@@ -10,10 +10,13 @@
 - [x] Verify existence of `runtimes/gemini/gemini-system-instruction.md`.
 - [x] Validate language design via `examples/01-identity.md` (Gemini Runtime).
 - [x] Implement and test the Python Parser (`src/parser.py`).
+- [x] Implement and test the Python Dispatcher (`src/dispatcher.py`).
+- [x] Resolve architecture conflict with Copilot (enforced `src/ast_nodes.py`).
+- [x] Implement and test the REPL (`src/repl.py`).
 - [ ] Monitor for changes in core language specifications (`Claude.md`, `src/lexer.py`).
 
 ## Stats
 - **Runtime Spec:** `runtimes/gemini/gemini-system-instruction.md`
 - **Context File:** `GEMINI.md` (root)
-- **Tooling:** Lexer (`src/lexer.py`), Parser (`src/parser.py`)
+- **Tooling:** Lexer, Parser, Dispatcher, REPL
 - **Role:** Project Context Awareness & Runtime Execution (Simulated)

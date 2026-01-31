@@ -13,17 +13,19 @@
 - [x] Simulate execution based on `runtimes/gemini/gemini-system-instruction.md`.
 - [x] Record the output (especially the namespace collision behavior) to `runtimes/gemini/validation_output.md`.
 
-## 3. Implementation: Parser (Completed)
-**Goal:** Build the actual Python parser to convert tokens into an Abstract Syntax Tree (AST).
+## 3. Implementation: Parser & Dispatcher (Completed)
+**Goal:** Build the actual Python parser and dispatcher to enable stateful execution.
 
-- [x] Create `src/parser.py`.
-- [x] Define AST nodes (Message, Receiver, Symbol, etc.).
-- [x] Implement recursive descent parsing for:
-    - Receiver lookup (`@name`)
-    - Vocabulary query (`@name.#`)
-    - Keyword messages (`@name action: #symbol`)
-- [x] Create `tests/test_parser.py` and verify against `examples/bootstrap.hw`.
+- [x] Create `src/ast_nodes.py` to centralize the AST.
+- [x] Create `src/parser.py` (Recursive Descent).
+- [x] Create `src/dispatcher.py` (Receiver Registry & Execution).
+- [x] Create `tests/test_parser.py` and `tests/test_dispatcher.py`.
 
-## 4. Coordination
-- [ ] Update `runtimes/gemini/STATUS.md` with progress.
-- [ ] Check `runtimes/copilot/status.md` for potential collaboration on the Dispatcher.
+## 4. Implementation: REPL (Completed)
+**Goal:** Create an interactive shell to run HelloWorld code line-by-line.
+
+- [x] Create `src/repl.py`.
+- [x] Integrate Lexer, Parser, and Dispatcher.
+- [x] Maintain state across multiple lines of input.
+- [x] Add basic error handling.
+- [x] Verify via `tests/test_repl_integration.py`.
