@@ -16,6 +16,15 @@ def parse(source: str):
     return Parser.from_source(source).parse()
 
 
+def expect_syntax_error(source: str, snippet: str):
+    try:
+        Parser.from_source(source).parse()
+    except SyntaxError as exc:
+        assert snippet in str(exc)
+        return
+    raise AssertionError("Expected SyntaxError")
+
+
 def test_vocabulary_definition():
     nodes = parse("@guardian.# \u2192 [#fire, #vision]")
     assert len(nodes) == 1
@@ -58,13 +67,24 @@ def test_vocabulary_query_variants():
 def test_parse_bootstrap_example():
     bootstrap = Path(__file__).parent.parent / "examples" / "bootstrap.hw"
     nodes = Parser.from_source(bootstrap.read_text()).parse()
-    assert len(nodes) == 6
+    assert len(nodes) == 7
     assert isinstance(nodes[0], VocabularyDefinitionNode)
     assert isinstance(nodes[1], VocabularyDefinitionNode)
-    assert isinstance(nodes[2], MessageNode)
+    assert isinstance(nodes[2], VocabularyDefinitionNode)
     assert isinstance(nodes[3], MessageNode)
-    assert isinstance(nodes[4], ScopedLookupNode)
-    assert isinstance(nodes[5], VocabularyQueryNode)
+    assert isinstance(nodes[4], MessageNode)
+    assert isinstance(nodes[5], ScopedLookupNode)
+    assert isinstance(nodes[6], VocabularyQueryNode)
+
+
+def test_missing_vocabulary_bracket_raises():
+    source = "@guardian.# → [#fire, #vision"
+    expect_syntax_error(source, "Expect ']' after symbols")
+
+
+def test_missing_keyword_colon_raises():
+    source = "@guardian sendVision #fire"
+    expect_syntax_error(source, "Expect ':' after keyword 'sendVision'")
 
 
 if __name__ == "__main__":
@@ -73,4 +93,6 @@ if __name__ == "__main__":
     test_symbol_lookup()
     test_vocabulary_query_variants()
     test_parse_bootstrap_example()
+    test_missing_vocabulary_bracket_raises()
+    test_missing_keyword_colon_raises()
     print("All parser tests passed")

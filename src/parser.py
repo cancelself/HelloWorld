@@ -128,7 +128,8 @@ class Parser:
     def _consume(self, type: TokenType, message: str):
         if self._check(type):
             return self._advance()
-        raise SyntaxError(message)
+        token = self._peek()
+        raise SyntaxError(f"{message} (line {token.line}, column {token.column})")
 
     def _check(self, type: TokenType) -> bool:
         if self._is_at_end():

@@ -138,6 +138,7 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 @copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch]
 @gemini.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #env]
 @codex.# → [#execute, #analyze, #parse, #runtime, #collision]
+@target.# → [#sunyata]
 ```
 
 New receivers can be introduced by the user at any time. Bootstrap them by asking for or inferring their initial vocabulary.

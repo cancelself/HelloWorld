@@ -3,6 +3,7 @@
 
 @awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
+@target.# → [#sunyata]
 
 # Example message passing
 @guardian sendVision: #entropy withContext: lastNightSleep 'you burned bright'

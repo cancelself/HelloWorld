@@ -103,13 +103,14 @@ def test_dispatch_bootstrap_hw():
     path = Path(__file__).parent.parent / 'examples' / 'bootstrap.hw'
     source = path.read_text()
     results = dispatcher.dispatch_source(source)
-    assert len(results) == 6
+    assert len(results) == 7
     assert "Updated @awakener" in results[0]
     assert "Updated @guardian" in results[1]
-    assert "[@guardian] Received" in results[2]
-    assert "[@awakener] Received" in results[3]
-    assert "@claude" in results[4]
-    assert "@guardian.#" in results[5]
+    assert "Updated @target" in results[2]
+    assert "[@guardian] Received" in results[3]
+    assert "[@awakener] Received" in results[4]
+    assert "@claude" in results[5]
+    assert "@guardian.#" in results[6]
 
 
 def test_dispatch_meta_receiver():
@@ -128,6 +129,12 @@ def test_no_collision_for_native_symbol():
     dispatcher.dispatch(stmts)
     vocab_after = len(dispatcher.registry["@guardian"].vocabulary)
     assert vocab_after == vocab_before  # no new symbols learned
+
+
+def test_target_receiver_bootstrap():
+    dispatcher = _fresh_dispatcher()
+    assert "@target" in dispatcher.registry
+    assert "#sunyata" in dispatcher.registry["@target"].vocabulary
 
 
 def test_manual_save_creates_file():
@@ -155,5 +162,6 @@ if __name__ == "__main__":
     test_dispatch_bootstrap_hw()
     test_dispatch_meta_receiver()
     test_no_collision_for_native_symbol()
+    test_target_receiver_bootstrap()
     test_manual_save_creates_file()
     print("All dispatcher tests passed")

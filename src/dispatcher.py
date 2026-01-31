@@ -42,7 +42,8 @@ class Dispatcher:
             "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta"],
             "@claude": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#design", "#identity", "#vocabulary"],
             "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch"],
-            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision"]
+            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision"],
+            "@target": ["#sunyata"]
         }
         
         for name, initial_vocab in defaults.items():
