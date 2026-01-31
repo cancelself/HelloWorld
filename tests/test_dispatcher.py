@@ -21,7 +21,7 @@ def test_dispatch_query():
     stmts = Parser.from_source("@guardian").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "@guardian.# " in results[0]
+    assert "@guardian.#" in results[0]
     assert "#fire" in results[0]
 
 
@@ -112,8 +112,8 @@ def test_no_collision_for_native_symbol():
     source = "@guardian sendVision: #fire"
     stmts = Parser.from_source(source).parse()
     dispatcher.dispatch(stmts)
-    vocab_before = len(dispatcher.registry["@guardian"].vocabulary)
-    assert vocab_before == 5  # no new symbols learned
+    vocab_size = len(dispatcher.registry["@guardian"].vocabulary)
+    assert vocab_size == 5  # no new symbols learned
 
 
 if __name__ == "__main__":

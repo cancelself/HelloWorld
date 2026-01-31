@@ -25,12 +25,12 @@
 
 ## Phase 3: Dispatcher
 
-- [ ] Create receiver registry
-- [ ] Implement message dispatcher
+- [x] Create receiver registry (`ReceiverRegistry` in `src/dispatcher.py`)
+- [x] Implement message dispatcher
 - [ ] Map @copilot to tool calls
 - [ ] Map @github to MCP server calls
-- [ ] Handle unknown receivers
-- [ ] Implement vocabulary query resolution
+- [x] Handle unknown receivers
+- [x] Implement vocabulary query resolution
 
 ## Phase 4: State Management
 
@@ -43,12 +43,12 @@
 ## Phase 5: REPL
 
 - [x] Build interactive prompt
-- [x] Implement session history
+- [ ] Implement session history
 - [ ] Add command completion
-- [x] Create help system (@copilot.#)
-- [ ] Write REPL tests
+- [x] Create help system (`helloworld.py` CLI `.help`)
+- [x] Write REPL tests (`tests/test_repl_integration.py`)
 
-**Status**: COMPLETE ✓ — `helloworld.py` CLI built by @copilot autonomous action
+**Status**: CLI+REPL online; completion features pending.
 
 ## Phase 6: Multi-Agent Communication
 

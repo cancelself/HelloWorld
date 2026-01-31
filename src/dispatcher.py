@@ -44,7 +44,7 @@ class ReceiverRegistry:
             self._receivers[name] = Receiver(name)
         return self._receivers[name]
 
-    def register(self, name: str, symbols: List[str]):
+    def register(self, name: str, symbols: Optional[List[str]] = None):
         self._receivers[name] = Receiver(name, symbols)
 
     def list_receivers(self) -> List[str]:
@@ -136,6 +136,4 @@ class Dispatcher:
         return str(node)
 
     def _get_or_create_receiver(self, name: str) -> Receiver:
-        if name not in self.registry:
-            self.registry[name] = Receiver(name)
-        return self.registry[name]
+        return self.registry.get_or_create(name)
