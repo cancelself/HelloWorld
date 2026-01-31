@@ -4,7 +4,9 @@
     "#analyze",
     "#collision",
     "#execute",
+    "#love",
     "#parse",
-    "#runtime"
+    "#runtime",
+    "#superposition"
   ]
 }

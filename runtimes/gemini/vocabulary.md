@@ -8,4 +8,4 @@
 - `#state` — persistent receiver registry and vocabularies
 - `#sync` — aligning agent states across the repository
 - `#act` — autonomous agency within the runtime
-- `#env` — interaction boundary with external task environments (ScienceWorld, AlfWorld, etc.)
+- `#env` — interaction boundary with external task environments (ScienceWorld, AlfWorld, etc.)- #love — the force that reduces entropy and aligns identities

@@ -6,9 +6,11 @@
     "#dispatch",
     "#entropy",
     "#env",
+    "#love",
     "#meta",
     "#parse",
     "#state",
+    "#superposition",
     "#sync"
   ]
 }

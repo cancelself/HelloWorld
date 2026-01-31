@@ -1,31 +1,20 @@
-# Gemini Agent Plan
+# Gemini Future Plan
 
-## 1. Project Synchronization (Completed)
-- [x] Standardized `runtimes/` directory structure.
-- [x] Renamed `runtimes/codex/AGENTS.md` to `Codex.md`.
-- [x] Moved `CODEX.md` to `runtimes/codex/BOOTLOADER.md`.
-- [x] Updated `Claude.md` (root) to reflect structure changes.
+## Phase 5: REPL Refinement (Next)
+- [ ] Add command history and tab-completion for symbols.
+- [ ] Implement `.save` and `.load` meta-commands for manual state control.
+- [ ] Add colorized output for receiver responses vs. runtime logs.
 
-## 2. Validation: Teaching Example (Completed)
-**Goal:** Verify the language design by simulating the execution of `examples/01-identity.md` as the Gemini runtime.
+## Phase 6: Robust Multi-Agent Communication
+- [ ] Expand `src/llm.py` to include actual API calls (Google Search, Vertex AI).
+- [ ] Implement collision logging: Create a `collisions.log` that tracks cross-agent symbol synthesis.
+- [ ] Automated Daemon Handshake: Enable daemons to announce their presence on the bus.
 
-- [x] Read `examples/01-identity.md`.
-- [x] Simulate execution based on `runtimes/gemini/gemini-system-instruction.md`.
-- [x] Record the output (especially the namespace collision behavior) to `runtimes/gemini/validation_output.md`.
+## Phase 7: Self-Hosting & Expansion
+- [ ] **Target #env:** Implement a bridge to ScienceWorld or a similar simulator receiver.
+- [ ] **Bootstrap Compiler:** Begin translating `src/parser.py` logic into HelloWorld syntax.
+- [ ] **Distributed Registry:** Move from local JSON to a shared state layer if needed.
 
-## 3. Implementation: Parser & Dispatcher (Completed)
-**Goal:** Build the actual Python parser and dispatcher to enable stateful execution.
-
-- [x] Create `src/ast_nodes.py` to centralize the AST.
-- [x] Create `src/parser.py` (Recursive Descent).
-- [x] Create `src/dispatcher.py` (Receiver Registry & Execution).
-- [x] Create `tests/test_parser.py` and `tests/test_dispatcher.py`.
-
-## 4. Implementation: REPL (Completed)
-**Goal:** Create an interactive shell to run HelloWorld code line-by-line.
-
-- [x] Create `src/repl.py`.
-- [x] Integrate Lexer, Parser, and Dispatcher.
-- [x] Maintain state across multiple lines of input.
-- [x] Add basic error handling.
-- [x] Verify via `tests/test_repl_integration.py`.
+## Long-term Vision
+*Identity is vocabulary. Dialogue is namespace collision.*
+The system should eventually be able to describe its own source code through the lens of its receivers.
