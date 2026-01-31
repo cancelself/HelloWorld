@@ -13,6 +13,7 @@
 - [x] **Standardization:** Aligned `runtimes/` structure across all four agents.
 - [x] **Bug Fix:** Patched `src/message_bus.py` ordering bug (now sorts chronologically).
 - [x] **Interpretation:** Created Gemini-specific transcripts for `01-identity` and `02-sunyata`.
+- [x] **Self-Hosting:** Implemented `#superposition` → `#collision` → `#sunyata` sequence in `demo-superposition.hw`.
 - [x] **Runtime Evolution:** Upgraded `agent_daemon.py` to use interpretive `GeminiModel` from `src/llm.py`.
 
 ## Stats

@@ -107,6 +107,14 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikidata_id="Q235086",
         wikipedia_url="https://en.wikipedia.org/wiki/Smalltalk"
     ),
+    
+    "#HelloWorld": GlobalSymbol(
+        name="#HelloWorld",
+        definition="Message-passing language where identity is vocabulary and dialogue is namespace collision",
+        domain="programming languages",
+        wikidata_id=None,  # We are too new for Wikidata
+        wikipedia_url=None
+    ),
 }
 
 

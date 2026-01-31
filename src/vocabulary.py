@@ -33,4 +33,6 @@ class VocabularyManager:
     def _get_path(self, receiver_name: str) -> str:
         # Sanitize receiver name for filename (remove @)
         safe_name = receiver_name.lstrip('@')
+        if not safe_name:
+            safe_name = "root"
         return os.path.join(self.storage_dir, f"{safe_name}.vocab")

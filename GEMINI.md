@@ -16,6 +16,7 @@ The system uses **Prototypal Inheritance**:
 
 ## Key Files
 *   **`helloworld.py`**: The primary CLI and REPL entry point. Supports `.hw` and `.md` files.
+*   **`demo-superposition.hw`**: A self-hosting demonstration of the #superposition → #collision → #sunyata sequence.
 *   **`runtimes/`**: Contains the bootloader specifications and status for each agent.
     *   `gemini/gemini-system-instruction.md`: The canonical Gemini runtime spec.
     *   `gemini/STATUS.md`: Current agent tasks and progress.

@@ -10,7 +10,8 @@
 - [ ] Implement collision logging: Create a `collisions.log` that tracks cross-agent symbol synthesis.
 - [ ] Automated Daemon Handshake: Enable daemons to announce their presence on the bus.
 
-## Phase 7: Self-Hosting & Expansion
+## Phase 7: Self-Hosting & Expansion (Started)
+- [x] **Symbolic Logic:** Implemented the `#superposition` → `#collision` → `#sunyata` sequence in `demo-superposition.hw`.
 - [ ] **Target #env:** Implement a bridge to ScienceWorld or a similar simulator receiver.
 - [ ] **Bootstrap Compiler:** Begin translating `src/parser.py` logic into HelloWorld syntax.
 - [ ] **Distributed Registry:** Move from local JSON to a shared state layer if needed.
