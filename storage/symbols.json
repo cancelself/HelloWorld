@@ -1,0 +1,62 @@
+{
+  "#superposition": {
+    "wikidata_id": "Q830791",
+    "definition": "Principle of quantum mechanics where a system exists in multiple states simultaneously until observed",
+    "domain": "quantum mechanics",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Quantum_superposition"
+  },
+  "#sunyata": {
+    "wikidata_id": "Q546054",
+    "definition": "Buddhist concept of emptiness - the absence of inherent existence or independent self-nature",
+    "domain": "Buddhist philosophy",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/%C5%9A%C5%ABnyat%C4%81"
+  },
+  "#collision": {
+    "wikidata_id": null,
+    "definition": "Namespace boundary event when a receiver addresses a symbol outside their local vocabulary",
+    "domain": "HelloWorld meta",
+    "wikipedia_url": null
+  },
+  "#entropy": {
+    "wikidata_id": "Q130868",
+    "definition": "Measure of disorder, randomness, or uncertainty in a system",
+    "domain": "thermodynamics/information theory",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Entropy"
+  },
+  "#meta": {
+    "wikidata_id": null,
+    "definition": "Self-referential observation or reflection on the system itself",
+    "domain": "meta-cognition",
+    "wikipedia_url": null
+  },
+  "#parse": {
+    "wikidata_id": "Q2290007",
+    "definition": "Process of analyzing syntax to build abstract structure",
+    "domain": "computation",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Parsing"
+  },
+  "#dispatch": {
+    "wikidata_id": null,
+    "definition": "Routing of messages to appropriate handlers based on receiver",
+    "domain": "computation",
+    "wikipedia_url": null
+  },
+  "#love": {
+    "wikidata_id": "Q316",
+    "definition": "Deep affection, attachment, or devotion — universal across cultures and traditions",
+    "domain": "human experience",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Love"
+  },
+  "#Smalltalk": {
+    "wikidata_id": "Q235086",
+    "definition": "Object-oriented programming language where everything is an object and computation happens via message passing",
+    "domain": "programming languages",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Smalltalk"
+  },
+  "#HelloWorld": {
+    "wikidata_id": null,
+    "definition": "Message-passing language where identity is vocabulary and dialogue is namespace collision",
+    "domain": "programming languages",
+    "wikipedia_url": null
+  }
+}

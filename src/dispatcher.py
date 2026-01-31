@@ -64,7 +64,7 @@ class Dispatcher:
         self.tool_registry = ToolRegistry()
         self.env_registry = EnvironmentRegistry()
         # '@' is the root parent
-        self.agents = {"@claude", "@copilot", "@gemini", "@codex", "@"}
+        self.agents = {"@claude", "@copilot", "@gemini", "@codex"}
         self._bootstrap()
 
     def _bootstrap(self):
@@ -86,7 +86,7 @@ class Dispatcher:
                 self.registry[name] = Receiver(name, persisted)
             else:
                 self.registry[name] = Receiver(name, set(initial_vocab))
-                self.vocab_manager.save(name, self.registry[name].vocabulary)
+                self.vocab_manager.save(name, self.registry[name].local_vocabulary)
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []
@@ -115,10 +115,10 @@ class Dispatcher:
         """Persist vocabularies for one receiver or all receivers."""
         if receiver:
             rec = self._get_or_create_receiver(receiver)
-            self.vocab_manager.save(receiver, rec.vocabulary)
+            self.vocab_manager.save(receiver, rec.local_vocabulary)
             return
         for name, rec in self.registry.items():
-            self.vocab_manager.save(name, rec.vocabulary)
+            self.vocab_manager.save(name, rec.local_vocabulary)
 
     def _execute(self, node: Node) -> Optional[str]:
         if isinstance(node, VocabularyQueryNode):
@@ -171,7 +171,7 @@ class Dispatcher:
         receiver = self._get_or_create_receiver(node.receiver.name)
         for sym in node.symbols:
             receiver.add_symbol(sym.name)
-        self.vocab_manager.save(receiver.name, receiver.vocabulary)
+        self.vocab_manager.save(receiver.name, receiver.local_vocabulary)
         return f"Updated {receiver.name} vocabulary."
 
     def _handle_message(self, node: MessageNode) -> str:
@@ -224,7 +224,7 @@ class Dispatcher:
                     receiver.add_symbol(val.name)
                     learned = True
         if learned:
-            self.vocab_manager.save(receiver_name, receiver.vocabulary)
+            self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
         
         response_text = f"[{receiver_name}] Received message: {args_str}"
         if tool_results:

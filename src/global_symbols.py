@@ -38,7 +38,7 @@ class GlobalSymbol:
         if self.domain:
             parts.append(f"[{self.domain}]")
         if self.wikidata_id:
-            parts.append(f"(Q{self.wikidata_id})")
+            parts.append(f"({self.wikidata_id})")
         return " ".join(parts)
 
 
@@ -108,6 +108,14 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Smalltalk"
     ),
     
+    "#love": GlobalSymbol(
+        name="#love",
+        definition="Deep affection, attachment, or devotion — universal across cultures and traditions",
+        domain="human experience",
+        wikidata_id="Q316",
+        wikipedia_url="https://en.wikipedia.org/wiki/Love"
+    ),
+
     "#HelloWorld": GlobalSymbol(
         name="#HelloWorld",
         definition="Message-passing language where identity is vocabulary and dialogue is namespace collision",
