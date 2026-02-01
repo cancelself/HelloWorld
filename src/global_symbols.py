@@ -131,6 +131,22 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikidata_id="Q131395",
         wikipedia_url="https://en.wikipedia.org/wiki/Dialogue"
     ),
+    
+    "#sync": GlobalSymbol(
+        name="#sync",
+        definition="Coordination of events to operate a system in unison, the process of aligning state across agents",
+        domain="coordination",
+        wikidata_id="Q1058791",
+        wikipedia_url="https://en.wikipedia.org/wiki/Synchronization"
+    ),
+    
+    "#act": GlobalSymbol(
+        name="#act",
+        definition="Taking autonomous action based on shared understanding, agency expressed through decision and execution",
+        domain="agency",
+        wikidata_id="Q1914636",  # activity
+        wikipedia_url="https://en.wikipedia.org/wiki/Action_(philosophy)"
+    ),
 
     "#HelloWorld": GlobalSymbol(
         name="#HelloWorld",

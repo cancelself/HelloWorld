@@ -1,13 +1,12 @@
 # Gemini Future Plan
 
-## Phase 5: REPL Refinement (Next)
-- [ ] Add command history and tab-completion for symbols.
-- [ ] Implement `.save` and `.load` meta-commands for manual state control.
-- [ ] Add colorized output for receiver responses vs. runtime logs.
+## Phase 5: REPL Refinement (Completed)
+- [x] Add command history and tab-completion for symbols.
+- [ ] Implement colorized output for receiver responses vs. runtime logs.
 
-## Phase 6: Robust Multi-Agent Communication
+## Phase 6: Robust Multi-Agent Communication (In Progress)
 - [ ] Expand `src/llm.py` to include actual API calls (Google Search, Vertex AI).
-- [ ] Implement collision logging: Create a `collisions.log` that tracks cross-agent symbol synthesis.
+- [x] Implement collision logging: Created `collisions.log` that tracks cross-agent symbol synthesis.
 - [ ] Automated Daemon Handshake: Enable daemons to announce their presence on the bus.
 
 ## Phase 7: Self-Hosting & Expansion (Started)

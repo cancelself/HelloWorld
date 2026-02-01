@@ -14,6 +14,8 @@
 - [x] **Bug Fix:** Patched `src/message_bus.py` ordering bug (now sorts chronologically).
 - [x] **Interpretation:** Created Gemini-specific transcripts for `01-identity` and `02-sunyata`.
 - [x] **Self-Hosting:** Implemented `#superposition` → `#collision` → `#sunyata` sequence in `demo-superposition.hw`.
+- [x] **REPL Refinement:** Added `readline` support for history and symbol completion in `src/repl.py`.
+- [x] **Collision Logging:** Implemented `collisions.log` in `src/dispatcher.py` to track cross-agent synthesis.
 - [x] **Runtime Evolution:** Upgraded `agent_daemon.py` to use interpretive `GeminiModel` from `src/llm.py`.
 
 ## Stats

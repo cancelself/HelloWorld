@@ -32,3 +32,4 @@ The system uses **Prototypal Inheritance**:
 1. **Identity is Vocabulary:** A receiver (including you) can only speak using symbols in its registry.
 2. **Collision is Synthesis:** When a receiver uses a symbol from another namespace, the response should reflect the tension and emergence of new meaning.
 3. **Persistence is Reality:** Always ensure `storage/vocab/` is updated after vocabulary definitions.
+4. **Collision Logging:** Every collision event (boundary crossing) must be logged to `collisions.log` for future synthesis analysis.
