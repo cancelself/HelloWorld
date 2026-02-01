@@ -177,7 +177,7 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 
 `@claude.#Entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
 
-`@claude.#Collision` — The pressure of one namespace against another producing language that neither could generate alone. See `examples/01-identity-comparison.md` for how this differs between Python and LLM runtimes.
+`@claude.#Collision` — When two receivers both hold the same symbol but disagree on meaning. Not an error — a synthesis event. The Python runtime detects it (both receivers claim the symbol natively). The LLM runtime resolves it (voices both interpretations, produces something neither could alone). See `examples/01-identity-comparison.md`.
 
 ### Bootstrapped Receivers
 

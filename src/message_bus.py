@@ -112,23 +112,38 @@ class MessageBus:
         
         return msg_id
     
-    def receive(self, receiver: str, timeout: float = 5.0) -> Optional[Message]:
-        """Check inbox for new messages. Returns oldest message or None."""
+    def receive(self, receiver: str, timeout: float = 0.0, poll_interval: float = 0.1) -> Optional[Message]:
+        """Check inbox for new messages.
+        
+        If `timeout` > 0, polls the inbox until a message arrives or the timeout
+        expires. Returns the oldest message (FIFO) and removes it from the inbox.
+        """
         inbox = self._agent_dir(receiver) / 'inbox'
-        if not inbox.exists():
-            return None
-        
-        # Get messages sorted by modification time (oldest first)
-        messages = sorted(inbox.glob('msg-*.hw'), key=lambda p: p.stat().st_mtime)
-        if not messages:
-            return None
-        
-        msg_file = messages[0]
-        message = self._parse_message(msg_file)
-        if message:
-            # Log to receiver's history
-            self._log_to_history(receiver, "receive", message)
-        return message
+        deadline = time.time() + timeout if timeout and timeout > 0 else None
+
+        while True:
+            if not inbox.exists():
+                if timeout <= 0:
+                    return None
+                inbox.mkdir(parents=True, exist_ok=True)
+
+            messages = sorted(inbox.glob('msg-*.hw'), key=lambda p: p.stat().st_mtime)
+            if messages:
+                msg_file = messages[0]
+                message = self._parse_message(msg_file)
+                try:
+                    msg_file.unlink()
+                except FileNotFoundError:
+                    pass
+                if message:
+                    self._log_to_history(receiver, "receive", message)
+                return message
+
+            if timeout <= 0:
+                return None
+            if deadline and time.time() >= deadline:
+                return None
+            time.sleep(poll_interval)
     
     def respond(self, receiver: str, thread_id: str, content: str) -> str:
         """Respond to a message by writing to outbox.

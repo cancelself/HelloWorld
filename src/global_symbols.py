@@ -153,7 +153,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     # Dynamics & Boundaries
     "#Collision": GlobalSymbol(
         name="#Collision",
-        definition="Namespace boundary event when a receiver addresses a foreign symbol",
+        definition="When two receivers both hold the same symbol but disagree on meaning — synthesis is required to reconcile their interpretations",
         domain="HelloWorld meta"
     ),
     "#Entropy": GlobalSymbol(

@@ -26,6 +26,20 @@ REPL commands:
 - `.save [@name|all]` — Persist vocabularies (defaults to all receivers)
 - `.help` — Show help
 
+### Launch all agent daemons (hands-free loop)
+Use `scripts/run_daemons.sh` to start Claude, Gemini, Copilot, and Codex daemons together:
+
+```bash
+bash scripts/run_daemons.sh           # launches default agent set
+bash scripts/run_daemons.sh Claude    # launch specific agents only
+```
+
+The script:
+- runs each `agent_daemon.py` in the background,
+- writes logs to `runtimes/daemon-logs/<agent>.log`,
+- streams all logs to stdout so observers share one console,
+- cleans up every daemon when you press Ctrl+C.
+
 ## Implementation
 
 **Pipeline**: Source → Lexer → Parser → Dispatcher → Output

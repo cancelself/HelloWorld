@@ -91,7 +91,7 @@ class AgentDaemon:
         try:
             while self.running:
                 # 1. #observe — Check inbox for new state/messages
-                message = self.bus.receive(self.agent_name)
+                message = self.bus.receive(self.agent_name, timeout=1.0)
                 
                 if message:
                     print(f"👀 #observe: Message from {message.sender} (Thread: {message.thread_id[:8]})")

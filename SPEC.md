@@ -223,6 +223,57 @@ The **#ActionSpace** is the set of all valid commands an agent can send to a sim
 
 ---
 
+## The Collision Model
+
+### #Collision
+
+A **collision** occurs when two receivers both hold the same symbol natively but disagree on meaning. Collision is not an error — it is a synthesis event. The same `#parse` means different things to Claude (language design) and Codex (execution semantics). When one sends it to the other, neither interpretation is wrong. Both must be surfaced, and something new must emerge.
+
+Collision is distinct from:
+- **Unknown** — one receiver lacks the symbol entirely (triggers learning)
+- **Foreign** — the symbol belongs to the sender but not the receiver (triggers drift)
+- **Inherited** — both receivers have the symbol via the global pool (shared ground, no tension)
+
+True collision requires: (1) both receivers hold the symbol natively, (2) their vocabularies diverge enough that the symbol means different things.
+
+### #Collision #Detect
+
+Detection is structural. The Python dispatcher checks:
+1. Sender holds symbol natively (`sender.is_native(symbol)`)
+2. Target holds symbol natively (`target.is_native(symbol)`)
+3. If both → collision. If only sender → foreign/learning. If only target → query.
+
+Detection is deterministic and requires no LLM. The dispatcher logs it and passes the collision to the synthesis layer.
+
+### #Collision #Present
+
+Presentation surfaces both interpretations. For each receiver involved in the collision:
+- State the receiver's name and their vocabulary context
+- State the symbol's status (native to both)
+- Surface what the symbol means through each receiver's lens
+
+Presentation can be structural (template listing both vocabularies) or interpretive (LLM voicing both perspectives). The structural version always works. The interpretive version adds meaning.
+
+### #Collision #Synthesize
+
+Synthesis generates a response that neither receiver could produce alone. This is where the LLM layer is essential:
+- The Python runtime detects the collision and presents both sides
+- The LLM runtime reads both vocabularies and produces a synthesis
+- The synthesis is tagged: `[COLLISION SYNTHESIS: sender × target on #symbol]`
+
+Without LLM, synthesis falls back to structural presentation: both vocabularies listed, collision logged, but no interpretive voice.
+
+### #Collision #Learn
+
+Both receivers' vocabularies may drift from the encounter. A collision can:
+- Introduce new shared ground (both now understand a nuance they didn't before)
+- Sharpen boundaries (the collision clarifies where vocabularies diverge)
+- Create new symbols (the synthesis itself becomes a new concept)
+
+Learning from collision is logged alongside discovery and drift events.
+
+---
+
 ## The Collaborative Model
 
 ### #Collaboration
@@ -280,6 +331,32 @@ Concrete agent. Execution semantics, parsing discipline.
 ```
 Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
+
+---
+
+# #Runtime
+
+The execution layer has three tiers, tried in order:
+
+## #Runtime #LLM
+
+When `use_llm=True`, the dispatcher hands the message to an LLM for interpretation. The LLM responds *as* the receiver, shaped by their vocabulary. This is the interpretive layer — it voices what the Python runtime can only route.
+
+## #Runtime #Bus
+
+When LLM is unavailable or disabled, the dispatcher sends to the message bus. A running agent daemon (`agent_daemon.py`) watches its inbox and responds via OOPA. This is the live multi-agent layer.
+
+## #Runtime #Template
+
+When neither LLM nor bus produces a response, the dispatcher returns a structural template: native/inherited/unknown status, vocabulary lists, collision reports. This is the deterministic layer — it always works, it never interprets.
+
+## #Runtime #Fallback
+
+The three tiers form a fallback chain: `LLM → Bus → Template`. Tests run with `use_llm=False` and `HELLOWORLD_DISABLE_MESSAGE_BUS=1`, hitting only the template tier. The REPL and daemon use all three.
+
+## #Runtime #SelfHosting
+
+Receiver vocabularies load from `vocabularies/*.hw` files at bootstrap. The language defines its own startup in its own syntax. Priority: persisted `.vocab` state → `.hw` definitions → fallback minimal core.
 
 ---
 

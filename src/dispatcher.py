@@ -355,10 +355,11 @@ class Dispatcher:
         """Handle send:to: — deliver a symbol from one receiver to another.
 
         This is where 'dialogue is namespace collision' becomes real.
-        The sent symbol is checked against the target's vocabulary:
-        - native: target already owns it
-        - inherited: target inherits it from HelloWorld #
-        - collision: symbol is foreign — boundary event, target learns it
+        The sent symbol is checked against both sender and target vocabularies:
+        - both native: TRUE COLLISION — synthesis required
+        - target native only: target already owns it (query, not collision)
+        - inherited: target inherits it from HelloWorld # (shared ground)
+        - foreign: symbol is foreign to the target — boundary event, target learns it
         """
         symbol_val = node.arguments.get("send")
         target_val = node.arguments.get("to")
@@ -374,12 +375,31 @@ class Dispatcher:
 
         lines = [f"{sender_name} sends {symbol_name} to {target_name}"]
 
-        if target.is_native(symbol_name):
+        sender_native = sender.is_native(symbol_name)
+        target_native = target.is_native(symbol_name)
+
+        if sender_native and target_native:
+            # TRUE COLLISION: both receivers hold the symbol natively
+            # This is the synthesis event — meanings diverge, new meaning must emerge
+            self._log_collision(target_name, symbol_name, context=f"collision with {sender_name}")
+            lines.append(f"  COLLISION: both {sender_name} and {target_name} hold {symbol_name} natively")
+            lines.append(f"  {sender_name} vocabulary: {sorted(sender.local_vocabulary)}")
+            lines.append(f"  {target_name} vocabulary: {sorted(target.local_vocabulary)}")
+
+            # Attempt LLM synthesis if available
+            synthesis = self._synthesize_collision(sender_name, sender, target_name, target, symbol_name)
+            if synthesis:
+                lines.append(f"  [COLLISION SYNTHESIS: {sender_name} × {target_name} on {symbol_name}]")
+                lines.append(f"  {synthesis}")
+            else:
+                lines.append(f"  (synthesis requires LLM — structural collision detected)")
+
+        elif target_native:
             lines.append(f"  {target_name} already holds {symbol_name} (native)")
         elif target.is_inherited(symbol_name):
             lines.append(f"  {target_name} inherits {symbol_name} from HelloWorld # (shared ground)")
         else:
-            # Collision — the symbol is foreign to the target
+            # Foreign — the symbol is foreign to the target
             self._log_collision(target_name, symbol_name)
             target.add_symbol(symbol_name)
             self.vocab_manager.save(target_name, target.local_vocabulary)
@@ -391,6 +411,46 @@ class Dispatcher:
             lines.append(f"  '{node.annotation}'")
 
         return "\n".join(lines)
+
+    def _synthesize_collision(self, sender_name: str, sender, target_name: str, target, symbol_name: str) -> Optional[str]:
+        """Attempt to synthesize meaning from a collision between two receivers.
+
+        Returns a synthesis string if LLM is available, None otherwise.
+        The synthesis should voice both interpretations and produce something
+        neither receiver could produce alone.
+        """
+        # Try LLM synthesis first
+        if self.use_llm and self.llm:
+            prompt = (
+                f"Two receivers collide on {symbol_name}.\n"
+                f"{sender_name} (vocabulary: {sorted(sender.local_vocabulary)}) "
+                f"sends {symbol_name} to {target_name} (vocabulary: {sorted(target.local_vocabulary)}).\n"
+                f"Both hold {symbol_name} natively but with different meanings shaped by their vocabularies.\n"
+                f"Synthesize: what new meaning emerges from this collision? "
+                f"Voice both perspectives, then produce a synthesis neither could reach alone. Be concise."
+            )
+            try:
+                return self.llm.call(prompt)
+            except Exception as e:
+                print(f"  LLM synthesis failed: {e}")
+
+        # Try message bus synthesis
+        if self.message_bus_enabled and self.message_bus:
+            prompt = (
+                f"COLLISION SYNTHESIS: {sender_name} and {target_name} both hold {symbol_name}. "
+                f"What emerges?"
+            )
+            context = (
+                f"{sender_name} vocabulary: {sorted(sender.local_vocabulary)}\n"
+                f"{target_name} vocabulary: {sorted(target.local_vocabulary)}"
+            )
+            response = self.message_bus_send_and_wait(
+                "HelloWorld", sender_name, prompt, context=context
+            )
+            if response:
+                return response
+
+        return None
 
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)

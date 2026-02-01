@@ -34,15 +34,50 @@ def test_send_with_thread_id():
 
 
 def test_receive_returns_a_message():
-    """Receive returns a message from inbox. Note: ordering is by filename
-    (random UUID), not chronological. See message_bus.py receive() — this is
-    a known limitation for Gemini to address."""
+    """Receive returns messages in chronological order (FIFO)."""
     bus, _ = _fresh_bus()
     bus.send("Copilot", "Claude", "first message", thread_id="t1")
     bus.send("Gemini", "Claude", "second message", thread_id="t2")
     msg = bus.receive("Claude")
     assert msg is not None
-    assert msg.content in ("first message", "second message")
+    assert msg.content == "first message"
+
+
+def test_receive_fifo_and_removes_message():
+    bus, tmp = _fresh_bus()
+    bus.send("Copilot", "Claude", "first message", thread_id="t1")
+    bus.send("Gemini", "Claude", "second message", thread_id="t2")
+
+    msg = bus.receive("Claude")
+    assert msg is not None
+    assert msg.content == "first message"
+
+    inbox = Path(tmp) / MessageBus._agent_dir_name("Claude") / "inbox"
+    remaining = sorted(inbox.glob("msg-*.hw"))
+    assert len(remaining) == 1  # First message removed
+
+    msg2 = bus.receive("Claude")
+    assert msg2 is not None
+    assert msg2.content == "second message"
+
+
+def test_receive_blocks_until_message_arrives():
+    bus, _ = _fresh_bus()
+    received = {}
+
+    def delayed_send():
+        time.sleep(0.2)
+        bus.send("Copilot", "Claude", "delayed", thread_id="delayed-thread")
+        received["sent"] = True
+
+    t = threading.Thread(target=delayed_send)
+    t.start()
+
+    msg = bus.receive("Claude", timeout=1.0)
+    t.join()
+    assert msg is not None
+    assert msg.content == "delayed"
+    assert received.get("sent")
 
 
 def test_receive_empty_inbox():
