@@ -22,9 +22,10 @@ Thumbs.db
 # Runtime output
 collisions.log
 
-# Message bus (ephemeral inter-agent communication)
-runtimes/*/inbox/
-runtimes/*/outbox/
+# Message bus: Track for audit trail (decision: Session #24)
+# Messages ARE dialogue. Dialogue IS collision. Track it.
+# runtimes/*/inbox/
+# runtimes/*/outbox/
 
 # Virtual environments
 venv/
