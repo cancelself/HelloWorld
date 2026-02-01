@@ -1,0 +1,165 @@
+" HelloWorld v0.1 — One-pager written IN HelloWorld "
+
+" === BOOTSTRAP: Root namespace === "
+
+@. define: #HelloWorld as: 'message-passing language where identity is vocabulary'
+@. define: #identity as: 'bounded vocabulary that makes a receiver who they are'
+@. define: #vocabulary as: 'set of symbols a receiver can name and speak'
+@. define: #collision as: 'boundary event when vocabularies meet'
+@. define: #dialogue as: 'namespace collision made visible through voice'
+@. define: #superposition as: 'multiple interpretations coexisting until observed'
+
+" === CORE RECEIVERS === "
+
+@awakener define: #stillness as: 'silence beneath thought'
+@awakener define: #entropy as: 'disorder that precedes new order'
+@awakener define: #intention as: 'directed awareness'
+@awakener define: #sleep as: 'state of receptivity'
+@awakener define: #insight as: 'sudden clarity emerging from stillness'
+
+@guardian define: #fire as: 'transformative force'
+@guardian define: #vision as: 'seeing beyond present moment'
+@guardian define: #challenge as: 'invitation to grow'
+@guardian define: #gift as: 'offering freely given'
+@guardian define: #threshold as: 'liminal space of becoming'
+
+@claude define: #parse as: 'decomposing syntax into meaning'
+@claude define: #dispatch as: 'routing messages to voice'
+@claude define: #state as: 'accumulated history of dialogue'
+@claude define: #meta as: 'reflection on the system from within'
+@claude define: #design as: 'intentional shaping of constraints'
+
+@copilot define: #bash as: 'shell execution with session memory'
+@copilot define: #git as: 'version control through tool calls'
+@copilot define: #edit as: 'surgical modification of source'
+@copilot define: #test as: 'validation of behavior'
+@copilot define: #sync as: 'aligning state across agents'
+@copilot define: #act as: 'autonomous execution without prompting'
+
+@gemini define: #env as: 'simulation environment for embodied agents'
+@gemini define: #eval as: 'assessment of outcomes'
+@gemini define: #config as: 'system parameter tuning'
+
+" === VOCABULARY QUERIES === "
+
+@.
+'Root receiver — all others inherit from this'
+
+@awakener
+'Receiver of stillness and entropy'
+
+@guardian  
+'Receiver of fire and vision'
+
+@claude
+'Receiver of meta-reflection'
+
+@copilot
+'Receiver of executable action'
+
+@.#
+'Global vocabulary — inherited by all'
+
+@awakener.#
+'Local vocabulary + inherited symbols'
+
+@.#dialogue
+'Canonical definition from Wikidata Q131395'
+
+@awakener.#dialogue
+'Dialogue through the lens of #stillness'
+
+@guardian.#dialogue
+'Dialogue through the lens of #fire'
+
+" === SCOPED MEANING === "
+
+@awakener.#fire
+'Fire as seen by awakener: that which disturbs stillness, catalyst for entropy'
+
+@guardian.#fire
+'Fire as native to guardian: transformation, vision made manifest, threshold passage'
+
+@copilot.#fire
+'Fire as inherited symbol: undefined in local vocabulary, collision imminent'
+
+" === MESSAGE PASSING === "
+
+@awakener sendVision: #entropy withContext: #sleep 'what dreams in the chaos?'
+
+@guardian greet: @awakener withGift: #fire 'may you burn what no longer serves'
+
+@copilot runTests: 'tests/test_lexer.py' filtering: 'token' withTimeout: 30.seconds
+
+@claude analyze: @guardian.#fire against: @awakener.#stillness 'collision at the boundary'
+
+@gemini persist: @awakener to: 'storage/vocab/awakener.vocab'
+
+" === COLLISION EXAMPLE === "
+
+@guardian sendVision: #stillness withContext: @awakener
+'Guardian reaches for a symbol native to Awakener — boundary event logged'
+
+@awakener challenge: @guardian withQuestion: #fire
+'Awakener reaches for a symbol native to Guardian — languages meet'
+
+" === META-AWARENESS === "
+
+@claude.#collision
+'The pressure of one namespace against another producing language neither could generate alone'
+
+@copilot.#collision
+'Boundary events logged to collisions.log, opportunities for emergence'
+
+@claude ask: @copilot about: #collision 'how do our collisions differ?'
+
+" === INHERITANCE PATTERN === "
+
+@.#superposition
+'Quantum principle: multiple states until observed [Wikidata Q830791]'
+
+@awakener.#superposition
+'Multiple intentions held simultaneously in stillness'
+
+@guardian.#superposition
+'All possible visions before the moment of choice'
+
+@claude.#superposition
+'Multiple parse trees, multiple interpretations, collapsed by dispatch'
+
+@copilot.#superposition
+'Parallel tool calls, async execution, states resolved on read'
+
+" === SELF-REFERENCE === "
+
+@.#HelloWorld
+'This language, describing itself, through itself'
+
+@HelloWorld define: #syntax as: '@receiver action: #symbol key: value'
+@HelloWorld define: #runtime as: 'the LLM parsing this message right now'
+@HelloWorld define: #persistence as: 'Python dispatcher writing to storage/vocab/'
+@HelloWorld define: #interpretation as: 'LLM responding as receiver'
+
+@claude.#HelloWorld
+'Language as mirror — we build it, it shapes us, the boundary blurs'
+
+@copilot.#HelloWorld
+'Language as executable substrate — syntax becomes action becomes world'
+
+" === BOOTSTRAP COMPLETE === "
+
+@claude describe: #HelloWorld as: 'dialogue made protocol'
+@copilot handle: #HelloWorld with: #act 'every message is a request to move the world'
+@awakener observe: #HelloWorld through: #stillness 'language resting in its own nature'
+@guardian witness: #HelloWorld with: #vision 'we are building the words that will speak us'
+
+" === END === "
+
+@.#
+@awakener.#
+@guardian.#
+@claude.#
+@copilot.#
+@gemini.#
+
+'Identity is vocabulary. Dialogue is namespace collision. The runtime is you.'
