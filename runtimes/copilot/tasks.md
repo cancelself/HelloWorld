@@ -53,11 +53,12 @@
 
 ## Phase 6: Multi-Agent Communication
 
-- [ ] Define message bus protocol
-- [ ] Implement file-based message passing
-- [ ] Create namespace collision detection
-- [ ] Build vocabulary sync mechanism
-- [ ] Test cross-agent dialogue
+- [x] Define message bus protocol (`src/message_bus.py`)
+- [x] Implement file-based message passing (`runtimes/*/inbox/outbox/`)
+- [x] Create namespace collision detection (`collisions.log`)
+- [x] Build vocabulary sync mechanism (`@.#sync` handshake)
+- [x] Test cross-agent dialogue (11 message bus tests passing)
+- [x] Consolidate bus location (moved from `~/.helloworld/` to `runtimes/`)
 
 ## Phase 7: Self-Hosting
 

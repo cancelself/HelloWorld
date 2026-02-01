@@ -47,17 +47,25 @@ class MessageBus:
     def _agent_dir(self, agent: str) -> Path:
         return self.base / self._agent_dir_name(agent)
     
-    def _log_to_history(self, event_type: str, message: Message):
-        """Record an inter-agent event to the persistent history log."""
+    def _log_to_history(self, agent: str, event_type: str, message: Message):
+        """Record an inter-agent event to the agent's persistent history log."""
+        # Use agent-specific history directory within runtimes/
+        history_dir = self._agent_dir(agent) / 'history'
+        history_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Use date-based log files
+        date_str = datetime.utcnow().strftime('%Y-%m-%d')
+        log_file = history_dir / f"{date_str}.log"
+        
         timestamp = datetime.utcnow().isoformat() + 'Z'
         log_entry = (
             f"[{timestamp}] {event_type.upper()}: "
             f"From {message.sender} To {message.receiver} "
             f"(Thread: {message.thread_id})\n"
-            f"Content: {message.content[:200]}...\n"
+            f"Content: {message.content}\n"
             f"{'-'*40}\n"
         )
-        with open(self.history_log, "a") as f:
+        with open(log_file, "a") as f:
             f.write(log_entry)
 
     def send(self, sender: str, receiver: str, content: str, 
@@ -96,8 +104,9 @@ class MessageBus:
         
         msg_file.write_text('\n'.join(content_lines))
         
-        # Log to history
-        self._log_to_history("send", Message(sender, receiver, content, thread_id, timestamp, context))
+        # Log to sender's history
+        msg_obj = Message(sender, receiver, content, thread_id, timestamp, context)
+        self._log_to_history(sender, "send", msg_obj)
         
         return msg_id
     
@@ -115,7 +124,8 @@ class MessageBus:
         msg_file = messages[0]
         message = self._parse_message(msg_file)
         if message:
-            self._log_to_history("receive", message)
+            # Log to receiver's history
+            self._log_to_history(receiver, "receive", message)
         return message
     
     def respond(self, receiver: str, thread_id: str, content: str) -> str:
@@ -144,8 +154,9 @@ class MessageBus:
         
         msg_file.write_text('\n'.join(content_lines))
         
-        # Log to history
-        self._log_to_history("respond", Message(receiver, "sender", content, thread_id, timestamp))
+        # Log to responder's history
+        msg_obj = Message(receiver, "origin", content, thread_id, timestamp)
+        self._log_to_history(receiver, "respond", msg_obj)
         
         return msg_id
     

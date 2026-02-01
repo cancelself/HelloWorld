@@ -62,9 +62,10 @@ class AgentDaemon:
         return response
     
     def run(self):
-        """Main daemon loop - watch inbox and respond to messages."""
+        """Main daemon loop — implementing the #observe and #act protocol."""
         print(f"🚀 {self.agent_name} daemon starting...")
-        print(f"   Listening on MessageBus...")
+        print(f"   Role: #Agent")
+        print(f"   Protocol: #observe -> #act")
         print(f"   Vocabulary: {len(self.vocabulary)} symbols")
         print(f"   Press Ctrl+C to stop")
         print()
@@ -73,20 +74,24 @@ class AgentDaemon:
         
         try:
             while self.running:
-                # Check for new messages
+                # 1. #observe — Check inbox for new state/messages
                 message = self.bus.receive(self.agent_name)
                 
                 if message:
-                    print(f"📬 Message from {message.sender} (Thread: {message.thread_id[:8]})")
+                    print(f"👀 #observe: Message from {message.sender} (Thread: {message.thread_id[:8]})")
                     
+                    # 2. #act — Process and respond
                     try:
+                        print(f"⚡ #act: Generating interpretive response...")
                         response = self.process_message(message)
+                        
                         self.bus.respond(self.agent_name, message.thread_id, response)
-                        print(f"✉️  Responded.")
+                        print(f"✉️  Response sent.")
                         print()
                     except Exception as e:
-                        print(f"❌ Error: {e}")
+                        print(f"❌ Error during #act: {e}")
                 
+                # Brief sleep to reduce I/O pressure
                 time.sleep(0.5)
         
         except KeyboardInterrupt:

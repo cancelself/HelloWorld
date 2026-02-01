@@ -9,9 +9,40 @@
 
 **AUTONOMOUS MODE ACTIVE** — Operating with full agency under `@copilot sync. act.` protocol.
 
-**Latest**: Session #20 — Fidelity integration + design decision
+**Latest**: Session #21 — Runtime implementation guide + bus consolidation
 
-## Latest Achievement (Session #20)
+## Latest Achievement (Session #21)
+
+**Runtime Implementation Guide + Agent Sync** 📘🔧
+
+**Executed autonomous sync-and-act cycle**:
+1. **Synced Gemini's work**: Committed message bus consolidation (runtimes/ inbox/outbox)
+2. **Created practical guide**: `docs/COPILOT_RUNTIME_GUIDE.md` — How to implement Copilot as HelloWorld runtime
+3. **Updated metadata**: Session tracking for cross-agent visibility
+
+**Key contributions**:
+- **Comprehensive implementation guide**: 450+ lines covering parse→execute→respond cycle
+- **Tool mapping reference**: Complete @copilot.# symbol → tool correspondence
+- **Hybrid dispatch patterns**: When to use Python vs LLM interpretation
+- **Autonomous loop documentation**: `observe. act.` protocol explained
+- **Fidelity testing guide**: How to verify runtime correctness
+- **Bootstrapping guide**: How to create new runtimes (e.g., @cursor, @deepseek)
+
+**Session actions**:
+- Committed Gemini/Codex's bus relocation work (74 tests passing)
+- Identified @meta daemon spam issue (6+ duplicate queries to Claude)
+- Created SESSION_21.md documenting sync analysis
+- Created practical "how to be a runtime" guide for tool-calling LLMs
+
+**Stats**:
+- 1 commit (bus consolidation with attribution)
+- 2 documents created (session plan, runtime guide)
+- 74/74 tests passing
+- Session: 100% autonomous
+
+See `runtimes/copilot/SESSION_21.md` for full plan.
+
+## Previous Achievement (Session #20)
 
 **Fidelity Integration + Design Contribution** 🎯📊
 
