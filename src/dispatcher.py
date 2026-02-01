@@ -4,6 +4,8 @@ Enables Prototypal Inheritance: HelloWorld is the parent of all receivers.
 """
 
 from typing import Dict, List, Optional, Set, Any
+from dataclasses import dataclass
+from enum import Enum
 import uuid
 import os
 from datetime import datetime
@@ -25,6 +27,39 @@ from message_bus import MessageBus
 from tools import ToolRegistry
 from envs import EnvironmentRegistry
 from message_handlers import MessageHandlerRegistry
+
+
+class LookupOutcome(Enum):
+    """Three-outcome model for symbol lookup."""
+    NATIVE = "native"
+    INHERITED = "inherited"
+    UNKNOWN = "unknown"
+
+
+@dataclass
+class LookupResult:
+    """Structured result of symbol lookup.
+    
+    Encapsulates the three-outcome model:
+    - native: receiver owns the symbol locally
+    - inherited: symbol comes from HelloWorld # (global namespace)
+    - unknown: neither local nor global — triggers discovery
+    
+    Context preserves information needed for interpretation or learning.
+    """
+    outcome: LookupOutcome
+    symbol: str
+    receiver_name: str
+    context: Optional[Dict[str, Any]] = None
+    
+    def is_native(self) -> bool:
+        return self.outcome == LookupOutcome.NATIVE
+    
+    def is_inherited(self) -> bool:
+        return self.outcome == LookupOutcome.INHERITED
+    
+    def is_unknown(self) -> bool:
+        return self.outcome == LookupOutcome.UNKNOWN
 
 
 class Receiver:
@@ -52,6 +87,44 @@ class Receiver:
     def add_symbol(self, symbol: str):
         """Add symbol to local vocabulary."""
         self.local_vocabulary.add(symbol)
+    
+    def lookup(self, symbol: str) -> LookupResult:
+        """Perform symbol lookup and return structured result.
+        
+        Three outcomes:
+        1. NATIVE — symbol in local vocabulary
+        2. INHERITED — symbol in global namespace (HelloWorld #)
+        3. UNKNOWN — symbol not found anywhere (triggers discovery)
+        
+        Returns LookupResult with context for downstream handlers.
+        """
+        if self.is_native(symbol):
+            return LookupResult(
+                outcome=LookupOutcome.NATIVE,
+                symbol=symbol,
+                receiver_name=self.name,
+                context={"local_vocabulary": sorted(self.local_vocabulary)}
+            )
+        elif self.is_inherited(symbol):
+            global_def = GlobalVocabulary.definition(symbol)
+            wikidata_url = GlobalVocabulary.wikidata_url(symbol)
+            return LookupResult(
+                outcome=LookupOutcome.INHERITED,
+                symbol=symbol,
+                receiver_name=self.name,
+                context={
+                    "local_vocabulary": sorted(self.local_vocabulary),
+                    "global_definition": global_def,
+                    "wikidata_url": wikidata_url
+                }
+            )
+        else:
+            return LookupResult(
+                outcome=LookupOutcome.UNKNOWN,
+                symbol=symbol,
+                receiver_name=self.name,
+                context={"local_vocabulary": sorted(self.local_vocabulary)}
+            )
 
     def __repr__(self):
         local = sorted(list(self.local_vocabulary))
@@ -185,33 +258,32 @@ class Dispatcher:
             return result
         
         receiver = self._get_or_create_receiver(receiver_name)
-        is_native = receiver.is_native(symbol_name)
-        is_inherited = receiver.is_inherited(symbol_name)
+        lookup = receiver.lookup(symbol_name)
         
-        # If meta-receiver, try interpretive voice
+        # If meta-receiver with known symbol, try interpretive voice via LLM
         if (
-            (is_native or is_inherited)
+            not lookup.is_unknown()
             and receiver_name in self.agents
             and self.message_bus_enabled
             and self.message_bus
         ):
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
-            # Mode 3: Inherited-Interpretive — include local vocabulary as context
             local_vocab = sorted(list(receiver.local_vocabulary))
-            context = f"Local Vocabulary: {local_vocab}" if is_inherited else None
+            context = f"Local Vocabulary: {local_vocab}" if lookup.is_inherited() else None
             prompt = f"{receiver_name} {symbol_name}?"
             response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
             if response:
                 return response
         
-        if is_native:
+        # Structural response based on lookup outcome
+        if lookup.is_native():
             return f"{receiver_name} {symbol_name} is native to this identity."
-        elif is_inherited:
-            global_def = GlobalVocabulary.definition(symbol_name)
-            local_ctx = sorted(receiver.local_vocabulary)
+        elif lookup.is_inherited():
+            global_def = lookup.context.get("global_definition", "")
+            local_ctx = lookup.context.get("local_vocabulary", [])
             return f"{receiver_name} {symbol_name} inherited from HelloWorld # → {global_def}\n  [{receiver_name} # = {local_ctx}]"
         else:
-            return self._handle_unknown_symbol(receiver_name, receiver, symbol_name)
+            return self._handle_unknown_symbol(receiver_name, receiver, symbol_name, lookup)
 
     def _handle_cross_receiver_send(self, sender_name: str, sender, node: MessageNode) -> str:
         """Handle send:to: — deliver a symbol from one receiver to another.
@@ -346,21 +418,52 @@ class Dispatcher:
             response_text += f" '{node.annotation}'"
         return response_text
 
-    def _handle_unknown_symbol(self, receiver_name: str, receiver: Receiver, symbol_name: str) -> str:
-        """Unknown lookup outcome — trigger search/definition instead of collision."""
-        note = (
-            f"{receiver_name} {symbol_name} is unknown — not native and not inherited. "
-            "Search, define, and learn it before acting."
-        )
+    def _handle_unknown_symbol(
+        self, 
+        receiver_name: str, 
+        receiver: Receiver, 
+        symbol_name: str,
+        lookup: Optional[LookupResult] = None
+    ) -> str:
+        """Handle UNKNOWN lookup outcome — trigger discovery, not collision.
+        
+        Phase 2: Discovery mechanism
+        1. Log unknown event (for tracking vocabulary evolution)
+        2. Attempt research via LLM agent (if available)
+        3. Promote symbol to local vocabulary on successful resolution
+        4. Return structured response for downstream handlers
+        
+        Unknown ≠ Collision:
+        - Unknown: one receiver lacks the symbol (triggers learning)
+        - Collision: both have it with different meanings (triggers dialogue)
+        """
+        # Log unknown event for evolution tracking
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] UNKNOWN: {receiver_name} encountered {symbol_name}\n"
+        with open(self.log_file, "a") as f:
+            f.write(log_entry)
+        
+        # Try LLM research if available
         if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
             print(f"📡 Asking {receiver_name} to research unknown symbol {symbol_name}...")
-            local_vocab = sorted(list(receiver.local_vocabulary))
+            local_vocab = lookup.context.get("local_vocabulary", []) if lookup else sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}"
             prompt = f"research new symbol: {symbol_name}"
             response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
             if response:
+                # On successful research, promote to local vocabulary
+                receiver.add_symbol(symbol_name)
+                self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
+                learn_log = f"[{timestamp}] LEARNED: {receiver_name} learned {symbol_name} through research\n"
+                with open(self.log_file, "a") as f:
+                    f.write(learn_log)
                 return response
-        return note
+        
+        # Fallback: structural response indicating unknown state
+        return (
+            f"{receiver_name} {symbol_name} is unknown — not native and not inherited. "
+            "Search, define, and learn it before acting."
+        )
 
     def message_bus_send_and_wait(self, sender: str, receiver: str, content: str, context: Optional[str] = None) -> Optional[str]:
         if not self.message_bus_enabled or not self.message_bus:
