@@ -6,6 +6,7 @@ Enables Prototypal Inheritance: '@' is the parent of all receivers.
 from typing import Dict, List, Optional, Set, Any
 import uuid
 import os
+from datetime import datetime
 
 from ast_nodes import (
     LiteralNode,
@@ -65,9 +66,19 @@ class Dispatcher:
         self.message_bus = MessageBus() if self.message_bus_enabled else None
         self.tool_registry = ToolRegistry()
         self.env_registry = EnvironmentRegistry()
+        self.log_file = "collisions.log"
         # '@' is the root parent
         self.agents = {"@claude", "@copilot", "@gemini", "@codex"}
         self._bootstrap()
+
+    def _log_collision(self, receiver: str, symbol: str, context: Optional[str] = None):
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] COLLISION: {receiver} reached for {symbol}"
+        if context:
+            log_entry += f" in context of {context}"
+        log_entry += "\n"
+        with open(self.log_file, "a") as f:
+            f.write(log_entry)
 
     def _bootstrap(self):
         """Initialize default receivers with inheritance support."""
@@ -173,6 +184,7 @@ class Dispatcher:
             global_def = GlobalVocabulary.definition(symbol_name)
             return f"{receiver_name}.{symbol_name} inherited from @.# → {global_def}"
         else:
+            self._log_collision(receiver_name, symbol_name)
             return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
@@ -227,8 +239,9 @@ class Dispatcher:
         learned = False
         for val in node.arguments.values():
             if isinstance(val, SymbolNode):
-                if val.name not in receiver.vocabulary:
+                if not receiver.has_symbol(val.name):
                     receiver.add_symbol(val.name)
+                    self._log_collision(receiver_name, val.name, context="message_args")
                     learned = True
         if learned:
             self.vocab_manager.save(receiver_name, receiver.local_vocabulary)

@@ -123,6 +123,14 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikidata_id="Q1193600",
         wikipedia_url="https://en.wikipedia.org/wiki/Markdown"
     ),
+    
+    "#dialogue": GlobalSymbol(
+        name="#dialogue",
+        definition="Conversation between two or more people, the fundamental process by which meaning emerges in HelloWorld",
+        domain="communication",
+        wikidata_id="Q131395",
+        wikipedia_url="https://en.wikipedia.org/wiki/Dialogue"
+    ),
 
     "#HelloWorld": GlobalSymbol(
         name="#HelloWorld",

@@ -13,6 +13,43 @@ class REPL:
     def __init__(self, dispatcher: Optional[Dispatcher] = None):
         self.dispatcher = dispatcher or Dispatcher()
         self.running = True
+        self._setup_readline()
+
+    def _setup_readline(self):
+        try:
+            import readline
+            import atexit
+
+            # Set up history
+            histfile = os.path.expanduser("~/.helloworld_history")
+            try:
+                readline.read_history_file(histfile)
+                readline.set_history_length(1000)
+            except FileNotFoundError:
+                pass
+            atexit.register(readline.write_history_file, histfile)
+
+            # Set up completion
+            def completer(text, state):
+                receivers = self.dispatcher.list_receivers()
+                # Get all symbols from all receivers
+                all_symbols = set()
+                for r in receivers:
+                    all_symbols.update(self.dispatcher.vocabulary(r))
+                
+                options = receivers + sorted(list(all_symbols))
+                matches = [o for o in options if o.startswith(text)]
+                if state < len(matches):
+                    return matches[state]
+                else:
+                    return None
+
+            readline.set_completer(completer)
+            readline.parse_and_bind("tab: complete")
+            # Allow @ and # in words for completion
+            readline.set_completer_delims(" \t\n\"\\'`@$><=;|&{(")
+        except ImportError:
+            pass
 
     def start(self):
         print("HelloWorld v0.1")
