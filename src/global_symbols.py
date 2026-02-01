@@ -164,14 +164,6 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url=None
     ),
     
-    "#": GlobalSymbol(
-        name="#",
-        definition="returns the vocabulary of the receiver",
-        domain="HelloWorld meta",
-        wikidata_id=None,
-        wikipedia_url=None
-    ),
-    
     "#OOP": GlobalSymbol(
         name="#OOP",
         definition="Object-oriented programming - paradigm based on objects containing data and code, communicating via messages",

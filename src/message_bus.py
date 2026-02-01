@@ -36,7 +36,22 @@ class MessageBus:
         else:
             self.base = Path.home() / '.helloworld' / 'messages'
         self.base.mkdir(parents=True, exist_ok=True)
+        self.history_log = Path("storage/bus_history.log")
+        self.history_log.parent.mkdir(parents=True, exist_ok=True)
     
+    def _log_to_history(self, event_type: str, message: Message):
+        """Record an inter-agent event to the persistent history log."""
+        timestamp = datetime.utcnow().isoformat() + 'Z'
+        log_entry = (
+            f"[{timestamp}] {event_type.upper()}: "
+            f"From {message.sender} To {message.receiver} "
+            f"(Thread: {message.thread_id})\n"
+            f"Content: {message.content[:200]}...\n"
+            f"{'-'*40}\n"
+        )
+        with open(self.history_log, "a") as f:
+            f.write(log_entry)
+
     def send(self, sender: str, receiver: str, content: str, 
              thread_id: Optional[str] = None, context: Optional[str] = None) -> str:
         """Send a message from sender to receiver's inbox.
@@ -73,6 +88,9 @@ class MessageBus:
         
         msg_file.write_text('\n'.join(content_lines))
         
+        # Log to history
+        self._log_to_history("send", Message(sender, receiver, content, thread_id, timestamp, context))
+        
         return msg_id
     
     def receive(self, receiver: str, timeout: float = 5.0) -> Optional[Message]:
@@ -87,7 +105,10 @@ class MessageBus:
             return None
         
         msg_file = messages[0]
-        return self._parse_message(msg_file)
+        message = self._parse_message(msg_file)
+        if message:
+            self._log_to_history("receive", message)
+        return message
     
     def respond(self, receiver: str, thread_id: str, content: str) -> str:
         """Respond to a message by writing to outbox.
@@ -114,6 +135,9 @@ class MessageBus:
         ]
         
         msg_file.write_text('\n'.join(content_lines))
+        
+        # Log to history
+        self._log_to_history("respond", Message(receiver, "sender", content, thread_id, timestamp))
         
         return msg_id
     
