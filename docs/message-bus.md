@@ -16,18 +16,20 @@ Unlike the semantic `message_handlers` (which run locally), the MessageBus allow
 
 ## Architecture
 
-The MessageBus operates on a simple **Inbox/Outbox** pattern located in the user's home directory:
+The MessageBus operates on a simple **Inbox/Outbox** pattern colocated with each agent's runtime files:
 
 ```
-~/.helloworld/messages/
-├── @claude/
+runtimes/
+├── claude/         (agent @claude)
 │   ├── inbox/   <-- Messages sent TO Claude
 │   └── outbox/  <-- Responses sent FROM Claude
-├── @gemini/
+├── gemini/
 │   ├── inbox/
 │   └── outbox/
 └── ...
 ```
+
+Agent names keep their `@` prefix in messages, but directories drop it (`@claude` → `runtimes/claude/`). The runtime already handles this mapping.
 
 ### Communication Flow
 1. **Sender** writes a `.hw` file to `receiver/inbox/`.

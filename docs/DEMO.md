@@ -119,7 +119,7 @@ python3 agent_daemon.py @claude
 **Output:**
 ```
 🚀 @claude daemon starting...
-   Watching: ~/.helloworld/messages/@claude/inbox/
+   Watching: runtimes/claude/inbox/
    Vocabulary: 6 symbols
    Press Ctrl+C to stop
 ```
@@ -132,10 +132,10 @@ hw> @claude explain: #collision
 
 **Expected:**
 - Dispatcher detects meta-receiver `@claude`
-- Writes message to `~/.helloworld/messages/@claude/inbox/msg-XXXXX.hw`
+- Writes message to `runtimes/claude/inbox/msg-XXXXX.hw`
 - @claude daemon reads inbox
 - @claude processes message
-- Writes response to `~/.helloworld/messages/@claude/outbox/msg-XXXXX.hw`
+- Writes response to `runtimes/claude/outbox/msg-XXXXX.hw`
 - Dispatcher reads response and displays
 
 **Output in Terminal 2:**
@@ -172,7 +172,7 @@ python3 src/message_bus.py
 **Output:**
 ```
 Sending test message to @claude...
-Message sent. Check ~/.helloworld/messages/@claude/inbox/
+Message sent. Check runtimes/claude/inbox/
 Thread ID: 7f3a9c2e-8b1d-4a5f-9e2c-6d8b4c1a7f3e
 
 Waiting for response (30s timeout)...
@@ -180,7 +180,7 @@ Waiting for response (30s timeout)...
 
 **Check the message:**
 ```bash
-cat ~/.helloworld/messages/@claude/inbox/msg-*.hw
+cat runtimes/claude/inbox/msg-*.hw
 ```
 
 **Content:**

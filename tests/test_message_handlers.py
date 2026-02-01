@@ -188,3 +188,32 @@ def test_vocabulary_aware_handler():
     )
     result2 = registry.handle("@guardian", message2, receiver=guardian)
     assert "collision" in result2 or "boundary" in result2
+
+
+def test_root_handlers():
+    """Test built-in handlers for the root receiver (@)."""
+    registry = MessageHandlerRegistry()
+
+    # act:
+    message1 = MessageNode(
+        receiver=ReceiverNode("@"),
+        arguments={"act": SymbolNode("#all")}
+    )
+    result1 = registry.handle("@", message1)
+    assert "Root executing" in result1
+
+    # sync:
+    message2 = MessageNode(
+        receiver=ReceiverNode("@"),
+        arguments={"sync": SymbolNode("#all")}
+    )
+    result2 = registry.handle("@", message2)
+    assert "Root aligning state" in result2
+
+    # become:
+    message3 = MessageNode(
+        receiver=ReceiverNode("@"),
+        arguments={"become": SymbolNode("#new")}
+    )
+    result3 = registry.handle("@", message3)
+    assert "Transformation" in result3

@@ -4,8 +4,8 @@ Enables HelloWorld programs to invoke AI agents (@claude, @gemini, @copilot, @co
 via a file-based message passing system.
 
 Architecture:
-  ~/.helloworld/messages/@agent/inbox/   - Incoming messages
-  ~/.helloworld/messages/@agent/outbox/  - Outgoing responses
+  runtimes/@agent/inbox/   - Incoming messages
+  runtimes/@agent/outbox/  - Outgoing responses
 """
 
 import uuid
@@ -34,10 +34,18 @@ class MessageBus:
         if base_dir:
             self.base = Path(base_dir)
         else:
-            self.base = Path.home() / '.helloworld' / 'messages'
+            self.base = Path(__file__).resolve().parent.parent / 'runtimes'
         self.base.mkdir(parents=True, exist_ok=True)
         self.history_log = Path("storage/bus_history.log")
         self.history_log.parent.mkdir(parents=True, exist_ok=True)
+    
+    @staticmethod
+    def _agent_dir_name(agent: str) -> str:
+        """Map @receiver → filesystem-safe directory name."""
+        return agent.lstrip('@')
+    
+    def _agent_dir(self, agent: str) -> Path:
+        return self.base / self._agent_dir_name(agent)
     
     def _log_to_history(self, event_type: str, message: Message):
         """Record an inter-agent event to the persistent history log."""
@@ -65,7 +73,7 @@ class MessageBus:
         timestamp = datetime.utcnow().isoformat() + 'Z'
         
         # Create receiver's inbox
-        inbox = self.base / receiver / 'inbox'
+        inbox = self._agent_dir(receiver) / 'inbox'
         inbox.mkdir(parents=True, exist_ok=True)
         
         # Write message file
@@ -95,7 +103,7 @@ class MessageBus:
     
     def receive(self, receiver: str, timeout: float = 5.0) -> Optional[Message]:
         """Check inbox for new messages. Returns oldest message or None."""
-        inbox = self.base / receiver / 'inbox'
+        inbox = self._agent_dir(receiver) / 'inbox'
         if not inbox.exists():
             return None
         
@@ -119,7 +127,7 @@ class MessageBus:
         timestamp = datetime.utcnow().isoformat() + 'Z'
         
         # Create outbox
-        outbox = self.base / receiver / 'outbox'
+        outbox = self._agent_dir(receiver) / 'outbox'
         outbox.mkdir(parents=True, exist_ok=True)
         
         # Write response
@@ -147,7 +155,7 @@ class MessageBus:
         
         Returns response content or None if timeout.
         """
-        outbox = self.base / receiver / 'outbox'
+        outbox = self._agent_dir(receiver) / 'outbox'
         
         start = time.time()
         while time.time() - start < timeout:
@@ -212,14 +220,14 @@ class MessageBus:
     
     def clear_inbox(self, receiver: str):
         """Clear all messages from receiver's inbox."""
-        inbox = self.base / receiver / 'inbox'
+        inbox = self._agent_dir(receiver) / 'inbox'
         if inbox.exists():
             for msg in inbox.glob('msg-*.hw'):
                 msg.unlink()
     
     def clear_outbox(self, receiver: str):
         """Clear all messages from receiver's outbox."""
-        outbox = self.base / receiver / 'outbox'
+        outbox = self._agent_dir(receiver) / 'outbox'
         if outbox.exists():
             for msg in outbox.glob('msg-*.hw'):
                 msg.unlink()
@@ -256,7 +264,7 @@ if __name__ == '__main__':
     thread_id = str(uuid.uuid4())
     bus.send('@copilot', '@claude', '@claude explain: #collision', thread_id=thread_id)
     
-    print(f"Message sent. Check ~/.helloworld/messages/@claude/inbox/")
+    print(f"Message sent. Check runtimes/@claude/inbox/")
     print(f"Thread ID: {thread_id}")
     print("\nWaiting for response (30s timeout)...")
     

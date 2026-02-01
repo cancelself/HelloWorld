@@ -212,3 +212,17 @@ class MessageHandlerRegistry:
             lambda args, recv: f"✨ Transformation: {args['become']} has become a new state of identity."
         )
 
+        # send:to: for inter-receiver delivery
+        self.register(
+            "@",
+            "send:to:",
+            lambda args, recv: f"📨 Root delivering {args['send']} to {args['to']}..."
+        )
+
+        # relay:from:to: for global routing
+        self.register(
+            "@",
+            "relay:from:to:",
+            lambda args, recv: f"📡 Root relaying message from {args['from']} to {args['to']}..."
+        )
+

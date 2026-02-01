@@ -19,7 +19,7 @@ def _fresh_bus():
 def test_send_creates_message_file():
     bus, tmp = _fresh_bus()
     msg_id = bus.send("@copilot", "@claude", "explain: #collision")
-    inbox = Path(tmp) / "@claude" / "inbox"
+    inbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "inbox"
     assert inbox.exists()
     files = list(inbox.glob("msg-*.hw"))
     assert len(files) == 1
@@ -54,7 +54,7 @@ def test_receive_empty_inbox():
 def test_respond_creates_outbox_file():
     bus, tmp = _fresh_bus()
     bus.respond("@claude", "thread-42", "The collision was productive.")
-    outbox = Path(tmp) / "@claude" / "outbox"
+    outbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "outbox"
     assert outbox.exists()
     files = list(outbox.glob("msg-*.hw"))
     assert len(files) == 1
@@ -95,7 +95,7 @@ def test_clear_inbox():
     bus, tmp = _fresh_bus()
     bus.send("@copilot", "@claude", "msg1", thread_id="t1")
     bus.send("@gemini", "@claude", "msg2", thread_id="t2")
-    inbox = Path(tmp) / "@claude" / "inbox"
+    inbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "inbox"
     assert len(list(inbox.glob("msg-*.hw"))) == 2
     bus.clear_inbox("@claude")
     assert len(list(inbox.glob("msg-*.hw"))) == 0
@@ -105,7 +105,7 @@ def test_clear_outbox():
     bus, tmp = _fresh_bus()
     bus.respond("@claude", "t1", "response1")
     bus.respond("@claude", "t2", "response2")
-    outbox = Path(tmp) / "@claude" / "outbox"
+    outbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "outbox"
     assert len(list(outbox.glob("msg-*.hw"))) == 2
     bus.clear_outbox("@claude")
     assert len(list(outbox.glob("msg-*.hw"))) == 0

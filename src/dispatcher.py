@@ -289,6 +289,10 @@ class Dispatcher:
         # Cross-receiver delivery: send:to: triggers collision on target
         keywords = list(node.arguments.keys())
         if keywords == ["send", "to"]:
+            # First execute the root handler for the side effect/logging
+            root_response = self.message_handler_registry.handle("@", node, parent)
+            if root_response:
+                print(root_response)
             return self._handle_cross_receiver_send(receiver_name, receiver, node)
 
         # Then try registered message handlers (semantic layer)

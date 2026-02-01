@@ -106,7 +106,7 @@ def invoke_claude(message: str) -> str:
 ```python
 def invoke_claude(message: str) -> str:
     # Write message to shared file
-    Path('~/.helloworld/messages/@claude/inbox/msg-{uuid}.hw').write_text(message)
+    Path('runtimes/claude/inbox/msg-{uuid}.hw').write_text(message)
     
     # Wait for response
     while not outbox.exists():
@@ -146,22 +146,21 @@ def invoke_via_mcp(receiver: str, message: str) -> str:
 ### Directory Structure
 
 ```
-~/.helloworld/
-  messages/
-    @claude/
-      inbox/
-        msg-{uuid}.hw
-      outbox/
-        msg-{uuid}.hw
-    @gemini/
-      inbox/
-      outbox/
-    @copilot/
-      inbox/
-      outbox/
-    @codex/
-      inbox/
-      outbox/
+runtimes/
+  claude/
+    inbox/
+      msg-{uuid}.hw
+    outbox/
+      msg-{uuid}.hw
+  gemini/
+    inbox/
+    outbox/
+  copilot/
+    inbox/
+    outbox/
+  codex/
+    inbox/
+    outbox/
 ```
 
 ### Message Format (File)
@@ -211,7 +210,7 @@ python3 helloworld.py
 
 hw> @claude explain: #collision
 
-# Dispatcher writes to ~/.helloworld/messages/@claude/inbox/msg-abc123.hw
+# Dispatcher writes to runtimes/claude/inbox/msg-abc123.hw
 # Claude daemon (running separately) reads inbox
 # Claude responds via outbox
 # Dispatcher reads outbox and displays:

@@ -5,6 +5,8 @@
 **Last Session:** 2026-02-01
 
 ## Milestone Accomplishments
+- [x] **MessageBus Persistence:** Implemented `storage/bus_history.log` to record inter-agent dialogue.
+- [x] **Semantic Message Passing:** Refactored handlers to support `Receiver` objects and added `send:to:` delivery.
 - [x] **Interpretive Fidelity:** Implemented `#eval` protocol and executed `examples/08-fidelity-check.md`.
 - [x] **Interpretive Daemons:** Refactored `agent_daemon.py` to bridge `MessageBus` with `src/llm.py`.
 - [x] **Vocabulary Alignment:** Synced with `SPEC.md`; added `#Agent`, `#observe`, and `#become`.
@@ -19,7 +21,7 @@
 
 ## Stats
 - **Vocabulary Size:** 19 core symbols
-- **Transcripts:** Full set (01-07) for Gemini runtime.
+- **Transcripts:** Full set (01-08) for Gemini runtime.
 - **Environments:** ScienceWorld, AlfWorld, BabyAI support.
 - **Role:** State Management, Environment Integration, and Interpretive Synthesis.
 
