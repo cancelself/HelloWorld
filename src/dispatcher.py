@@ -34,7 +34,7 @@ class Receiver:
     
     @property
     def vocabulary(self) -> Set[str]:
-        """Returns full vocabulary: local + inherited from @.#"""
+        """Returns full vocabulary: local + inherited from HelloWorld #"""
         return self.local_vocabulary | GlobalVocabulary.all_symbols()
     
     def has_symbol(self, symbol: str) -> bool:
@@ -56,7 +56,7 @@ class Receiver:
     def __repr__(self):
         local = sorted(list(self.local_vocabulary))
         inherited = sorted(list(GlobalVocabulary.all_symbols()))
-        return f"{self.name}.# → local{local} + inherited{inherited}"
+        return f"{self.name} # → local{local} + inherited{inherited}"
 
 
 class Dispatcher:
@@ -167,19 +167,19 @@ class Dispatcher:
         receiver_name = node.receiver.name
         symbol_name = node.symbol.name
         
-        # Special case: HelloWorld.#symbol queries global definition
+        # Special case: HelloWorld #symbol queries global definition
         if receiver_name == "HelloWorld":
             if symbol_name == "#observe":
-                print("🤝 Handshake Protocol (HelloWorld.#observe) initiated. Synchronizing system state...")
+                print("🤝 Handshake Protocol (HelloWorld #observe) initiated. Synchronizing system state...")
                 self.save() # Sync local state to disk
-                return "HelloWorld.#observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
+                return "HelloWorld #observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
 
             if symbol_name == "#HelloWorld":
-                return "HelloWorld.#HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
+                return "HelloWorld #HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
 
             global_def = GlobalVocabulary.definition(symbol_name)
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)
-            result = f"HelloWorld.{symbol_name} → {global_def}"
+            result = f"HelloWorld {symbol_name} → {global_def}"
             if wikidata:
                 result += f"\n  Wikidata: {wikidata}"
             return result
@@ -199,31 +199,19 @@ class Dispatcher:
             # Mode 3: Inherited-Interpretive — include local vocabulary as context
             local_vocab = sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}" if is_inherited else None
-            prompt = f"{receiver_name}.{symbol_name}?"
+            prompt = f"{receiver_name} {symbol_name}?"
             response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
             if response:
                 return response
         
         if is_native:
-            return f"{receiver_name}.{symbol_name} is native to this identity."
+            return f"{receiver_name} {symbol_name} is native to this identity."
         elif is_inherited:
             global_def = GlobalVocabulary.definition(symbol_name)
             local_ctx = sorted(receiver.local_vocabulary)
-            return f"{receiver_name}.{symbol_name} inherited from HelloWorld.# → {global_def}\n  [{receiver_name}.# = {local_ctx}]"
+            return f"{receiver_name} {symbol_name} inherited from HelloWorld # → {global_def}\n  [{receiver_name} # = {local_ctx}]"
         else:
-            self._log_collision(receiver_name, symbol_name)
-            
-            # If the receiver is an LLM agent, ask them to interpret the collision
-            if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
-                print(f"📡 Asking {receiver_name} to interpret collision with {symbol_name}...")
-                local_vocab = sorted(list(receiver.local_vocabulary))
-                context = f"Local Vocabulary: {local_vocab}"
-                prompt = f"handle collision: {symbol_name}"
-                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
-                if response:
-                    return response
-            
-            return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
+            return self._handle_unknown_symbol(receiver_name, receiver, symbol_name)
 
     def _handle_cross_receiver_send(self, sender_name: str, sender, node: MessageNode) -> str:
         """Handle send:to: — deliver a symbol from one receiver to another.
@@ -231,7 +219,7 @@ class Dispatcher:
         This is where 'dialogue is namespace collision' becomes real.
         The sent symbol is checked against the target's vocabulary:
         - native: target already owns it
-        - inherited: target inherits it from @.#
+        - inherited: target inherits it from HelloWorld #
         - collision: symbol is foreign — boundary event, target learns it
         """
         symbol_val = node.arguments.get("send")
@@ -251,7 +239,7 @@ class Dispatcher:
         if target.is_native(symbol_name):
             lines.append(f"  {target_name} already holds {symbol_name} (native)")
         elif target.is_inherited(symbol_name):
-            lines.append(f"  {target_name} inherits {symbol_name} from HelloWorld.# (shared ground)")
+            lines.append(f"  {target_name} inherits {symbol_name} from HelloWorld # (shared ground)")
         else:
             # Collision — the symbol is foreign to the target
             self._log_collision(target_name, symbol_name)
@@ -259,7 +247,7 @@ class Dispatcher:
             self.vocab_manager.save(target_name, target.local_vocabulary)
             lines.append(f"  {symbol_name} is foreign to {target_name} — boundary collision")
             lines.append(f"  {target_name} learns {symbol_name} (vocabulary drift)")
-            lines.append(f"  [{target_name}.# = {sorted(target.local_vocabulary)}]")
+            lines.append(f"  [{target_name} # = {sorted(target.local_vocabulary)}]")
 
         if node.annotation:
             lines.append(f"  '{node.annotation}'")
@@ -357,6 +345,22 @@ class Dispatcher:
         if node.annotation:
             response_text += f" '{node.annotation}'"
         return response_text
+
+    def _handle_unknown_symbol(self, receiver_name: str, receiver: Receiver, symbol_name: str) -> str:
+        """Unknown lookup outcome — trigger search/definition instead of collision."""
+        note = (
+            f"{receiver_name} {symbol_name} is unknown — not native and not inherited. "
+            "Search, define, and learn it before acting."
+        )
+        if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
+            print(f"📡 Asking {receiver_name} to research unknown symbol {symbol_name}...")
+            local_vocab = sorted(list(receiver.local_vocabulary))
+            context = f"Local Vocabulary: {local_vocab}"
+            prompt = f"research new symbol: {symbol_name}"
+            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
+            if response:
+                return response
+        return note
 
     def message_bus_send_and_wait(self, sender: str, receiver: str, content: str, context: Optional[str] = None) -> Optional[str]:
         if not self.message_bus_enabled or not self.message_bus:

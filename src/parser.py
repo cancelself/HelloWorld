@@ -50,26 +50,17 @@ class Parser:
             receiver_token = self._previous()
             receiver = ReceiverNode(receiver_token.value)
 
-            # Check for query or definition: @name.
-            if self._match(TokenType.DOT):
-                if self._match(TokenType.HASH):
-                    # Definition or Vocabulary Query: @name.#
-                    if self._match(TokenType.ARROW):
-                        # Definition: @name.# → [#symbol, ...]
-                        return self._parse_vocabulary_definition(receiver)
-                    else:
-                        # Query: @name.#
-                        return VocabularyQueryNode(receiver)
-                elif self._match(TokenType.SYMBOL):
-                    # Scoped Lookup: @name.#symbol
-                    symbol_token = self._previous()
-                    return ScopedLookupNode(receiver, SymbolNode(symbol_token.value))
+            # Scoped lookups / queries accept either legacy dot syntax or space-separated form.
+            if self._check(TokenType.DOT) or self._check(TokenType.HASH) or self._check(TokenType.SYMBOL):
+                suffix_node = self._parse_receiver_suffix(receiver)
+                if suffix_node:
+                    return suffix_node
             
-            # Message Passing: @name action: value
+            # Message Passing: Name action: value
             if self._check(TokenType.IDENTIFIER):
                 return self._parse_message(receiver)
             
-            # Bare receiver: @name
+            # Bare receiver: Name
             return VocabularyQueryNode(receiver)
 
         # Skip tokens we don't recognize as starts of statements for now
@@ -116,6 +107,24 @@ class Parser:
         
         token = self._peek()
         raise SyntaxError(f"Unexpected token {token.type} at line {token.line}, column {token.column}")
+
+    def _parse_receiver_suffix(self, receiver: ReceiverNode) -> Optional[Node]:
+        """Parse vocabulary queries / definitions / scoped lookups after a receiver."""
+        consumed_dot = self._match(TokenType.DOT)
+
+        if self._match(TokenType.HASH):
+            if self._match(TokenType.ARROW):
+                return self._parse_vocabulary_definition(receiver)
+            return VocabularyQueryNode(receiver)
+
+        if self._match(TokenType.SYMBOL):
+            symbol_token = self._previous()
+            return ScopedLookupNode(receiver, SymbolNode(symbol_token.value))
+
+        if consumed_dot:
+            token = self._peek()
+            raise SyntaxError(f"Expect '#' or '#symbol' after '.' (line {token.line}, column {token.column})")
+        return None
 
     # Helper methods
     def _match(self, *types: TokenType) -> bool:

@@ -34,13 +34,13 @@ def test_dispatch_query():
     stmts = Parser.from_source("Guardian").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "Guardian.#" in results[0]
+    assert "Guardian #" in results[0]
     assert "#fire" in results[0]
 
 
 def test_dispatch_query_explicit():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Guardian.#").parse()
+    stmts = Parser.from_source("Guardian #").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "#fire" in results[0]
@@ -48,7 +48,7 @@ def test_dispatch_query_explicit():
 
 def test_dispatch_scoped_lookup_native():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Guardian.#fire").parse()
+    stmts = Parser.from_source("Guardian #fire").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -56,7 +56,7 @@ def test_dispatch_scoped_lookup_native():
 
 def test_dispatch_scoped_lookup_foreign():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Awakener.#fire").parse()
+    stmts = Parser.from_source("Awakener #fire").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "collision" in results[0]
@@ -64,7 +64,7 @@ def test_dispatch_scoped_lookup_foreign():
 
 def test_dispatch_definition():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("NewReceiver.# → [#hello, #world]").parse()
+    stmts = Parser.from_source("NewReceiver # → [#hello, #world]").parse()
     dispatcher.dispatch(stmts)
     assert "NewReceiver" in dispatcher.registry
     assert "#hello" in dispatcher.registry["NewReceiver"].vocabulary
@@ -111,12 +111,12 @@ def test_dispatch_bootstrap_hw():
     assert "Guardian" in results[3] and "#Entropy" in results[3]
     assert "Awakener" in results[4] and "#stillness" in results[4]
     assert "Claude" in results[5]
-    assert "Guardian.#" in results[6]
+    assert "Guardian #" in results[6]
 
 
 def test_dispatch_meta_receiver():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Claude.#Collision").parse()
+    stmts = Parser.from_source("Claude #Collision").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]

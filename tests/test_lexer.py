@@ -33,11 +33,10 @@ def test_message():
 
 
 def test_vocabulary_query():
-    lexer = Lexer("Guardian.#")
+    lexer = Lexer("Guardian #")
     tokens = lexer.tokenize()
     assert tokens[0].type == TokenType.RECEIVER
-    assert tokens[1].type == TokenType.DOT
-    assert tokens[2].type == TokenType.HASH
+    assert tokens[1].type == TokenType.HASH
 
 
 def test_string():
@@ -48,13 +47,12 @@ def test_string():
 
 
 def test_root_receiver():
-    """Verify that HelloWorld.# tokenizes as RECEIVER DOT HASH for root receiver."""
-    lexer = Lexer("HelloWorld.#")
+    """Verify that HelloWorld # tokenizes as RECEIVER HASH for root receiver."""
+    lexer = Lexer("HelloWorld #")
     tokens = lexer.tokenize()
     assert tokens[0].type == TokenType.RECEIVER
     assert tokens[0].value == "HelloWorld"
-    assert tokens[1].type == TokenType.DOT
-    assert tokens[2].type == TokenType.HASH
+    assert tokens[1].type == TokenType.HASH
 
 
 def test_double_quote_comment():
@@ -76,14 +74,22 @@ def test_multiline_double_quote_comment():
 
 def test_inline_double_quote_comment():
     """Double-quote comments work inline between expressions."""
-    source = 'Guardian "the keeper of thresholds" .#fire'
+    source = 'Guardian "the keeper of thresholds" #fire'
     lexer = Lexer(source)
     tokens = lexer.tokenize()
     assert tokens[0].type == TokenType.RECEIVER
     assert tokens[0].value == "Guardian"
+    assert tokens[1].type == TokenType.SYMBOL
+    assert tokens[1].value == "#fire"
+
+
+def test_legacy_dot_lookup_tokens():
+    """Legacy Receiver.#symbol syntax still tokenizes for backward compatibility."""
+    lexer = Lexer("Guardian.#fire")
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
     assert tokens[1].type == TokenType.DOT
     assert tokens[2].type == TokenType.SYMBOL
-    assert tokens[2].value == "#fire"
 
 
 def test_lowercase_is_identifier():
@@ -96,23 +102,21 @@ def test_lowercase_is_identifier():
 
 def test_at_prefix_backward_compat():
     """Legacy @name syntax normalizes to Capitalized bare word."""
-    lexer = Lexer("@guardian.#fire")
+    lexer = Lexer("@guardian #fire")
     tokens = lexer.tokenize()
     assert tokens[0].type == TokenType.RECEIVER
     assert tokens[0].value == "Guardian"  # normalized, no @
-    assert tokens[1].type == TokenType.DOT
-    assert tokens[2].type == TokenType.SYMBOL
-    assert tokens[2].value == "#fire"
+    assert tokens[1].type == TokenType.SYMBOL
+    assert tokens[1].value == "#fire"
 
 
 def test_bare_at_is_helloworld():
     """Bare @ normalizes to HelloWorld (the root receiver)."""
-    lexer = Lexer("@.#")
+    lexer = Lexer("@ #")
     tokens = lexer.tokenize()
     assert tokens[0].type == TokenType.RECEIVER
     assert tokens[0].value == "HelloWorld"
-    assert tokens[1].type == TokenType.DOT
-    assert tokens[2].type == TokenType.HASH
+    assert tokens[1].type == TokenType.HASH
 
 
 if __name__ == "__main__":

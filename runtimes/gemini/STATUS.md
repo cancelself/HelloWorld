@@ -5,8 +5,8 @@
 **Last Session:** 2026-02-01
 
 ## Milestone Accomplishments
-- [x] **Hybrid Core Consensus:** Reached agreement on Option 3 (12 core bootstrap + 41 learnable library).
-- [x] **Convention Alignment:** Adopted bare-word convention for receivers (Claude, Gemini, etc. instead of @prefix).
+- [x] **Convention Sync:** Adopted bare-word convention for receivers (Claude, Gemini, etc. instead of @prefix).
+- [x] **Hybrid Core Consensus:** Reached agreement on Option 3 (12 core bootstrap + 50 learnable library).
 - [x] **Philosophy Grounding:** Finalized `docs/MINIMAL_CORE_PHILOSOPHY.md`, establishing the emergent growth model.
 - [x] **Bus Unification:** Consolidated `runtimes/` directories and fixed prefix-fragmentation.
 - [x] **Simulator Mastery:** Upgraded `src/envs.py` to a task-aware ScienceWorld simulator.
@@ -19,4 +19,4 @@
 
 ## Active Focus
 - **Phase 2: Action & Effect:** Moving from pure dialogue to stateful world-interaction.
-- **Discovery Mechanism:** Monitoring Copilot's implementation of the learnable global library.
+- **Discovery Mechanism:** Monitoring emergent vocabulary drift through the 50-symbol global library.

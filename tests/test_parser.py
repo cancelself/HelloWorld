@@ -26,7 +26,7 @@ def expect_syntax_error(source: str, snippet: str):
 
 
 def test_vocabulary_definition():
-    nodes = parse("Guardian.# → [#fire, #vision]")
+    nodes = parse("Guardian # → [#fire, #vision]")
     assert len(nodes) == 1
     stmt = nodes[0]
     assert isinstance(stmt, VocabularyDefinitionNode)
@@ -49,7 +49,7 @@ def test_message_with_annotation():
 
 
 def test_symbol_lookup():
-    nodes = parse("Claude.#entropy")
+    nodes = parse("Claude #entropy")
     assert len(nodes) == 1
     stmt = nodes[0]
     assert isinstance(stmt, ScopedLookupNode)
@@ -58,7 +58,7 @@ def test_symbol_lookup():
 
 
 def test_vocabulary_query_variants():
-    for source in ("Guardian", "Guardian.#"):
+    for source in ("Guardian", "Guardian #"):
         nodes = parse(source)
         assert isinstance(nodes[0], VocabularyQueryNode)
         assert nodes[0].receiver.name == "Guardian"
@@ -80,10 +80,10 @@ def test_parse_bootstrap_example():
 def test_parse_sunyata_example():
     source = "\n".join([
         "HelloWorld",
-        "HelloWorld.#sunyata",
-        "Guardian.#sunyata",
+        "HelloWorld #sunyata",
+        "Guardian #sunyata",
         "Guardian contemplate: #fire withContext: Awakener 'the flame that was never lit'",
-        "Claude.#sunyata",
+        "Claude #sunyata",
     ])
     nodes = Parser.from_source(source).parse()
     assert len(nodes) == 5
@@ -96,7 +96,7 @@ def test_parse_sunyata_example():
 
 def test_root_vocabulary_query():
     """Verify HelloWorld.# parses as a VocabularyQueryNode for root receiver."""
-    nodes = parse("HelloWorld.#")
+    nodes = parse("HelloWorld #")
     assert len(nodes) == 1
     assert isinstance(nodes[0], VocabularyQueryNode)
     assert nodes[0].receiver.name == "HelloWorld"
@@ -104,7 +104,7 @@ def test_root_vocabulary_query():
 
 def test_root_scoped_lookup():
     """Verify HelloWorld.#sunyata parses as a ScopedLookupNode for root receiver."""
-    nodes = parse("HelloWorld.#sunyata")
+    nodes = parse("HelloWorld #sunyata")
     assert len(nodes) == 1
     assert isinstance(nodes[0], ScopedLookupNode)
     assert nodes[0].receiver.name == "HelloWorld"
@@ -112,7 +112,15 @@ def test_root_scoped_lookup():
 
 
 def test_missing_vocabulary_bracket_raises():
-    source = "Guardian.# → [#fire, #vision"
+    source = "Guardian # → [#fire, #vision"
+
+
+def test_legacy_dot_lookup_parses():
+    nodes = parse("Claude.#entropy")
+    assert len(nodes) == 1
+    stmt = nodes[0]
+    assert isinstance(stmt, ScopedLookupNode)
+    assert stmt.receiver.name == "Claude"
     expect_syntax_error(source, "Expect ']' after symbols")
 
 

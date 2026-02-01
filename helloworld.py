@@ -76,7 +76,7 @@ def repl():
                 print()
                 print("Syntax:")
                 print("  Receiver                      Show vocabulary")
-                print("  Receiver.#symbol              Lookup scoped meaning")
+                print("  Receiver #symbol              Lookup scoped meaning")
                 print("  Receiver action: #symbol      Send message")
                 continue
             
@@ -86,7 +86,7 @@ def repl():
                     print("Registered receivers:")
                     for r in receivers:
                         vocab = dispatcher.vocabulary(r)
-                        print(f"  {r}.# → {vocab}")
+                        print(f"  {r} # → {vocab}")
                 else:
                     print("No receivers registered yet.")
                 continue

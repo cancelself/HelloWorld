@@ -25,7 +25,7 @@ def _symbol_status(receiver, symbol_name: str) -> str:
     if receiver.is_native(symbol_name):
         return "native"
     elif receiver.is_inherited(symbol_name):
-        return "inherited from HelloWorld.#"
+        return "inherited from HelloWorld #"
     else:
         return "boundary collision"
 
@@ -43,7 +43,7 @@ def _handle_observe(args, recv, receiver_name: str) -> str:
         status = _symbol_status(recv, symbol)
         lines.append(f"  status: {status}")
         local = sorted(recv.local_vocabulary)
-        lines.append(f"  [{receiver_name}.# = {local}]")
+        lines.append(f"  [{receiver_name} # = {local}]")
     else:
         lines.append(f"  (no receiver context)")
 
@@ -63,7 +63,7 @@ def _handle_act(args, recv, receiver_name: str) -> str:
         status = _symbol_status(recv, symbol)
         if status == "native":
             lines.append(f"  {symbol} is native — {receiver_name} acts with authority")
-        elif status == "inherited from HelloWorld.#":
+        elif status == "inherited from HelloWorld #":
             local = sorted(recv.local_vocabulary)
             lines.append(f"  {symbol} is inherited — {receiver_name} acts through local lens {local}")
         else:
