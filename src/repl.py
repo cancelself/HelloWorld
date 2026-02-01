@@ -10,6 +10,14 @@ from parser import Parser
 
 
 class REPL:
+    # ANSI Color Codes
+    GREEN = "\033[32m"
+    RED = "\033[31m"
+    CYAN = "\033[36m"
+    YELLOW = "\033[33m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+
     def __init__(self, dispatcher: Optional[Dispatcher] = None, enable_readline: bool = True):
         self.dispatcher = dispatcher or Dispatcher()
         self.running = True
@@ -59,12 +67,13 @@ class REPL:
             pass
 
     def start(self):
-        print("HelloWorld v0.1")
+        print(f"{self.BOLD}HelloWorld v0.1{self.RESET}")
         print("Type 'exit' to quit, 'save [@receiver]' to persist vocabularies, 'load <file>.hw' to run a script.")
         
         while self.running:
             try:
-                text = input("hw> ")
+                prompt = f"{self.CYAN}hw>{self.RESET} "
+                text = input(prompt)
                 if not text.strip():
                     continue
                 
@@ -83,9 +92,9 @@ class REPL:
                         target = f"@{target}"
                     self.dispatcher.save(target)
                     if target:
-                        print(f"Saved {target} vocabulary.")
+                        print(f"{self.YELLOW}Saved {target} vocabulary.{self.RESET}")
                     else:
-                        print("Saved all receiver vocabularies.")
+                        print(f"{self.YELLOW}Saved all receiver vocabularies.{self.RESET}")
                     continue
                 
                 if command == "load" and len(parts) > 1:
@@ -94,21 +103,21 @@ class REPL:
 
                 self._process(text)
             except KeyboardInterrupt:
-                print("\nType 'exit' to quit.")
+                print(f"\nType 'exit' to quit.")
             except EOFError:
                 self.running = False
 
     def _load_file(self, filename: str):
         try:
             if not os.path.exists(filename):
-                print(f"File not found: {filename}")
+                print(f"{self.RED}File not found: {filename}{self.RESET}")
                 return
             
             with open(filename, 'r') as f:
                 content = f.read()
                 self._process(content)
         except Exception as e:
-            print(f"Error loading file: {e}")
+            print(f"{self.RED}Error loading file: {e}{self.RESET}")
 
     def _process(self, source: str):
         try:
@@ -125,10 +134,14 @@ class REPL:
             
             # 4. Print results
             for result in results:
-                print(f"→ {result}")
+                # If result looks like a system log (contains '📡'), use Yellow
+                if "📡" in result:
+                    print(f"{self.YELLOW}→ {result}{self.RESET}")
+                else:
+                    print(f"{self.GREEN}→ {result}{self.RESET}")
                 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"{self.RED}Error: {e}{self.RESET}")
 
 if __name__ == "__main__":
     repl = REPL()

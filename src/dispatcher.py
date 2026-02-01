@@ -210,15 +210,34 @@ class Dispatcher:
         self.vocab_manager.save(receiver.name, receiver.local_vocabulary)
         return f"Updated {receiver.name} vocabulary."
 
+    def _learn_symbols_from_message(self, receiver_name: str, receiver, node: MessageNode):
+        """Learn unknown symbols from message arguments (vocabulary drift).
+
+        Called before handler dispatch so vocabulary grows through dialogue
+        regardless of whether a semantic handler matches.
+        """
+        learned = False
+        for val in node.arguments.values():
+            if isinstance(val, SymbolNode):
+                if not receiver.has_symbol(val.name):
+                    receiver.add_symbol(val.name)
+                    self._log_collision(receiver_name, val.name, context="message_args")
+                    learned = True
+        if learned:
+            self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
+
     def _handle_message(self, node: MessageNode) -> str:
         receiver_name = node.receiver.name
         receiver = self._get_or_create_receiver(receiver_name)
         parent = self._get_or_create_receiver("@")
-        
+
         # Build message string
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
-        
-        # First, try registered message handlers (semantic layer)
+
+        # Always learn symbols first — vocabularies grow through dialogue
+        self._learn_symbols_from_message(receiver_name, receiver, node)
+
+        # Then try registered message handlers (semantic layer)
         handler_response = self.message_handler_registry.handle(receiver_name, node)
         if handler_response:
             return handler_response
@@ -259,17 +278,6 @@ class Dispatcher:
             else:
                 return f"[{receiver_name}] (no response - daemon may not be running)"
 
-        # Internal state update: learn symbols from arguments
-        learned = False
-        for val in node.arguments.values():
-            if isinstance(val, SymbolNode):
-                if not receiver.has_symbol(val.name):
-                    receiver.add_symbol(val.name)
-                    self._log_collision(receiver_name, val.name, context="message_args")
-                    learned = True
-        if learned:
-            self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
-        
         response_text = f"[{receiver_name}] Received message: {args_str}"
         if tool_results:
             response_text += "\n" + "\n".join(tool_results)

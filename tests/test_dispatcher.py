@@ -259,6 +259,29 @@ def test_inherited_includes_receiver_context():
     assert guardian_results[0] != awakener_results[0]
 
 
+def test_handlers_do_not_prevent_vocabulary_learning():
+    """Verify that message handlers don't prevent vocabulary drift.
+
+    When a handler matches (e.g. sendVision:withContext:), the semantic
+    response should be returned BUT the vocabulary learning should still
+    happen. Handlers provide the voice; learning provides the drift.
+    """
+    dispatcher = _fresh_dispatcher()
+    guardian = dispatcher.registry["@guardian"]
+
+    # #customsymbol is not native, not global — it's unknown
+    assert not guardian.has_symbol("#customsymbol")
+
+    # Send a message that matches the challenge: handler, with an unknown symbol
+    results = dispatcher.dispatch_source("@guardian challenge: #customsymbol")
+    assert len(results) == 1
+    # Handler should fire (semantic response)
+    assert "challenges" in results[0] or "challenge" in results[0].lower()
+    # But the symbol should ALSO be learned (vocabulary drift)
+    assert guardian.has_symbol("#customsymbol"), \
+        "Handler short-circuited vocabulary learning — vocabularies must grow through dialogue"
+
+
 if __name__ == "__main__":
     test_dispatcher_bootstrap()
     test_dispatch_query()
