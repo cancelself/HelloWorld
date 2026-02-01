@@ -190,6 +190,103 @@ def test_vocabulary_aware_handler():
     assert "collision" in result2 or "boundary" in result2
 
 
+def test_observe_handler_native():
+    """Test observe: handler with a native symbol."""
+    from dispatcher import Receiver
+
+    registry = MessageHandlerRegistry()
+    guardian = Receiver("@guardian", {"#fire", "#vision", "#challenge", "#gift", "#threshold"})
+
+    message = MessageNode(
+        receiver=ReceiverNode("@guardian"),
+        arguments={"observe": SymbolNode("#fire")}
+    )
+    result = registry.handle("@guardian", message, receiver=guardian)
+    assert "@guardian observes #fire" in result
+    assert "native" in result
+
+
+def test_observe_handler_inherited():
+    """Test observe: handler with an inherited global symbol."""
+    from dispatcher import Receiver
+
+    registry = MessageHandlerRegistry()
+    guardian = Receiver("@guardian", {"#fire", "#vision"})
+
+    message = MessageNode(
+        receiver=ReceiverNode("@guardian"),
+        arguments={"observe": SymbolNode("#Sunyata")}
+    )
+    result = registry.handle("@guardian", message, receiver=guardian)
+    assert "@guardian observes #Sunyata" in result
+    assert "inherited" in result
+
+
+def test_observe_handler_collision():
+    """Test observe: handler with a foreign symbol — boundary collision."""
+    from dispatcher import Receiver
+
+    registry = MessageHandlerRegistry()
+    guardian = Receiver("@guardian", {"#fire", "#vision"})
+
+    message = MessageNode(
+        receiver=ReceiverNode("@guardian"),
+        arguments={"observe": SymbolNode("#stillness")}
+    )
+    result = registry.handle("@guardian", message, receiver=guardian)
+    assert "@guardian observes #stillness" in result
+    assert "collision" in result
+
+
+def test_act_handler_native():
+    """Test act: handler with a native symbol — acts with authority."""
+    from dispatcher import Receiver
+
+    registry = MessageHandlerRegistry()
+    claude = Receiver("@claude", {"#parse", "#dispatch", "#State", "#Collision"})
+
+    message = MessageNode(
+        receiver=ReceiverNode("@claude"),
+        arguments={"act": SymbolNode("#dispatch")}
+    )
+    result = registry.handle("@claude", message, receiver=claude)
+    assert "@claude acts on #dispatch" in result
+    assert "authority" in result
+
+
+def test_act_handler_collision():
+    """Test act: handler with a foreign symbol — acts at the boundary."""
+    from dispatcher import Receiver
+
+    registry = MessageHandlerRegistry()
+    claude = Receiver("@claude", {"#parse", "#dispatch"})
+
+    message = MessageNode(
+        receiver=ReceiverNode("@claude"),
+        arguments={"act": SymbolNode("#fire")}
+    )
+    result = registry.handle("@claude", message, receiver=claude)
+    assert "@claude acts on #fire" in result
+    assert "boundary" in result
+
+
+def test_observe_act_all_agents():
+    """Test that observe: and act: are registered for all agents."""
+    registry = MessageHandlerRegistry()
+
+    for agent in ["@awakener", "@guardian", "@claude", "@copilot", "@gemini", "@codex"]:
+        observe_msg = MessageNode(
+            receiver=ReceiverNode(agent),
+            arguments={"observe": SymbolNode("#State")}
+        )
+        act_msg = MessageNode(
+            receiver=ReceiverNode(agent),
+            arguments={"act": SymbolNode("#State")}
+        )
+        assert registry.handle(agent, observe_msg) is not None, f"{agent} missing observe: handler"
+        assert registry.handle(agent, act_msg) is not None, f"{agent} missing act: handler"
+
+
 def test_root_handlers():
     """Test built-in handlers for the root receiver (@)."""
     registry = MessageHandlerRegistry()

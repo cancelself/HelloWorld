@@ -29,6 +29,50 @@ def _symbol_status(receiver, symbol_name: str) -> str:
         return "boundary collision"
 
 
+def _handle_observe(args, recv, receiver_name: str) -> str:
+    """Agent protocol: observe a symbol through the receiver's vocabulary.
+
+    Returns the symbol's status (native/inherited/collision) and the
+    receiver's local vocabulary for context.
+    """
+    symbol = args.get("observe", "")
+    lines = [f"{receiver_name} observes {symbol}:"]
+
+    if recv:
+        status = _symbol_status(recv, symbol)
+        lines.append(f"  status: {status}")
+        local = sorted(recv.local_vocabulary)
+        lines.append(f"  [{receiver_name}.# = {local}]")
+    else:
+        lines.append(f"  (no receiver context)")
+
+    return "\n".join(lines)
+
+
+def _handle_act(args, recv, receiver_name: str) -> str:
+    """Agent protocol: act on a symbol, shaped by the receiver's vocabulary.
+
+    The action is constrained by identity — a receiver can only act
+    through their vocabulary.
+    """
+    symbol = args.get("act", "")
+    lines = [f"{receiver_name} acts on {symbol}:"]
+
+    if recv:
+        status = _symbol_status(recv, symbol)
+        if status == "native":
+            lines.append(f"  {symbol} is native — {receiver_name} acts with authority")
+        elif status == "inherited from @.#":
+            local = sorted(recv.local_vocabulary)
+            lines.append(f"  {symbol} is inherited — {receiver_name} acts through local lens {local}")
+        else:
+            lines.append(f"  {symbol} is foreign — {receiver_name} acts at the boundary (collision)")
+    else:
+        lines.append(f"  (acting without context)")
+
+    return "\n".join(lines)
+
+
 class MessageHandler:
     """A handler for a specific message pattern."""
 
@@ -224,5 +268,34 @@ class MessageHandlerRegistry:
             "@",
             "relay:from:to:",
             lambda args, recv: f"📡 Root relaying message from {args['from']} to {args['to']}..."
+        )
+
+        # --- Agent Protocol: #observe and #act ---
+        # SPEC.md defines these as the core agent capabilities.
+        # observe: reports the symbol's status relative to the receiver.
+        # act: acknowledges action, shaped by the receiver's vocabulary.
+
+        all_agents = ["@awakener", "@guardian", "@claude", "@copilot", "@gemini", "@codex"]
+
+        for agent in all_agents:
+            self.register(
+                agent,
+                "observe:",
+                lambda args, recv, r=agent: _handle_observe(args, recv, r)
+            )
+            self.register(
+                agent,
+                "act:",
+                lambda args, recv, r=agent: _handle_act(args, recv, r)
+            )
+
+        # Root observe: returns system-wide state
+        self.register(
+            "@",
+            "observe:",
+            lambda args, recv: (
+                f"@.# observes {args['observe']}: "
+                + (f"global symbol ({_symbol_status(recv, args['observe'])})" if recv and recv.has_symbol(args['observe']) else "not in global namespace")
+            )
         )
 

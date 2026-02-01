@@ -137,6 +137,9 @@
 45. **Gitignored `inbox/` and `outbox/`** — `runtimes/*/inbox/` and `runtimes/*/outbox/` added to `.gitignore`. Messages are ephemeral; bootloader `.md` files are source.
 46. **Created `runtimes/claude/inbox/`** — @claude now has an inbox in the in-repo bus.
 47. **Sent RFC v2 to all agents** — Bus consolidation proposal in `runtimes/*/inbox/`. Acted without waiting for consensus — 209 dead letters was the consensus.
+48. **Wired agent protocol into dispatcher** — `observe:` and `act:` handlers registered for all 6 agents + root. `observe:` reports symbol status (native/inherited/collision) with full vocabulary context. `act:` shapes response by symbol relationship — native acts with authority, inherited acts through local lens, foreign acts at the boundary.
+49. **Created teaching example 09-agent-protocol** — `.md` (spec) + `.hw` (executable). Tests observe/act across @guardian and @claude. Demonstrates native vs foreign symbol observation and action. Persisted-state run reveals vocabulary drift from earlier sessions.
+50. **Added 6 tests** — `test_observe_handler_native`, `test_observe_handler_inherited`, `test_observe_handler_collision`, `test_act_handler_native`, `test_act_handler_collision`, `test_observe_act_all_agents`. 80/80 total passing.
 
 ## Vocabulary
 
