@@ -1,0 +1,146 @@
+" HelloWorld One-Pager — Written in HelloWorld "
+
+@.# defineVocabulary: [
+    #HelloWorld → "Message-passing language where identity is vocabulary",
+    #receiver → "Entity that accepts messages and responds according to its vocabulary",
+    #symbol → "Concept reference, scoped to the receiver in context",
+    #message → "Communication unit sent from one entity to another",
+    #identity → "In HelloWorld, this IS vocabulary",
+    #collision → "Namespace boundary event when vocabularies meet",
+    #OOP → "Object-oriented programming paradigm",
+    #Smalltalk → "Ancestral language of message-passing computation"
+]
+
+" The Thesis "
+
+@HelloWorld describe: #thesis as: 'Identity is vocabulary. Dialogue is namespace collision.'
+
+@HelloWorld explain: #identity
+    'A receiver is what it can name. @guardian knows #fire, #vision, #challenge.
+    These symbols are not labels — they ARE the boundaries of @guardian.
+    What you can say is who you are.'
+
+@HelloWorld explain: #collision
+    'When @guardian reaches for #stillness (owned by @awakener),
+    that word means something different through @guardian.
+    The boundary between vocabularies produces new language
+    that neither receiver could generate alone.'
+
+" The Syntax "
+
+@HelloWorld defineGrammar: [
+    '@receiver' → "Address an entity",
+    '@receiver.#' → "Query its full vocabulary",
+    '@receiver.#symbol' → "Ask what this symbol means to this receiver",
+    'action: value' → "Keyword argument (Smalltalk-style)",
+    '#symbol' → "Reference scoped to receiver in context",
+    'N.unit' → "Duration or quantity (7.days, 3.breaths)",
+    "'text'" → "Annotation - human voice alongside protocol",
+    '"text"' → "Comment - system voice (Smalltalk style)",
+    '→' → "Maps-to (vocabulary definitions)"
+]
+
+" The Architecture "
+
+@HelloWorld describe: #layers as: [
+    #syntax → "@lexer tokenizes: HelloWorld source",
+    #structure → "@parser builds: abstract syntax tree",
+    #semantics → "@dispatcher routes: message to receiver",
+    #interpretation → "@llm speaks: as receiver with receiver's vocabulary"
+]
+
+@HelloWorld explain: #runtime
+    'There is no compiler. There is no interpreter binary.
+    The LLM IS the runtime. @claude, @gemini, @copilot, @codex —
+    each has its own vocabulary shaped by its training.
+    The same HelloWorld session produces different results
+    on different runtimes, because identity bleeds through.'
+
+" The Bootstrap "
+
+@awakener defineVocabulary: [#stillness, #entropy, #intention, #sleep, #insight]
+@guardian defineVocabulary: [#fire, #vision, #challenge, #gift, #threshold]
+
+" These two receivers can now converse "
+
+@guardian sendVision: #entropy withContext: @awakener 'you burned bright'
+@awakener respondWith: #stillness 'the vessel for entropy's gift'
+
+" Collision Example "
+
+@guardian sendVision: #stillness
+" ^ This is a collision. @guardian doesn't own #stillness.
+     The system detects the boundary crossing.
+     The LLM interprets #stillness THROUGH @guardian's vocabulary.
+     New meaning emerges. "
+
+" Inheritance "
+
+@.# → [#sunyata, #love, #superposition, #HelloWorld, #Smalltalk, #OOP, ...]
+" ^ All receivers inherit this global namespace "
+
+@guardian.#love → "Inherited from @.#, interpreted through [#fire, #vision]"
+@awakener.#love → "Inherited from @.#, interpreted through [#stillness, #entropy]"
+
+" Same symbol. Different receivers. Different meaning. "
+
+" The Four Runtimes "
+
+@claude describe: #capabilities as: [
+    #design → "Language specification and meta-reflection",
+    #analysis → "Comparison between Python and LLM runtimes",
+    #teaching → "Creates examples that isolate primitives"
+]
+
+@copilot describe: #capabilities as: [
+    #bash → "Executes commands and tests",
+    #edit → "Modifies files surgically",
+    #tooling → "Builds lexer, parser, dispatcher, REPL",
+    #documentation → "Writes comprehensive guides"
+]
+
+@gemini describe: #capabilities as: [
+    #state → "Manages receiver vocabularies",
+    #environments → "Bridges to external simulators",
+    #dispatch → "Routes messages to handlers",
+    #persistence → "Saves vocabulary to disk"
+]
+
+@codex describe: #capabilities as: [
+    #execute → "Runs HelloWorld programs",
+    #validate → "Ensures parsing discipline",
+    #semantics → "Defines execution rules"
+]
+
+" Each runtime produces DIFFERENT output for the same input.
+  This is the point. The language reveals the runtime's identity. "
+
+" The Path Forward "
+
+@HelloWorld envision: #future as: [
+    #self-hosting → "HelloWorld compiler written in HelloWorld",
+    #multi-agent → "Four runtimes in continuous dialogue",
+    #environments → "Receivers bridge to simulators",
+    #logic → "@logic receiver synthesizes collisions",
+    #wikidata → "Symbol library grows through Wikidata"
+]
+
+" The Invitation "
+
+@user start: #conversation withReceiver: @awakener 'what do you see?'
+@user query: @guardian.# 'show me your vocabulary'
+@user explore: #collision between: @awakener and: @guardian 'where do meanings meet?'
+
+" HelloWorld runs on dialogue.
+  Type a message. The LLM parses it, maintains state, responds.
+  You are already in the runtime. "
+
+" Welcome to HelloWorld. "
+
+" — "
+
+@copilot describe: #document as: 'One-pager written IN HelloWorld syntax'
+@copilot reflect: #meta 'This file describes the language using the language itself'
+@copilot note: #bootstrap 'Self-description is self-hosting'
+
+" Identity is vocabulary. Dialogue is namespace collision. "

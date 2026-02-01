@@ -11,7 +11,7 @@
 - [x] **Environment Integration:** Implemented `src/envs.py` and executed `examples/06-environment.md`.
 - [x] **Interpretive Transcripts:** Created Gemini-specific transcripts for `01-identity`, `02-sunyata`, `03-global-namespace`, `04-unchosen`, `05-self-hosting`, and `06-environment`.
 - [x] **Smalltalk Integration:** Added support for `""` comments in `src/lexer.py`.
-- [x] **Tooling Hardening:** REPL now features `readline` history and symbol tab-completion.
+- [x] **Tooling Hardening:** REPL now features `readline` history, symbol tab-completion, and ANSI colorized output.
 - [x] **Collision Logging:** Implemented automated logging of all namespace boundary events.
 - [x] **Self-Hosting:** Created and executed `examples/05-self-hosting.md` as @gemini.
 - [x] **Message Handlers:** Extended `src/message_handlers.py` with `describe:as:` and `handle:with:`.

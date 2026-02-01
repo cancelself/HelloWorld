@@ -163,6 +163,38 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikidata_id=None,
         wikipedia_url=None
     ),
+    
+    "#OOP": GlobalSymbol(
+        name="#OOP",
+        definition="Object-oriented programming - paradigm based on objects containing data and code, communicating via messages",
+        domain="programming paradigms",
+        wikidata_id="Q79872",
+        wikipedia_url="https://en.wikipedia.org/wiki/Object-oriented_programming"
+    ),
+    
+    "#receiver": GlobalSymbol(
+        name="#receiver",
+        definition="Entity that accepts messages and responds according to its vocabulary - the fundamental unit of identity in HelloWorld",
+        domain="HelloWorld meta",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+    
+    "#message": GlobalSymbol(
+        name="#message",
+        definition="Communication unit sent from one entity to another, carrying intent and context",
+        domain="communication",
+        wikidata_id="Q628523",
+        wikipedia_url="https://en.wikipedia.org/wiki/Message_passing"
+    ),
+    
+    "#identity": GlobalSymbol(
+        name="#identity",
+        definition="The set of characteristics by which something is definitively recognizable or known - in HelloWorld, this IS vocabulary",
+        domain="philosophy",
+        wikidata_id="Q844569",
+        wikipedia_url="https://en.wikipedia.org/wiki/Identity_(philosophy)"
+    ),
 }
 
 
