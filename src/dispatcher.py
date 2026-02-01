@@ -184,7 +184,7 @@ class Dispatcher:
             local_vocab = sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}" if is_inherited else None
             prompt = f"{receiver_name}.{symbol_name}?"
-            response = self.message_bus_send_and_wait("Meta", receiver_name, prompt, context=context)
+            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
             if response:
                 return response
         
@@ -203,7 +203,7 @@ class Dispatcher:
                 local_vocab = sorted(list(receiver.local_vocabulary))
                 context = f"Local Vocabulary: {local_vocab}"
                 prompt = f"handle collision: {symbol_name}"
-                response = self.message_bus_send_and_wait("Meta", receiver_name, prompt, context=context)
+                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
                 if response:
                     return response
             
@@ -327,7 +327,7 @@ class Dispatcher:
             print(f"📡 Dispatching to {receiver_name} for interpretive response...")
             local_vocab = sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}"
-            response = self.message_bus_send_and_wait("Meta", receiver_name, message_content, context=context)
+            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
             if response:
                 return response
             else:
