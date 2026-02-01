@@ -260,14 +260,15 @@ class Dispatcher:
         receiver = self._get_or_create_receiver(receiver_name)
         lookup = receiver.lookup(symbol_name)
         
-        # If meta-receiver with known symbol, try interpretive voice via LLM
+        # If meta-receiver with known symbol, try interpretive voice
         if (
-            not lookup.is_unknown()
+            (lookup.is_native() or lookup.is_inherited())
             and receiver_name in self.agents
             and self.message_bus_enabled
             and self.message_bus
         ):
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
+            # Mode 3: Inherited-Interpretive — include local vocabulary as context
             local_vocab = sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}" if lookup.is_inherited() else None
             prompt = f"{receiver_name} {symbol_name}?"

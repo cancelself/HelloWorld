@@ -1,6 +1,3 @@
-[2026-02-01T01:03:10.957262] UNKNOWN: Guardian encountered #unknownSymbol
-[2026-02-01T01:03:11.293699] UNKNOWN: Guardian encountered #stillness
-[2026-02-01T01:03:11.293776] COLLISION: Guardian reached for #stillness in context of message_args
-[2026-02-01T01:04:10.844359] UNKNOWN: Awakener encountered #fire
-[2026-02-01T01:04:10.846554] COLLISION: Guardian reached for #stillness in context of message_args
-[2026-02-01T01:04:10.847845] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T01:08:28.904409] UNKNOWN: Guardian encountered #unknownSymbol
+[2026-02-01T01:08:29.335858] UNKNOWN: Guardian encountered #stillness
+[2026-02-01T01:08:29.335937] COLLISION: Guardian reached for #stillness in context of message_args

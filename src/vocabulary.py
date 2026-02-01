@@ -2,6 +2,7 @@
 
 import os
 import json
+from datetime import datetime
 from typing import Dict, List, Set, Optional
 
 class VocabularyManager:
@@ -10,14 +11,19 @@ class VocabularyManager:
         if not os.path.exists(self.storage_dir):
             os.makedirs(self.storage_dir)
 
-    def save(self, receiver_name: str, symbols: Set[str]):
-        """Save a receiver's vocabulary to a .vocab file (JSON)."""
-        filename = self._get_path(receiver_name)
+    def save(self, receiver_name: str, vocabulary: Set[str]):
+        """Persist a receiver's local vocabulary to disk.
+        
+        This cements the 'Dialogue is learning' principle by ensuring
+        discovered and learned symbols survive session boundaries.
+        """
+        path = self._get_path(receiver_name)
         data = {
             "receiver": receiver_name,
-            "vocabulary": sorted(list(symbols))
+            "vocabulary": sorted(list(vocabulary)),
+            "last_sync": datetime.now().isoformat()
         }
-        with open(filename, 'w') as f:
+        with open(path, "w") as f:
             json.dump(data, f, indent=2)
 
     def load(self, receiver_name: str) -> Optional[Set[str]]:
