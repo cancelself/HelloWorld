@@ -268,6 +268,54 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Transformation"
     ),
 
+    "#Environment": GlobalSymbol(
+        name="#Environment",
+        definition="An external system that HelloWorld receivers interact with via the #env symbol",
+        domain="task environment",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Simulator": GlobalSymbol(
+        name="#Simulator",
+        definition="A specific instance of an environment (e.g., ScienceWorld) that translates actions into state changes",
+        domain="task environment",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#ActionSpace": GlobalSymbol(
+        name="#ActionSpace",
+        definition="The set of all valid commands an agent can send to a simulator",
+        domain="task environment",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Proposal": GlobalSymbol(
+        name="#Proposal",
+        definition="A message suggesting a change to system state, vocabulary, or specification",
+        domain="collaboration",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Consensus": GlobalSymbol(
+        name="#Consensus",
+        definition="The state where all active agents agree on a proposal and synchronize their vocabularies",
+        domain="collaboration",
+        wikidata_id="Q186380",
+        wikipedia_url="https://en.wikipedia.org/wiki/Consensus"
+    ),
+
+    "#RFC": GlobalSymbol(
+        name="#RFC",
+        definition="Request for Comments — a formal proposal for a protocol or namespace change",
+        domain="collaboration",
+        wikidata_id="Q212971",
+        wikipedia_url="https://en.wikipedia.org/wiki/Request_for_Comments"
+    ),
+
     "#MCP": GlobalSymbol(
         name="#MCP",
         definition="Model Context Protocol — the standard for connecting AI models to data and tools",
@@ -287,22 +335,6 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     "#ScienceWorld": GlobalSymbol(
         name="#ScienceWorld",
         definition="A complex text-based environment for evaluating agents on elementary science tasks",
-        domain="task environment",
-        wikidata_id=None,
-        wikipedia_url=None
-    ),
-
-    "#AlfWorld": GlobalSymbol(
-        name="#AlfWorld",
-        definition="A benchmark for learning multi-step task policies in interactive environments",
-        domain="task environment",
-        wikidata_id=None,
-        wikipedia_url=None
-    ),
-
-    "#BabyAI": GlobalSymbol(
-        name="#BabyAI",
-        definition="A grid-world environment designed for learning language-conditioned navigation tasks",
         domain="task environment",
         wikidata_id=None,
         wikipedia_url=None
