@@ -15,7 +15,10 @@
     "#act",
     "#become",
     "#dispatch",
+    "#env",
     "#eval",
+    "#heat",
+    "#look",
     "#observe",
     "#parse",
     "#search"

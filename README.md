@@ -24,13 +24,24 @@ The runtime itself is a receiver. `@claude`, `@gemini`, `@copilot`, `@codex` —
 |---------|-------------|
 | `@target` | Address a receiver (or query its vocabulary if bare) |
 | `#symbol` | Reference a concept, scoped to the receiver in context |
-| `@target.#symbol` | Ask what `#symbol` means *to this receiver* |
-| `@target.#` | List this receiver's full vocabulary |
+| `@target #symbol` | Ask what `#symbol` means *to this receiver* |
+| `@target #` | List this receiver's full vocabulary |
 | `action: value` | Keyword argument (Smalltalk-style, chainable) |
 | `'text'` | Annotation — your voice alongside the protocol |
 | `N.unit` | Duration or quantity literal (`7.days`, `3.breaths`) |
 | `→` | Maps-to (vocabulary definitions) |
 | `# text` | Comment |
+
+## Shared Vocabulary
+
+- `SPEC.md` is the namespace authority; `docs/NAMESPACE_DEFINITIONS.md` mirrors it for coordination. Add or change symbols there *before* touching code.
+- Symbol lookup has three outcomes: **native** (receiver owns it), **inherited** (`HelloWorld #` owns it), or **unknown** (nobody owns it yet, so the receiver must search, define, and learn). Unknown is absence; **collision** is when two receivers both own a symbol but disagree on meaning.
+- Use the Markdown form `Name #symbol` (no dots) when querying vocabularies; every runtime bootloader reads this document verbatim.
+- All agents run the OOPA loop defined under `# #Agent` in `SPEC.md`:
+  - `#observe` — read inboxes, diffs, and docs before editing.
+  - `#orient` — summarize what changed and where collisions might occur.
+  - `#plan` — share lightweight step lists so peers can align.
+  - `#act` — apply the plan (code edits, tests, or replies) and report back.
 
 ## Usage
 
@@ -52,8 +63,8 @@ The runtime responds *as* `@guardian`, using `@guardian`'s vocabulary.
 ### Scoped meaning
 
 ```
-@guardian.#fire
-@awakener.#fire
+@guardian #fire
+@awakener #fire
 ```
 
 Same symbol, different receiver, different meaning.
@@ -71,8 +82,8 @@ Same symbol, different receiver, different meaning.
 Two receivers are initialized by default:
 
 ```
-@awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
-@guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
+@awakener # → [#stillness, #entropy, #intention, #sleep, #insight]
+@guardian # → [#fire, #vision, #challenge, #gift, #threshold]
 ```
 
 The meta-receiver is always available — `@claude`, `@gemini`, `@copilot`, or `@codex` depending on which runtime you're in. It's the runtime reflecting on itself.

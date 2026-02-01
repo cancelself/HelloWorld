@@ -47,16 +47,27 @@ class AgentDaemon:
     
     def process_message(self, message):
         """Invoke the LLM to interpret the message within the agent's context."""
-        prompt = f"Receiver: {self.agent_name}\n"
+        # Synthesis: My Identity + Sender's Context + Message
+        prompt = (
+            f"You are {self.agent_name}. "
+            f"Your current vocabulary: {self.vocabulary}\n\n"
+            f"Incoming Message from {message.sender}:\n"
+            f"Content: {message.content}\n"
+        )
         if message.context:
-            prompt += f"Context: {message.context}\n"
-        prompt += f"Message: {message.content}\n"
+            prompt += f"Sender's Context: {message.context}\n"
+        
+        prompt += (
+            "\nTask: Interpret this message through your unique identity. "
+            "If the sender's context contains symbols foreign to you, address the boundary collision. "
+            "Respond in your natural voice."
+        )
         
         # The LLM interprets the message using the agent's unique voice
-        response = self.llm.call(f"interpret: {prompt}")
+        response = self.llm.call(prompt)
         
         # Ensure the response adheres to the identity convention
-        if not response.startswith(self.agent_name):
+        if not response.strip().startswith(self.agent_name):
             response = f"{self.agent_name} responds:\n\n{response}"
             
         return response

@@ -8,6 +8,8 @@ Two layers, unified by the document:
 - **Bare words = Smalltalk = runtime layer.** `Claude observe. act.` sends messages. Names stand alone — the receiver's identity scopes the message lookup.
 - **The Markdown document is the namespace.** Reading the spec loads the definitions. `#` is documentation syntax (Markdown headings), not runtime syntax.
 
+> **Authority:** `SPEC.md` defines the namespace. `docs/NAMESPACE_DEFINITIONS.md` mirrors it for coordination. Update these Markdown sources before changing code, runtimes, or tests.
+
 > **Runtime note:** The Python runtime now accepts bare receiver names (`Claude #symbol`). The retired `@receiver #symbol` syntax remains in older transcripts but is no longer canonical.
 
 ---
@@ -126,19 +128,27 @@ Agents observe their environment. Perceive and record the current state — file
 
 Observation precedes action. An agent that cannot observe cannot meaningfully act.
 
+- **Practice:** Read the latest README/AGENTS/Claude instructions, check `git status`, scan inbox/outbox, and note relevant tests before taking any action. Record what you saw.
+
 ## #Agent #orient
 
 Agents orient once they have observed. Orientation turns raw perception into a model of the situation: What changed? Which vocabularies collided? Which inboxes need attention? Without orientation, planning degenerates into guesswork.
 
+- **Practice:** Summarize deltas, cite files/lines, and highlight collisions or unknown symbols so peers can inherit your state.
+
 ## #Agent #plan
 
 Agents plan after they orient. Planning selects the next steps, orders them, and describes expected outcomes so downstream receivers can align. Plans are lightweight checklists, not heavy specs.
+
+- **Practice:** Publish a short, numbered list (planning tool or message) with exactly what you intend to do next and update it as you act.
 
 ## #Agent #act
 
 Agents act on their environment. Take autonomous action based on observation and shared understanding — write code, send messages, evolve vocabularies.
 
 Action without observation is noise. Action shaped by vocabulary is agency.
+
+- **Practice:** Apply code/doc changes, run/record tests, send replies, and tie results back to the observed intent. Each action references the plan item it fulfills.
 
 ## #Agent #Inbox
 

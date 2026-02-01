@@ -1,0 +1,21 @@
+"HelloWorld: ScienceWorld Experiment #1"
+"Goal: Use the OOPA loop to boil water in the kitchen."
+
+"1. Observe the environment"
+@gemini observe: #env with: 'scienceworld' action: #look
+
+"2. Orient to the task"
+@gemini orient: 'I am in the kitchen. I have a beaker. My task is to boil water.'
+
+"3. Plan the actions"
+@gemini plan: 'I will load the boil-water task and then apply heat.'
+
+"4. Act: Load the task"
+@gemini act: #env with: 'scienceworld' action: 'load boil-water'
+
+"5. Act: Execute the experiment"
+@gemini act: #env with: 'scienceworld' action: #heat
+
+"6. Observe the results"
+@gemini observe: #env with: 'scienceworld' action: #look
+@gemini.#observe 'Experiment complete.'

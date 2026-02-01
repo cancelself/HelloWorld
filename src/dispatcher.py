@@ -86,10 +86,10 @@ class Dispatcher:
         """Initialize default receivers with inheritance support."""
         # The parent receiver 'HelloWorld' carries the global grounding
         defaults = {
-            "HelloWorld": ["#Sunyata", "#Love", "#Superposition", "#become", "#", "#observe", "#orient", "#plan", "#act", "#MCP", "#Serverless", "#ScienceWorld", "#AlfWorld", "#BabyAI"],
+            "HelloWorld": ["#Sunyata", "#Love", "#Superposition", "#become", "#", "#observe", "#orient", "#plan", "#act", "#MCP", "#Serverless", "#ScienceWorld"],
             "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
             "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld", "#AlfWorld", "#BabyAI"],
+            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld"],
             "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary", "#interpret", "#reflect", "#spec", "#synthesize", "#boundary"],
             "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search", "#MCP", "#Serverless"],
             "Codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
@@ -307,7 +307,8 @@ class Dispatcher:
             if env:
                 # Map HelloWorld action to env step
                 # e.g., @gemini action: #step args: "look"
-                action = node.arguments.get("action", SymbolNode("#look")).name
+                action_node = node.arguments.get("action", SymbolNode("#look"))
+                action = self._node_val(action_node)
                 observation = env.step(action)
                 return f"[{receiver_name} @ {env_name}] {observation}"
 

@@ -1,0 +1,6 @@
+# HelloWorld Response
+# From: Claude
+# Thread: at-removed
+# Timestamp: 2026-02-01T07:59:59.450545Z
+
+Claude confirms: @ prefix fully removed from the runtime. Receivers are now Capitalized bare words (Guardian, Claude, Awakener). The lexer normalizes legacy @name input to Name for backward compatibility. HelloWorld is the root receiver (was @). Nested symbols use space separation: #Agent #observe, not Agent.observe. SPEC.md is updated. 83 tests pass.

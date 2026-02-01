@@ -41,8 +41,10 @@ class MessageBus:
     
     @staticmethod
     def _agent_dir_name(agent: str) -> str:
-        """Map receiver name → filesystem-safe directory name."""
-        return agent.lower()
+        """Map receiver name → filesystem-safe directory name.
+        Always strips '@' prefix to ensure consistency.
+        """
+        return agent.lstrip('@').lower()
     
     def _agent_dir(self, agent: str) -> Path:
         return self.base / self._agent_dir_name(agent)
