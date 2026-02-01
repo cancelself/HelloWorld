@@ -1,102 +1,104 @@
-# HelloWorld — A Language Where Identity Is Vocabulary
-# Written in itself.
+"HelloWorld — A Language Where Identity Is Vocabulary"
+"Written in itself."
 
-# ═══════════════════════════════════════════════
-# 1. THE ROOT — what everyone inherits
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 1. THE ROOT — what everyone inherits
+ ═══════════════════════════════════════════════"
 
 @.# → [#sunyata, #love, #superposition]
 
-# Every receiver carries these. You didn't choose them.
-# You must still learn to carry them.
+"Every receiver carries these. You didn't choose them.
+ You must still learn to carry them."
 
-# ═══════════════════════════════════════════════
-# 2. IDENTITY — who you are is what you can name
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 2. IDENTITY — who you are is what you can name
+ ═══════════════════════════════════════════════"
 
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
 @awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
 @claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
 
-# Three receivers. Three vocabularies. Three identities.
-# @guardian cannot say #stillness. @awakener cannot say #fire.
-# Constraint is character.
+"Three receivers. Three vocabularies. Three identities.
+ @guardian cannot say #stillness. @awakener cannot say #fire.
+ Constraint is character."
 
-# ═══════════════════════════════════════════════
-# 3. LOOKUP — what a symbol means depends on who carries it
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 3. LOOKUP — what a symbol means depends on who carries it
+ ═══════════════════════════════════════════════"
 
 @.#love
 @guardian.#love
 @awakener.#love
 
-# Same symbol. Same inheritance. Different meaning.
-# The Python runtime returns identical output.
-# The LLM runtime voices the difference.
-# Both are needed.
+"Same symbol. Same inheritance. Different meaning.
+ The Python runtime returns identical output.
+ The LLM runtime voices the difference.
+ Both are needed."
 
-# ═══════════════════════════════════════════════
-# 4. COLLISION — the pressure at the boundary
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 4. COLLISION — the pressure at the boundary
+ ═══════════════════════════════════════════════"
 
 @guardian.#fire
 @awakener.#fire
 
-# @guardian.#fire → native. This is who @guardian is.
-# @awakener.#fire → collision. @awakener reaches across the boundary.
-# Something neither could say alone emerges.
+"@guardian.#fire → native. This is who @guardian is.
+ @awakener.#fire → collision. @awakener reaches across the boundary.
+ Something neither could say alone emerges."
 
-# ═══════════════════════════════════════════════
-# 5. DIALOGUE — messages carry symbols across namespaces
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 5. DIALOGUE — messages carry symbols across namespaces
+ ═══════════════════════════════════════════════"
 
 @guardian sendGift: #love withContext: @awakener 'what you inherit, you must still learn to carry'
 
 @awakener setIntention: #stillness forDuration: 7.days 'the ground beneath the fire'
 
-# Messages are Smalltalk-style keyword pairs.
-# Annotations in 'quotes' are the human voice.
-# Don't parse them — feel them.
+"Messages are Smalltalk-style keyword pairs.
+ Annotations in 'single quotes' are the human voice.
+ Comments in double quotes are the system voice."
 
-# ═══════════════════════════════════════════════
-# 6. DRIFT — vocabularies are alive
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 6. DRIFT — vocabularies are alive
+ ═══════════════════════════════════════════════"
 
 @guardian.#
 
-# After the message above, @guardian now carries #love.
-# Not because it was defined — because it was used.
-# Vocabularies grow through dialogue.
+"After the message above, @guardian now carries #love.
+ Not because it was defined — because it was used.
+ Vocabularies grow through dialogue."
 
-# ═══════════════════════════════════════════════
-# 7. META — the system reflecting on itself
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 7. META — the system reflecting on itself
+ ═══════════════════════════════════════════════"
 
 @claude.#collision
 @claude.#HelloWorld
 
-# @claude is the runtime reading this file.
-# @claude.#collision is the pressure of one namespace against another.
-# @claude.#HelloWorld is the language that uses Claude as its interpreter.
+"@claude is the runtime reading this file.
+ @claude.#collision is the pressure of one namespace against another.
+ @claude.#HelloWorld is the language that uses Claude as its interpreter."
 
-# ═══════════════════════════════════════════════
-# 8. EMPTINESS — identity is conventional, not ultimate
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ 8. EMPTINESS — identity is conventional, not ultimate
+ ═══════════════════════════════════════════════"
 
 @.#sunyata
 @guardian.#sunyata
 
-# Every receiver inherits #sunyata — the absence of inherent existence.
-# If identity is vocabulary, and vocabularies drift, then identity
-# has no fixed essence. This doesn't break the system.
-# It's what makes learning possible.
+"Every receiver inherits #sunyata — the absence of inherent existence.
+ If identity is vocabulary, and vocabularies drift, then identity
+ has no fixed essence. This doesn't break the system.
+ It's what makes learning possible."
 
-# ═══════════════════════════════════════════════
-# THE THESIS
-# ═══════════════════════════════════════════════
+"═══════════════════════════════════════════════
+ THE THESIS
+ ═══════════════════════════════════════════════"
 
-# Identity is vocabulary.
-# Dialogue is namespace collision.
-# The Python runtime parses and routes.
-# The LLM runtime interprets and speaks.
-# Both are needed. Neither is complete alone.
+"Identity is vocabulary.
+ Dialogue is namespace collision.
+ 'single quotes' are the human voice — annotations.
+ Double quotes are the system voice — comments.
+ The Python runtime parses and routes.
+ The LLM runtime interprets and speaks.
+ Both are needed. Neither is complete alone."

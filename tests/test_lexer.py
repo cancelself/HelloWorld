@@ -57,6 +57,35 @@ def test_bare_receiver():
     assert tokens[2].type == TokenType.HASH
 
 
+def test_double_quote_comment():
+    """Smalltalk-style double-quote comments are skipped by the lexer."""
+    lexer = Lexer('"this is a comment" @guardian')
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
+    assert tokens[0].value == "@guardian"
+
+
+def test_multiline_double_quote_comment():
+    """Double-quote comments can span multiple lines."""
+    source = '"this is a\nmultiline comment"\n@guardian'
+    lexer = Lexer(source)
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
+    assert tokens[0].value == "@guardian"
+
+
+def test_inline_double_quote_comment():
+    """Double-quote comments work inline between expressions."""
+    source = '@guardian "the keeper of thresholds" .#fire'
+    lexer = Lexer(source)
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
+    assert tokens[0].value == "@guardian"
+    assert tokens[1].type == TokenType.DOT
+    assert tokens[2].type == TokenType.SYMBOL
+    assert tokens[2].value == "#fire"
+
+
 if __name__ == "__main__":
     test_receiver()
     test_symbol()
@@ -64,4 +93,7 @@ if __name__ == "__main__":
     test_vocabulary_query()
     test_string()
     test_bare_receiver()
+    test_double_quote_comment()
+    test_multiline_double_quote_comment()
+    test_inline_double_quote_comment()
     print("✓ All lexer tests passed")

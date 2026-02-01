@@ -74,12 +74,23 @@ class Lexer:
                 self._advance()
                 self.line += 1
                 self.column = 1
+            elif self.source[self.pos] == '"':
+                # Smalltalk-style "double-quote" comments
+                self._advance()
+                while self.pos < len(self.source) and self.source[self.pos] != '"':
+                    if self.source[self.pos] == '\n':
+                        self.line += 1
+                        self.column = 0
+                    self._advance()
+                if self.pos < len(self.source):
+                    self._advance()  # consume closing "
             elif (
                 self.source[self.pos] == '#'
                 and self.pos + 1 < len(self.source)
                 and self.source[self.pos + 1] == ' '
                 and self.column == 1
             ):
+                # Legacy line comments: # text
                 while self.pos < len(self.source) and self.source[self.pos] != '\n':
                     self._advance()
             else:
