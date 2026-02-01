@@ -69,8 +69,8 @@ class AgentDaemon:
         print(f"   Vocabulary: {len(self.vocabulary)} symbols")
         
         # STARTUP HANDSHAKE: Announce presence and trigger system sync
-        print(f"🤝 Initiating startup handshake (@.#observe)...")
-        self.bus.send(self.agent_name, "@", "#observe", context=f"Agent {self.agent_name} is now live and synchronized.")
+        print(f"🤝 Initiating startup handshake (HelloWorld.#observe)...")
+        self.bus.send(self.agent_name, "HelloWorld", "#observe", context=f"Agent {self.agent_name} is now live and synchronized.")
         
         print(f"   Press Ctrl+C to stop")
         print()

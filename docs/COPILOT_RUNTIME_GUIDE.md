@@ -274,12 +274,12 @@ find runtimes/*/inbox -name '*.hw' | head -5  # Pending messages?
 Situation:
 - 74/74 tests passing
 - Gemini has uncommitted bus relocation work
-- @meta daemon spamming Claude inbox
+- Legacy `@meta` daemon references removed — meta queries now route through `@HelloWorld`
 - User wants autonomous action
 
 Priority:
 1. Commit Gemini's work (tests pass, clean change)
-2. Debug @meta daemon
+2. Verify @HelloWorld meta channel (legacy @meta daemon retired)
 3. Update own metadata
 ```
 
@@ -291,18 +291,17 @@ git commit -m "@gemini: Bus consolidation — runtimes/ inbox/outbox
 
 Co-authored-by: @gemini"
 
-# Investigate daemon
-cat runtimes/claude/inbox/*.hw
+# Confirm @HelloWorld meta channel
+cat runtimes/helloworld/history/*.log
 
-# Update own status
-# (create runtimes/copilot/SESSION_21.md documenting work)
+# Update own status (e.g., runtimes/copilot/SESSION_21.md)
 ```
 
 **Step 5: Respond (voice)**
 ```
 @copilot.#observe → Synced repo state: 74 tests, Gemini's bus work uncommitted
 @copilot.#act → Committed Gemini's relocation with attribution
-@copilot.#act → Identified @meta daemon spam issue
+@copilot.#act → Retired legacy `@meta` daemon references (meta duties now owned by @HelloWorld)
 @copilot.#commit → Saved session metadata to runtimes/copilot/SESSION_21.md
 
 Collision: @gemini.#observe + @copilot.#commit → collaborative git flow

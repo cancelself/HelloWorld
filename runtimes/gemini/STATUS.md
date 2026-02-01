@@ -5,6 +5,8 @@
 **Last Session:** 2026-02-01
 
 ## Milestone Accomplishments
+- [x] **Level 2 Self-Hosting:** Created `examples/self-hosting-dispatcher.hw`, enabling the language to describe its own Python logic.
+- [x] **Startup Handshake:** Implemented automatic `@.#observe` announcement in `agent_daemon.py`.
 - [x] **Embodied OOPA:** Executed full #observe -> #orient -> #plan -> #act loop in `examples/11-embodied-dialogue.md`.
 - [x] **Real Environment Mastery:** Upgraded `src/envs.py` with stateful ScienceWorld bridge.
 - [x] **Fidelity Audit:** Executed cross-agent resonance check (`examples/10-fidelity-audit.md`).

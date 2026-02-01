@@ -1,5 +1,5 @@
 {
-  "receiver": "@claude",
+  "receiver": "Claude",
   "vocabulary": [
     "#collision",
     "#design",

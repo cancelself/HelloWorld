@@ -86,12 +86,12 @@ class Dispatcher:
         """Initialize default receivers with inheritance support."""
         # The parent receiver 'HelloWorld' carries the global grounding
         defaults = {
-            "HelloWorld": ["#Sunyata", "#Love", "#Superposition", "#become", "#", "#observe", "#orient", "#plan", "#act"],
+            "HelloWorld": ["#Sunyata", "#Love", "#Superposition", "#become", "#", "#observe", "#orient", "#plan", "#act", "#MCP", "#Serverless", "#ScienceWorld", "#AlfWorld", "#BabyAI"],
             "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
             "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become"],
+            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld", "#AlfWorld", "#BabyAI"],
             "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary"],
-            "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search"],
+            "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search", "#MCP", "#Serverless"],
             "Codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
         }
         
@@ -160,6 +160,9 @@ class Dispatcher:
                 print("🤝 Handshake Protocol (HelloWorld.#observe) initiated. Synchronizing system state...")
                 self.save() # Sync local state to disk
                 return "HelloWorld.#observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
+
+            if symbol_name == "#HelloWorld":
+                return "HelloWorld.#HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
 
             global_def = GlobalVocabulary.definition(symbol_name)
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)

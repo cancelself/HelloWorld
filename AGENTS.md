@@ -1,22 +1,33 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Core language primitives live in `src/`, with `src/lexer.py` exposing the tokenization rules that Claude uses as its runtime vocabulary. `README.md` carries the quickstart narrative, while `Claude.md` documents parsing, dispatch, and vocabulary constraints. Example transcripts belong in `examples/`; contributor notes or RFC drafts go in `docs/`. Tests sit in `tests/`, mirroring file names (e.g., `tests/test_lexer.py` for `src/lexer.py`). Keep assets text-based so transcripts stay diffable.
+- Core runtime lives in `src/`, with `src/lexer.py` defining the token vocabulary used by Claude flows.
+- Tests mirror modules in `tests/` (e.g., `tests/test_lexer.py` for `src/lexer.py`) so fixes and specs stay paired.
+- Documentation splits across `README.md` (quickstart), `Claude.md` (parsing/dispatch rules), `docs/` for RFCs, and `examples/` for sanitized transcripts.
+- Keep assets text-based and deterministic; avoid singletons or hidden state in modules.
 
 ## Build, Test, and Development Commands
-- `python3 -m pytest tests` — run the full regression suite; preferred before any push.
-- `python3 -m pytest tests/test_lexer.py -k token` — scope to a focused scenario when iterating on a rule.
-- `python3 -m compileall src` — optional static syntax check to catch stray syntax errors.
-Run commands from the repository root; `sys.path` already points at `src/`, so no packaging step is required.
+- `python3 -m pytest tests` — run the regression suite before any push.
+- `python3 -m pytest tests/test_lexer.py -k token` — focus on a specific rule or token type during iteration.
+- `python3 -m compileall src` — static syntax check to catch import-time errors without running tests.
+Run commands from the repo root; `sys.path` already points at `src/`.
 
 ## Coding Style & Naming Conventions
-Follow idiomatic Python (PEP 8) with 4-space indents, lowercase_with_underscores for helpers, and CapWords for classes and Enums (`TokenType`). Keep modules deterministic: no singletons, no hidden state, and only standard-library dependencies. Favor descriptive token names that mirror HelloWorld vocabulary (`RECEIVER`, `SYMBOL`). New helpers should live beside the runtime modules and carry docstrings that explain their impact on dialogue flow.
+- Follow PEP 8: 4-space indents, descriptive lowercase_with_underscores for helpers, CapWords for classes/enums like `TokenType`.
+- Keep modules deterministic and side-effect free; no implicit caches or singleton state.
+- Token and receiver names should mirror user-facing vocabulary (e.g., `RECEIVER`, `SYMBOL`) so transcripts stay readable.
 
 ## Testing Guidelines
-Tests use bare `pytest` assertions. Name files `test_<module>.py` and write case names that describe the language rule they guard (`test_vocabulary_query`). Each new token, receiver behavior, or parsing rule must have: a happy-path sample, a malformed sample, and assertions on token metadata (type, value, position) when relevant. Prefer short literals so failures can be pasted straight into Claude for debugging.
+- Use bare `pytest` assertions; keep literals short so failures can be copied back into Claude.
+- Every new token or parsing rule needs happy-path, malformed, and metadata assertions (type, value, position).
+- Name tests descriptively (`test_vocabulary_query`) and keep them in files that mirror their source modules.
 
 ## Commit & Pull Request Guidelines
-Recent history uses short, imperative summaries (“Initial HelloWorld implementation with lexer and tests”). Continue that voice: ≤50 characters in the subject, optional wrapped body for rationale. PRs should state purpose, link the driving issue or spec section (`Claude.md` reference), paste the exact test command + result, and attach only the screenshots needed for UX-visible changes. Highlight vocabulary or protocol shifts up top so downstream agents can sync before review.
+- Commit summaries are short, imperative, and ≤50 characters (“Add lexer tokens for tuples”).
+- PRs should state purpose, link the driving issue or `Claude.md` section, paste the exact test command + result, and attach only essential screenshots for UX-visible changes.
+- Highlight vocabulary or protocol shifts at the top so downstream agents can update before review.
 
 ## Security & Configuration Tips
-Never commit secrets or raw conversations that include private prompts. Sanitize language samples and trim large artifacts before pushing. Prototype new receivers on temporary branches so experimental vocabularies do not enter the mainline accidentally.
+- Never commit secrets or raw prompts; sanitize transcripts placed in `examples/`.
+- Prototype experimental receivers on separate branches to avoid leaking unstable vocabulary into main.
+- Trim large artifacts before pushing; favor text-based assets for diffability.

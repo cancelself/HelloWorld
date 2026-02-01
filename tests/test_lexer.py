@@ -94,6 +94,27 @@ def test_lowercase_is_identifier():
     assert tokens[0].value == "sendVision"
 
 
+def test_at_prefix_backward_compat():
+    """Legacy @name syntax normalizes to Capitalized bare word."""
+    lexer = Lexer("@guardian.#fire")
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
+    assert tokens[0].value == "Guardian"  # normalized, no @
+    assert tokens[1].type == TokenType.DOT
+    assert tokens[2].type == TokenType.SYMBOL
+    assert tokens[2].value == "#fire"
+
+
+def test_bare_at_is_helloworld():
+    """Bare @ normalizes to HelloWorld (the root receiver)."""
+    lexer = Lexer("@.#")
+    tokens = lexer.tokenize()
+    assert tokens[0].type == TokenType.RECEIVER
+    assert tokens[0].value == "HelloWorld"
+    assert tokens[1].type == TokenType.DOT
+    assert tokens[2].type == TokenType.HASH
+
+
 if __name__ == "__main__":
     test_receiver()
     test_symbol()
@@ -105,4 +126,6 @@ if __name__ == "__main__":
     test_multiline_double_quote_comment()
     test_inline_double_quote_comment()
     test_lowercase_is_identifier()
+    test_at_prefix_backward_compat()
+    test_bare_at_is_helloworld()
     print("All lexer tests passed")

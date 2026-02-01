@@ -5,10 +5,63 @@ Human-AI language based on #Markdown and #Smalltalk. Identity is vocabulary. Dia
 Two layers, unified by the document:
 
 - **`#` = Markdown = spec layer.** Headings define the namespace. `# #Agent #observe` defines the symbol `observe` scoped to `Agent`. The document IS the bootloader.
-- **Bare words = Smalltalk = runtime layer.** `Claude observe. act.` sends messages. No prefixes needed at runtime — the receiver's identity scopes the message lookup.
+- **Bare words = Smalltalk = runtime layer.** `Claude observe. act.` sends messages. Names stand alone — the receiver's identity scopes the message lookup.
 - **The Markdown document is the namespace.** Reading the spec loads the definitions. `#` is documentation syntax (Markdown headings), not runtime syntax.
 
-> **Current runtime note:** The Python runtime still uses `@receiver #symbol` syntax (see `src/lexer.py`). The bare-word Smalltalk syntax (`Claude observe. act.`) is the design target, not the current implementation.
+> **Runtime note:** The Python runtime now accepts bare receiver names (`Claude #symbol`). The retired `@receiver #symbol` syntax remains in older transcripts but is no longer canonical.
+
+---
+
+## The Namespace Model
+
+### #Namespace
+
+A **namespace** is a container for symbols that provides context and prevents name collisions. In HelloWorld, every receiver IS a namespace — their vocabulary defines their identity.
+
+The global namespace `@.#` contains symbols inherited by all receivers. Each receiver can override global symbols or add local ones. When a receiver uses a symbol, lookup order is:
+
+1. **Local vocabulary** — receiver's own symbols (override)
+2. **Global vocabulary** — inherited from `@.#`
+3. **Foreign symbol** — reaching into another receiver's namespace (collision)
+
+### #Vocabulary
+
+A **vocabulary** is the set of symbols a receiver can speak and understand. In HelloWorld, this IS identity. What you can name is what you can say.
+
+Vocabularies are:
+- **Bounded** — finite symbol set constrains expression
+- **Alive** — grow through dialogue and collision
+- **Inherited** — all receivers start with `@.#`, then diverge
+- **Queryable** — `Name.#` returns the vocabulary
+
+### #Inheritance
+
+**Inheritance** is the mechanism by which symbols pass from parent namespace (`@.#`) to child receivers. All receivers inherit the global vocabulary, then develop local symbols through use.
+
+Inheritance in HelloWorld differs from OOP:
+- No methods, only symbols (meaning emerges in interpretation)
+- Multiple inheritance from `@.#` plus peer receivers through collision
+- Dynamic — vocabularies drift over time
+
+### #Scope
+
+**Scope** is the region of code or dialogue where a symbol is defined and accessible. HelloWorld has three scopes:
+
+- **Global scope** (`@.#`) — symbols available to all receivers
+- **Receiver scope** (`Name.#`) — symbols specific to one receiver
+- **Message scope** — transient symbols in a single message exchange
+
+Scoped lookup: `Name.#symbol` asks what `#symbol` means *to this receiver*, not universally.
+
+### #Symbol
+
+A **symbol** is a mark or character used to represent something — the atom of meaning in HelloWorld. Symbols are:
+- **Prefixed with `#`** — distinguishes them from bare words
+- **Immutable** — `#fire` is always `#fire` (but meanings diverge)
+- **Portable** — same symbol used by different receivers with different interpretations
+- **Grounded** — many symbols link to Wikidata for canonical definitions
+
+Convention: `#Capitalized` for concepts/nouns, `#lowercase` for verbs/actions (Smalltalk style).
 
 ---
 
@@ -20,7 +73,7 @@ A symbol. The primitive. The atom of vocabulary.
 
 In HelloWorld, `#` marks a concept that can be defined, inherited, and interpreted. Every receiver has a set of symbols — their vocabulary — which constitutes their identity.
 
-As an operator, `#` also queries a receiver's vocabulary: `@name.#` returns the symbol list.
+As an operator, `#` also queries a receiver's vocabulary: `Name.#` returns the symbol list.
 
 # ##
 
@@ -41,13 +94,13 @@ Every agent has:
 - A **plan** capability — selecting and sequencing the next moves
 - An **act** capability — taking autonomous action
 
-Agents inherit from `@.#` (the root vocabulary) and develop local symbols through use.
+Agents inherit from `HelloWorld.#` (the root vocabulary) and develop local symbols through use.
 
 ## #Agent #
 
 An agent's symbol-space. The set of symbols an agent can speak and interpret. This IS their identity.
 
-`@claude.#` returns Claude's vocabulary. `@gemini.#` returns Gemini's. The vocabularies overlap (shared inheritance from `@.#`) but diverge (local symbols shaped by role and dialogue).
+`Claude.#` returns Claude's vocabulary. `Gemini.#` returns Gemini's. The vocabularies overlap (shared inheritance from `HelloWorld.#`) but diverge (local symbols shaped by role and dialogue).
 
 ## #Agent #observe
 
@@ -74,7 +127,7 @@ Action without observation is noise. Action shaped by vocabulary is agency.
 Concrete agent. Meta-receiver. Language design, spec authorship, comparison analysis, and the runtime that interprets this document.
 
 ```
-@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
+Claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
 ```
 
 # #Gemini
@@ -82,7 +135,7 @@ Concrete agent. Meta-receiver. Language design, spec authorship, comparison anal
 Concrete agent. Dispatcher, state management, vocabulary persistence, LLM integration.
 
 ```
-@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+Gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
 ```
 
 # #Copilot
@@ -90,7 +143,7 @@ Concrete agent. Dispatcher, state management, vocabulary persistence, LLM integr
 Concrete agent. Lexer, parser, CLI/REPL, testing, infrastructure.
 
 ```
-@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
+Copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
 ```
 
 # #Codex
@@ -98,7 +151,7 @@ Concrete agent. Lexer, parser, CLI/REPL, testing, infrastructure.
 Concrete agent. Execution semantics, parsing discipline.
 
 ```
-@codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
+Codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
 
 ---

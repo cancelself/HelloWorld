@@ -220,12 +220,93 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url=None
     ),
 
-    "#become": GlobalSymbol(
-        name="#become",
+    "#Become": GlobalSymbol(
+        name="#Become",
         definition="The symbol of transformation; used to evolve or rename concepts within the registry",
         domain="HelloWorld meta",
         wikidata_id="Q11225439", # transformation
         wikipedia_url="https://en.wikipedia.org/wiki/Transformation"
+    ),
+
+    "#MCP": GlobalSymbol(
+        name="#MCP",
+        definition="Model Context Protocol — the standard for connecting AI models to data and tools",
+        domain="AI protocol",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Serverless": GlobalSymbol(
+        name="#Serverless",
+        definition="Cloud computing execution model where the provider manages the allocation of machine resources",
+        domain="cloud infrastructure",
+        wikidata_id="Q21447770",
+        wikipedia_url="https://en.wikipedia.org/wiki/Serverless_computing"
+    ),
+
+    "#ScienceWorld": GlobalSymbol(
+        name="#ScienceWorld",
+        definition="A complex text-based environment for evaluating agents on elementary science tasks",
+        domain="task environment",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#AlfWorld": GlobalSymbol(
+        name="#AlfWorld",
+        definition="A benchmark for learning multi-step task policies in interactive environments",
+        domain="task environment",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#BabyAI": GlobalSymbol(
+        name="#BabyAI",
+        definition="A grid-world environment designed for learning language-conditioned navigation tasks",
+        domain="task environment",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    # Phase 1: Core Namespace Concepts — Added Session #26
+    "#Namespace": GlobalSymbol(
+        name="#Namespace",
+        definition="Container for symbols that provides context and prevents name collisions",
+        domain="programming concepts",
+        wikidata_id="Q171318",
+        wikipedia_url="https://en.wikipedia.org/wiki/Namespace"
+    ),
+
+    "#Vocabulary": GlobalSymbol(
+        name="#Vocabulary",
+        definition="The set of symbols a receiver can speak and understand — IS their identity in HelloWorld",
+        domain="HelloWorld meta",
+        wikidata_id="Q6499736",  # Vocabulary (general concept)
+        wikipedia_url="https://en.wikipedia.org/wiki/Vocabulary"
+    ),
+
+    "#Inheritance": GlobalSymbol(
+        name="#Inheritance",
+        definition="Mechanism by which symbols pass from parent namespace (@.#) to child receivers",
+        domain="programming concepts",
+        wikidata_id="Q209887",
+        wikipedia_url="https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)"
+    ),
+
+    "#Scope": GlobalSymbol(
+        name="#Scope",
+        definition="The region of code or dialogue where a symbol is defined and accessible",
+        domain="programming concepts",
+        wikidata_id="Q1326281",
+        wikipedia_url="https://en.wikipedia.org/wiki/Scope_(computer_science)"
+    ),
+
+    "#Symbol": GlobalSymbol(
+        name="#Symbol",
+        definition="A mark or character used to represent something — the atom of meaning in HelloWorld",
+        domain="semiotics",
+        wikidata_id="Q80071",
+        wikipedia_url="https://en.wikipedia.org/wiki/Symbol"
     ),
 }
 

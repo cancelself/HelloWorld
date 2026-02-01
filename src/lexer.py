@@ -67,12 +67,19 @@ class Lexer:
         return self.tokens
 
     def _match_receiver(self) -> bool:
+        """Legacy @name syntax — normalize to Capitalized bare word."""
         if self.source[self.pos] == '@':
             start = self.pos
             col = self.column
             self._advance()
-            name = self._read_identifier()
-            self.tokens.append(Token(TokenType.RECEIVER, f'@{name}', self.line, col))
+            if self.pos < len(self.source) and (self.source[self.pos].isalpha() or self.source[self.pos] == '_'):
+                name = self._read_identifier()
+                # Normalize: @guardian → Guardian (matches bare-word convention)
+                normalized = name[0].upper() + name[1:] if name else name
+                self.tokens.append(Token(TokenType.RECEIVER, normalized, self.line, col))
+            else:
+                # Bare @ → HelloWorld (the root receiver)
+                self.tokens.append(Token(TokenType.RECEIVER, 'HelloWorld', self.line, col))
             return True
         return False
     
