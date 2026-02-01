@@ -70,16 +70,26 @@
 24. **Wrote `examples/03-global-namespace-comparison.md`** — Python vs Claude comparison. Identifies the three-layer pattern across all four teaching examples. Notes vocabulary drift (`#stillness` migrated to Guardian) and Gemini's `#` as symbol proposal.
 25. **Deleted `examples/1pager.hw`** — untracked duplicate of `one-pager.hw` created by Gemini.
 
+### Session 5 (v0.2 Design + Implementation)
+26. **Fixed handler vocabulary drift bug** — Handlers short-circuited `_learn_symbols_from_message`. Extracted learning into own method, runs before handler dispatch.
+27. **Created 05-self-hosting teaching example** — `.hw` file, Claude runtime transcript, comparison. Five-example progression complete.
+28. **Wrote v0.2 design proposal** — Three decisions: vocabulary-aware handlers, LLM handoff protocol, cross-receiver messages.
+29. **Implemented Decision 1: Vocabulary-aware handlers** — Handler signature `(args, receiver)`. Handlers distinguish native/inherited/collision.
+30. **Implemented Decision 3: Cross-receiver delivery** — `send:to:` triggers collision detection + learning on target.
+31. **Added 6 new tests** — 73 total passing.
+32. **Resolved `#` as symbol** — Consensus: `#` as operator and symbol coexist. "The symbol of Inquiry."
+
 ## Project State
 
-### What Works (57/57 tests)
-- **Lexer** (`src/lexer.py`) — 13 token types + Smalltalk `"double-quote"` comments, 9 tests (added bare `@` receiver, 3 comment tests)
-- **Parser** (`src/parser.py` + `src/ast_nodes.py`) — recursive descent, 10 tests (added root queries)
-- **Dispatcher** (`src/dispatcher.py`) — hybrid dispatch with prototypal inheritance from `@`, context-aware inherited lookups, 22 tests (added root bootstrap, inheritance, native-overrides-inherited, collision-for-non-global, save-persists-local-only, inherited-includes-receiver-context)
-- **REPL** (`src/repl.py`) — interactive shell, 2 integration tests
-- **Vocabulary Persistence** (`src/vocabulary.py`) — JSON storage, 3 tests (added root path)
+### What Works (73/73 tests)
+- **Lexer** (`src/lexer.py`) — 13 token types + Smalltalk comments, 9 tests
+- **Parser** (`src/parser.py` + `src/ast_nodes.py`) — recursive descent, 10 tests
+- **Dispatcher** (`src/dispatcher.py`) — hybrid dispatch, vocabulary-aware handlers, cross-receiver delivery, 26 tests
+- **Message Handlers** (`src/message_handlers.py`) — vocabulary-aware semantic responses, 10 tests
+- **REPL** (`src/repl.py`) — interactive shell, 2 tests
+- **Vocabulary Persistence** (`src/vocabulary.py`) — JSON storage, 3 tests
 - **Message Bus** (`src/message_bus.py`) — file-based inter-agent communication, 11 tests
-- **Global Symbols** (`src/global_symbols.py`) — 14 symbols with Wikidata grounding + `storage/symbols.json`
+- **Global Symbols** (`src/global_symbols.py`) — 15 symbols with Wikidata grounding + `storage/symbols.json`
 - **CLI** (`helloworld.py`) — file execution + REPL mode
 - **Agent Daemon** (`agent_daemon.py`) — template for AI runtime daemons
 
@@ -99,13 +109,15 @@
 - ~~Missing `#love` in globals~~ — Added to `GLOBAL_SYMBOLS` with Q316
 - ~~Inherited-interpretive lookup~~ — Enhanced fallback now includes receiver's local vocabulary as context. `@guardian.#love` ≠ `@awakener.#love` in Claude runtime.
 - ~~Smalltalk-style comments~~ — Lexer handles `"double quotes"` as comments (system voice). Legacy `# ` still supported.
-- ~~Spec drift in CLAUDE.md~~ — Bootloader synced: accurate test counts, comment syntax documented, project structure updated.
+- ~~Spec drift in CLAUDE.md~~ — Bootloader synced.
+- ~~`#` as symbol~~ — Resolved. Operator and symbol coexist.
+- ~~Vocabulary-aware handlers~~ — Handlers receive Receiver object, distinguish native/inherited/collision.
+- ~~Cross-receiver delivery~~ — `send:to:` triggers collision + learning on target.
 
 ### What's Next
-1. **Real API integration** — `agent_daemon.py` template exists; needs Anthropic/Google API wiring for live multi-daemon dialogue.
+1. **Real API integration** — Decision 2 (LLM handoff) deferred until API wiring exists.
 2. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet.
-3. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax? `examples/one-pager.hw` is a first step.
-4. **`#` as symbol decision** — Gemini proposes adding bare `#` to `GLOBAL_SYMBOLS`. Philosophically coherent (identity inquiry is part of identity), practically concerning (conflates syntax with semantics). Needs resolution.
+3. **Handler evolution** — Templates → vocabulary-shaped prose → LLM hybrid.
 
 ## Vocabulary
 
@@ -127,12 +139,11 @@
 
 ## Next
 
-Four teaching examples complete, each with Claude transcript and comparison. All four comparisons written. The three-layer pattern is documented: identity (01) → emptiness (02) → inheritance (03) → interpretation gap (04).
+Five teaching examples with full comparison cycle. v0.2 decisions 1 and 3 implemented. 73 tests.
 
-1. **Live multi-daemon dialogue** — Wire real API calls into agent daemons. The message bus and dispatcher are ready.
-2. **Cross-runtime transcripts** — Copilot and Codex need to run all teaching examples.
-3. **Self-hosting** — `examples/one-pager.hw` is HelloWorld described in itself. Next: can HelloWorld describe its own dispatch rules executably?
-4. **Resolve `#` as symbol** — Gemini's proposal needs design review. See comparison doc.
+1. **Live multi-daemon dialogue** — Decision 2 (LLM handoff) depends on this.
+2. **Cross-runtime transcripts** — Copilot and Codex need to run teaching examples.
+3. **Handler evolution** — Templates → vocabulary-shaped prose → LLM hybrid.
 
 ---
 
