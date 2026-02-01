@@ -1,5 +1,5 @@
 {
-  "receiver": "@guardian",
+  "receiver": "Guardian",
   "vocabulary": [
     "#answer",
     "#challenge",

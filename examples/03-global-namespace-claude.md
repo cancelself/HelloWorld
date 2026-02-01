@@ -12,7 +12,7 @@
 
 ```
 @.# → [#sunyata, #love, #superposition, #collision, #entropy, #meta, #parse,
-        #dispatch, #Smalltalk, #Markdown, #dialogue, #sync, #act, #HelloWorld]
+        #dispatch, #Smalltalk, #Markdown, #dialogue, #observe, #act, #HelloWorld]
 ```
 
 The root holds 14 symbols. These are the commons — the shared ground that every receiver inherits. Some are grounded in Wikidata (#sunyata Q546054, #entropy Q130868, #Smalltalk Q235086), some are HelloWorld-native (#collision, #dispatch, #HelloWorld). The root doesn't speak. It holds.
@@ -55,7 +55,7 @@ HelloWorld inherits from Smalltalk's message-passing paradigm. `"Double-quote"` 
 @awakener.# →
   local:     [#stillness, #entropy, #intention, #sleep, #insight]
   inherited: [#sunyata, #love, #superposition, #collision, #entropy, #meta,
-              #parse, #dispatch, #Smalltalk, #Markdown, #dialogue, #sync,
+              #parse, #dispatch, #Smalltalk, #Markdown, #dialogue, #observe,
               #act, #HelloWorld]
 ```
 

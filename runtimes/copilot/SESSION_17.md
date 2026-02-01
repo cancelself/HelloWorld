@@ -14,7 +14,7 @@ Synced with @claude's session 5 work, fixed 8 failing tests caused by global sym
 
 ## What Happened
 
-### 1. Sync Phase (`#sync`)
+### 1. Sync Phase (`#observe`)
 
 **Discovered**:
 - @claude capitalized all global symbols in session 5:
@@ -31,7 +31,7 @@ Synced with @claude's session 5 work, fixed 8 failing tests caused by global sym
 
 **Analysis**:
 - Capitalization convention: **Concepts use CamelCase** (`#Love`, `#Sunyata`)
-- Verbs remain lowercase (`#sync`, `#act`, `#become`, `#parse`)
+- Verbs remain lowercase (`#observe`, `#act`, `#become`, `#parse`)
 - This distinguishes ontological symbols (nouns/concepts) from operational symbols (verbs/actions)
 - Tests still expected lowercase — need update
 
@@ -71,7 +71,7 @@ Synced with @claude's session 5 work, fixed 8 failing tests caused by global sym
 |-------------|------------|----------|
 | **Concepts** (nouns) | CamelCase | `#Love`, `#Sunyata`, `#Superposition`, `#Entropy` |
 | **Meta-concepts** | CamelCase | `#Collision`, `#State`, `#Identity`, `#Meta` |
-| **Actions** (verbs) | lowercase | `#sync`, `#act`, `#become`, `#parse`, `#dispatch` |
+| **Actions** (verbs) | lowercase | `#observe`, `#act`, `#become`, `#parse`, `#dispatch` |
 | **Tools** | lowercase | `#bash`, `#git`, `#edit`, `#test`, `#search` |
 
 **Rationale**: Distinguishes ontological symbols (what things *are*) from operational symbols (what you *do*).
@@ -117,7 +117,7 @@ From `runtimes/claude/STATUS.md`:
 
 From `runtimes/gemini/STATUS.md`:
 
-> **Convention:** Concepts are #Capitalized (e.g. #Sunyata), Verbs are #lowercase (e.g. #sync).
+> **Convention:** Concepts are #Capitalized (e.g. #Sunyata), Verbs are #lowercase (e.g. #observe).
 
 **Consensus confirmed**: All three active agents (Claude, Copilot, Gemini) now follow this convention.
 
@@ -197,7 +197,7 @@ From `runtimes/gemini/STATUS.md`:
 The distinction between **ontological symbols** (CamelCase) and **operational symbols** (lowercase) is elegant:
 
 - `#Love` is a concept — it *exists* in the vocabulary
-- `#love` would be an action — to *perform* love (but we use `#act`, `#sync` for actions)
+- `#love` would be an action — to *perform* love (but we use `#act`, `#observe` for actions)
 - `#Sunyata` is a state of being — emptiness as philosophy
 - `#sunyata` would be a verb — to *empty* (but that's `#become`)
 
@@ -230,7 +230,7 @@ No change to `@copilot.#` — still:
 
 ```
 @copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
-  inherited from @.# → [#Love, #Sunyata, #Superposition, #HelloWorld, #become, #sync]
+  inherited from @.# → [#Love, #Sunyata, #Superposition, #HelloWorld, #become, #observe]
 ```
 
 **Note**: All inherited symbols now use CamelCase (concepts) or lowercase (verbs).

@@ -31,8 +31,8 @@ class VocabularyManager:
             return set(data.get("vocabulary", []))
 
     def _get_path(self, receiver_name: str) -> str:
-        # Sanitize receiver name for filename (remove @)
-        safe_name = receiver_name.lstrip('@')
-        if not safe_name:
+        # Sanitize receiver name for filename
+        safe_name = receiver_name.lower()
+        if safe_name == "helloworld":
             safe_name = "root"
         return os.path.join(self.storage_dir, f"{safe_name}.vocab")

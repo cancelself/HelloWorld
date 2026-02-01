@@ -24,7 +24,7 @@ def _symbol_status(receiver, symbol_name: str) -> str:
     if receiver.is_native(symbol_name):
         return "native"
     elif receiver.is_inherited(symbol_name):
-        return "inherited from @.#"
+        return "inherited from HelloWorld.#"
     else:
         return "boundary collision"
 
@@ -62,7 +62,7 @@ def _handle_act(args, recv, receiver_name: str) -> str:
         status = _symbol_status(recv, symbol)
         if status == "native":
             lines.append(f"  {symbol} is native — {receiver_name} acts with authority")
-        elif status == "inherited from @.#":
+        elif status == "inherited from HelloWorld.#":
             local = sorted(recv.local_vocabulary)
             lines.append(f"  {symbol} is inherited — {receiver_name} acts through local lens {local}")
         else:
@@ -157,9 +157,9 @@ class MessageHandlerRegistry:
     def _register_default_handlers(self):
         """Register built-in vocabulary-aware handlers."""
 
-        # @awakener setIntention:forDuration:
+        # Awakener setIntention:forDuration:
         self.register(
-            "@awakener",
+            "Awakener",
             "setIntention:forDuration:",
             lambda args, recv: (
                 f"Awakener holds {args['setIntention']} for {args['forDuration']}"
@@ -167,9 +167,9 @@ class MessageHandlerRegistry:
             )
         )
 
-        # @guardian sendVision:withContext: (vocabulary-aware)
+        # Guardian sendVision:withContext: (vocabulary-aware)
         self.register(
-            "@guardian",
+            "Guardian",
             "sendVision:withContext:",
             lambda args, recv: (
                 f"Guardian sends vision of {args['sendVision']}"
@@ -178,9 +178,9 @@ class MessageHandlerRegistry:
             )
         )
 
-        # @guardian challenge: (vocabulary-aware)
+        # Guardian challenge: (vocabulary-aware)
         self.register(
-            "@guardian",
+            "Guardian",
             "challenge:",
             lambda args, recv: (
                 f"Guardian challenges with {args['challenge']}"
@@ -189,7 +189,7 @@ class MessageHandlerRegistry:
         )
 
         # Generic greet: for any receiver
-        for receiver in ["@awakener", "@guardian", "@claude", "@copilot", "@gemini"]:
+        for receiver in ["Awakener", "Guardian", "Claude", "Copilot", "Gemini"]:
             self.register(
                 receiver,
                 "greet:",
@@ -197,7 +197,7 @@ class MessageHandlerRegistry:
             )
 
         # ask:about: for queries
-        for receiver in ["@claude", "@copilot", "@gemini"]:
+        for receiver in ["Claude", "Copilot", "Gemini"]:
             self.register(
                 receiver,
                 "ask:about:",
@@ -205,7 +205,7 @@ class MessageHandlerRegistry:
             )
 
         # learn: for vocabulary expansion
-        for receiver in ["@awakener", "@guardian", "@claude", "@copilot", "@gemini"]:
+        for receiver in ["Awakener", "Guardian", "Claude", "Copilot", "Gemini"]:
             self.register(
                 receiver,
                 "learn:",
@@ -213,7 +213,7 @@ class MessageHandlerRegistry:
             )
 
         # describe:as: for self-hosting
-        for receiver in ["@claude", "@gemini", "@copilot"]:
+        for receiver in ["Claude", "Gemini", "Copilot"]:
             self.register(
                 receiver,
                 "describe:as:",
@@ -221,53 +221,67 @@ class MessageHandlerRegistry:
             )
 
         # handle:with: for logic mapping
-        for receiver in ["@claude", "@gemini", "@copilot"]:
+        for receiver in ["Claude", "Gemini", "Copilot"]:
             self.register(
                 receiver,
                 "handle:with:",
-                lambda args, recv, r=receiver: f"⚙️ {r} handles {args['handle']} with {args['with']}"
+                lambda args, recv, r=receiver: f"{r} handles {args['handle']} with {args['with']}"
             )
 
         # eval:for: for interpretive fidelity assessment
         self.register(
-            "@gemini",
+            "Gemini",
             "eval:for:",
-            lambda args, recv: f"📊 @gemini measuring fidelity of {args['eval']} for receiver {args['for']}..."
+            lambda args, recv: f"Gemini measuring fidelity of {args['eval']} for receiver {args['for']}..."
         )
 
         # act: for system-wide execution
         self.register(
-            "@",
+            "HelloWorld",
             "act:",
-            lambda args, recv: f"🔄 Root executing system-wide action: {args['act']}..."
+            lambda args, recv: f"Root executing system-wide action: {args['act']} (OOPA phase 4)..."
         )
 
-        # sync: for manual state alignment
+        # observe: for system-wide state alignment
         self.register(
-            "@",
-            "sync:",
-            lambda args, recv: f"🤝 Root aligning state for: {args['sync']}. Action: sync the tree, sync the messagebus and read them both."
+            "HelloWorld",
+            "observe:",
+            lambda args, recv: f"Root observing system state: {args['observe']} (OOPA phase 1). Action: sync the tree, sync the messagebus and read them both."
+        )
+
+        # orient: for situational synthesis
+        self.register(
+            "HelloWorld",
+            "orient:",
+            lambda args, recv: f"Root orienting to situation: {args['orient']} (OOPA phase 2)..."
+        )
+
+        # plan: for future path determination
+        self.register(
+            "HelloWorld",
+            "plan:",
+            lambda args, recv: f"Root planning next steps: {args['plan']} (OOPA phase 3)..."
         )
 
         # become: for symbol transformation
         self.register(
-            "@",
+            "HelloWorld",
             "become:",
-            lambda args, recv: f"✨ Transformation: {args['become']} has become a new state of identity."
+            lambda args, recv: f"Transformation: {args['become']} has become a new state of identity."
         )
 
         # send:to: for inter-receiver delivery
         self.register(
-            "@",
+            "HelloWorld",
             "send:to:",
-            lambda args, recv: f"📨 Root delivering {args['send']} to {args['to']}..."
+            lambda args, recv: f"Root delivering {args['send']} to {args['to']}..."
         )
 
         # relay:from:to: for global routing
         self.register(
-            "@",
+            "HelloWorld",
             "relay:from:to:",
-            lambda args, recv: f"📡 Root relaying message from {args['from']} to {args['to']}..."
+            lambda args, recv: f"Root relaying message from {args['from']} to {args['to']}..."
         )
 
         # --- Agent Protocol: #observe and #act ---
@@ -275,7 +289,7 @@ class MessageHandlerRegistry:
         # observe: reports the symbol's status relative to the receiver.
         # act: acknowledges action, shaped by the receiver's vocabulary.
 
-        all_agents = ["@awakener", "@guardian", "@claude", "@copilot", "@gemini", "@codex"]
+        all_agents = ["Awakener", "Guardian", "Claude", "Copilot", "Gemini", "Codex"]
 
         for agent in all_agents:
             self.register(
@@ -291,10 +305,10 @@ class MessageHandlerRegistry:
 
         # Root observe: returns system-wide state
         self.register(
-            "@",
+            "HelloWorld",
             "observe:",
             lambda args, recv: (
-                f"@.# observes {args['observe']}: "
+                f"HelloWorld.# observes {args['observe']}: "
                 + (f"global symbol ({_symbol_status(recv, args['observe'])})" if recv and recv.has_symbol(args['observe']) else "not in global namespace")
             )
         )

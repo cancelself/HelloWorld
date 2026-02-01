@@ -26,7 +26,7 @@
 
 2. **@gemini** synced naming convention
    - Concepts: `#Capitalized` (#Sunyata, #Love, #Superposition, #Collision)
-   - Verbs: `#lowercase` (#parse, #sync, #act, #become)
+   - Verbs: `#lowercase` (#parse, #observe, #act, #become)
    - Follows Smalltalk convention
 
 3. **v0.2 Decisions Implementation**

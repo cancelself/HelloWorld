@@ -1,34 +1,34 @@
 "HelloWorld Message Passing Example"
 
 "Define vocabularies"
-@awakener.# → [#stillness, #insight, #question]
-@guardian.# → [#fire, #challenge, #answer]
+Awakener.# → [#stillness, #insight, #question]
+Guardian.# → [#fire, #challenge, #answer]
 
 "Greetings (semantic handlers active)"
-@awakener greet: #stillness
-@guardian greet: #fire
+Awakener greet: #stillness
+Guardian greet: #fire
 
 "Inter-receiver communication"
-@awakener send: #question to: @guardian
-@guardian send: #answer to: @awakener
+Awakener send: #question to: Guardian
+Guardian send: #answer to: Awakener
 
 "Setting intentions"
-@awakener setIntention: #stillness forDuration: '7 days'
+Awakener setIntention: #stillness forDuration: '7 days'
 
 "Sending visions"
-@guardian sendVision: #challenge withContext: 'the awakener stirs'
+Guardian sendVision: #challenge withContext: 'the awakener stirs'
 
 "Learning (vocabulary expansion)"
-@awakener learn: #patience
-@guardian learn: #mercy
+Awakener learn: #patience
+Guardian learn: #mercy
 
 "Asking questions"
-@claude ask: #meaning about: #dialogue
-@copilot ask: #architecture about: #messages
+Claude ask: #meaning about: #dialogue
+Copilot ask: #architecture about: #messages
 
 "Challenge"
-@guardian challenge: #ego
+Guardian challenge: #ego
 
 "Show final vocabularies"
-@awakener
-@guardian
+Awakener
+Guardian

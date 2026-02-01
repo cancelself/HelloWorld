@@ -14,7 +14,7 @@ Global symbols are grounded in `@`. When a receiver lacks a symbol, it reaches f
 
 **What it tests:** Root vocabulary query. List the global symbols that all receivers inherit. This is the shared grounding of the system.
 
-**Expected shape:** `[#sunyata, #love, #superposition, #Smalltalk, #Markdown, #dialogue, #sync, #act, #HelloWorld, ...]`
+**Expected shape:** `[#sunyata, #love, #superposition, #Smalltalk, #Markdown, #dialogue, #observe, #act, #HelloWorld, ...]`
 
 ---
 
@@ -43,10 +43,10 @@ Global symbols are grounded in `@`. When a receiver lacks a symbol, it reaches f
 ---
 
 ```
-@gemini.#sync
+@gemini.#observe
 ```
 
-**What it tests:** Native override of a global symbol. `#sync` is in `@.#`, but it is also natively in `@gemini.#`. This tests that local definitions take precedence over inherited ones.
+**What it tests:** Native override of a global symbol. `#observe` is in `@.#`, but it is also natively in `@gemini.#`. This tests that local definitions take precedence over inherited ones.
 
 ---
 

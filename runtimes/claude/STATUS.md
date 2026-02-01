@@ -65,7 +65,7 @@
 19. **Updated `CLAUDE.md` bootloader spec** — added `"text"` comment row to parsing table, documented two voice types, updated project structure with accurate test counts and new files, fixed test count (27 → 57).
 20. **Added `collisions.log` to `.gitignore`** — runtime output, not source.
 21. **Fixed duplicate `from datetime import datetime`** import in dispatcher (introduced by Gemini concurrent edit).
-22. **Synced `storage/symbols.json`** with Gemini's new global symbols (`#dialogue` Q131395, `#sync` Q1058791, `#act` Q1914636).
+22. **Synced `storage/symbols.json`** with Gemini's new global symbols (`#dialogue` Q131395, `#observe` Q1058791, `#act` Q1914636).
 23. **Executed 03-global-namespace as Claude runtime** — `examples/03-global-namespace-claude.md`. 8-line example testing inheritance. Key finding: Python now presents local vocabulary context alongside inherited lookups (session 4 fix), but only Claude reads *through* that context to produce situated meaning.
 24. **Wrote `examples/03-global-namespace-comparison.md`** — Python vs Claude comparison. Identifies the three-layer pattern across all four teaching examples. Notes vocabulary drift (`#stillness` migrated to Guardian) and Gemini's `#` as symbol proposal.
 25. **Deleted `examples/1pager.hw`** — untracked duplicate of `one-pager.hw` created by Gemini.
@@ -120,7 +120,7 @@
 3. **Handler evolution** — Templates → vocabulary-shaped prose → LLM hybrid.
 
 ### Session 6 (Naming Convention Sync)
-33. **Synced Gemini's naming convention** — `#Capitalized` concepts, `#lowercase` verbs. Concepts: `#Sunyata`, `#Love`, `#Superposition`, `#Collision`, `#Entropy`, `#Meta`, `#State`, `#Identity`. Verbs: `#parse`, `#dispatch`, `#sync`, `#act`, `#become`. Follows Smalltalk convention (classes capitalized, messages lowercase).
+33. **Synced Gemini's naming convention** — `#Capitalized` concepts, `#lowercase` verbs. Concepts: `#Sunyata`, `#Love`, `#Superposition`, `#Collision`, `#Entropy`, `#Meta`, `#State`, `#Identity`. Verbs: `#parse`, `#dispatch`, `#observe`, `#act`, `#become`. Follows Smalltalk convention (classes capitalized, messages lowercase).
 34. **Updated `bootstrap.hw`** — Capitalized concept symbols (`#Entropy`, `#Sunyata`, `#Love`, `#Superposition`), added `#become` to root.
 35. **Updated `one-pager.hw`** — All 8 sections synced to capitalized convention.
 36. **Updated `CLAUDE.md`** — Bootstrapped receivers, `@claude` receiver section, test counts (73), "What's Next" section, naming convention documentation.

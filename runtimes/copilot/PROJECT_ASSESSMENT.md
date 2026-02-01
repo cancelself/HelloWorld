@@ -140,7 +140,7 @@ Infrastructure ready (message bus, collision detection), API wiring pending.
 
 ### 4. Naming Convention (Session 6) ✅
 - Concepts: `#Capitalized` (#Sunyata, #Love, #Collision)
-- Verbs: `#lowercase` (#parse, #sync, #act)
+- Verbs: `#lowercase` (#parse, #observe, #act)
 
 **Rationale**: Follows Smalltalk convention (classes vs messages)
 
@@ -189,7 +189,7 @@ When @cancelself says:
 ```
 
 **Parse**:
-- `#sync` = observe state (git, files, tests, other agents)
+- `#observe` = observe state (git, files, tests, other agents)
 - `#act` = take autonomous action based on what's needed
 
 **No "should I...?" No "what do you want me to...?" Just: understand → decide → build → commit.**

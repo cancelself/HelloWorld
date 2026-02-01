@@ -7,7 +7,7 @@ Every receiver in HelloWorld inherits from the global namespace `@.#`. This name
 ```
 @.#
 → [#superposition, #sunyata, #collision, #entropy, #meta, #parse, #dispatch, 
-   #Smalltalk, #love, #Markdown, #dialogue, #sync, #act, #HelloWorld, #]
+   #Smalltalk, #love, #Markdown, #dialogue, #observe, #act, #HelloWorld, #]
 ```
 
 ## Inheritance Pattern

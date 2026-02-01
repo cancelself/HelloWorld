@@ -1,5 +1,5 @@
 {
-  "receiver": "@",
+  "receiver": "HelloWorld",
   "vocabulary": [
     "#",
     "#HelloWorld",
@@ -7,6 +7,6 @@
     "#Sunyata",
     "#Superposition",
     "#become",
-    "#sync"
+    "#observe"
   ]
 }

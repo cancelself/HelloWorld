@@ -65,7 +65,7 @@
     "domain": "communication",
     "wikipedia_url": "https://en.wikipedia.org/wiki/Dialogue"
   },
-  "#sync": {
+  "#observe": {
     "wikidata_id": "Q1058791",
     "definition": "Coordination of events to operate a system in unison, the process of aligning state across agents",
     "domain": "coordination",

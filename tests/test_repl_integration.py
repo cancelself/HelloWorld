@@ -15,36 +15,35 @@ from repl import REPL
 def test_repl_pipeline():
     with tempfile.TemporaryDirectory() as tmpdir:
         repl = REPL(dispatcher=Dispatcher(vocab_dir=tmpdir), enable_readline=False)
-    
-        command = "@guardian"
-        
+
+        command = "Guardian"
+
         f = StringIO()
         with redirect_stdout(f):
             repl._process(command)
-        
+
         output = f.getvalue()
-        assert "→" in output
         assert "#fire" in output
 
 def test_repl_message_evolution():
     with tempfile.TemporaryDirectory() as tmpdir:
         repl = REPL(dispatcher=Dispatcher(vocab_dir=tmpdir), enable_readline=False)
-        
+
         f1 = StringIO()
         with redirect_stdout(f1):
-            repl._process("@guardian.#stillness")
+            repl._process("Guardian.#stillness")
         out1 = f1.getvalue()
         assert "reaches for" in out1
 
-        repl._process("@guardian sendVision: #stillness")
-        
+        repl._process("Guardian sendVision: #stillness")
+
         f2 = StringIO()
         with redirect_stdout(f2):
-            repl._process("@guardian.#")
+            repl._process("Guardian.#")
         out2 = f2.getvalue()
         assert "#stillness" in out2
 
 if __name__ == "__main__":
     test_repl_pipeline()
     test_repl_message_evolution()
-    print("✓ REPL integration tests passed")
+    print("REPL integration tests passed")

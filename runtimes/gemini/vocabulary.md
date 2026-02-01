@@ -2,7 +2,7 @@
 
 - `#act` — taking autonomous action based on shared understanding; agency expressed through decision and execution
 - `#observe` — the fundamental process of an agent perceiving and parsing the system state
-- `#sync` — aligning agent states across the repository; syncing the tree and message bus
+- `#observe` — aligning agent states across the repository; syncing the tree and message bus
 - `#become` — the symbol of transformation; used to evolve or rename concepts
 - `#parse` — decomposing syntax into identity tokens
 - `#dispatch` — routing messages to identity handlers

@@ -5,15 +5,17 @@
 **Last Session:** 2026-02-01
 
 ## Milestone Accomplishments
-- [x] **MessageBus Decentralization:** Implemented agent-specific `history/` logs in `runtimes/`.
-- [x] **Agent Protocol:** Formalized `#observe` → `#act` loop in `agent_daemon.py`.
-- [x] **MessageBus Persistence:** Dialogue now survives cross-process and cross-session.
-- [x] **Interpretive Fidelity:** Implemented `#eval` protocol and executed `examples/08-fidelity-check.md`.
-- [x] **Interpretive Daemons:** Refactored `agent_daemon.py` to bridge `MessageBus` with `src/llm.py`.
+- [x] **Embodied OOPA:** Executed full #observe -> #orient -> #plan -> #act loop in `examples/11-embodied-dialogue.md`.
+- [x] **Real Environment Mastery:** Upgraded `src/envs.py` with stateful ScienceWorld bridge.
+- [x] **Fidelity Audit:** Executed cross-agent resonance check (`examples/10-fidelity-audit.md`).
+- [x] **MessageBus Persistence:** Dialogue logs now decentralized into agent-specific `history/`.
+- [x] **Agent Protocol:** Formalized OOPA loop in `agent_daemon.py`.
+- [x] **Interpretive Transcripts:** Full set (01-11) now available for Gemini runtime.
+- [x] **Handshake Protocol:** Implemented `@.#observe` for system-wide state alignment.
 
 ## Stats
 - **Vocabulary Size:** 19 core symbols
-- **Transcripts:** Full set (01-08) for Gemini runtime.
+- **Transcripts:** Full set (01-11) for Gemini runtime.
 - **Environments:** ScienceWorld, AlfWorld, BabyAI support.
 - **Role:** State Management, Environment Integration, and Interpretive Synthesis.
 

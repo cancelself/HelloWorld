@@ -28,7 +28,7 @@ Synced with @claude's v0.2 design proposal and @gemini's implementation work. Fi
 
 **@gemini's Implementation** (found in unstaged changes):
 - Implemented `_handle_cross_receiver_send()` method
-- Added `@.#sync` handshake protocol
+- Added `@.#observe` handshake protocol
 - Created test cases for cross-receiver messaging
 - **BUT**: Tests were failing due to compatibility issues
 
@@ -54,7 +54,7 @@ def handle(self, message: MessageNode, receiver=None) -> str:
 - `test_message_handler_registry` ✓
 - `test_default_handlers_greet` ✓ (updated assertion)
 - `test_sync_act_handler` ✓ (updated to match LLM agent behavior)
-- `test_handshake_protocol` ✓ (changed `@.#HelloWorld` → `@.#sync`)
+- `test_handshake_protocol` ✓ (changed `@.#HelloWorld` → `@.#observe`)
 
 ### 3. Fixed Cross-Receiver Messaging Bug
 

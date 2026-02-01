@@ -1,6 +1,6 @@
 """HelloWorld Dispatcher - Executes AST nodes and manages receiver state.
 Enables Hybrid Dispatch: Structural facts via Python, Interpretive voice via LLM.
-Enables Prototypal Inheritance: '@' is the parent of all receivers.
+Enables Prototypal Inheritance: HelloWorld is the parent of all receivers.
 """
 
 from typing import Dict, List, Optional, Set, Any
@@ -34,7 +34,7 @@ class Receiver:
     
     @property
     def vocabulary(self) -> Set[str]:
-        """Returns full vocabulary: local + inherited from @.#"""
+        """Returns full vocabulary: local + inherited from HelloWorld.#"""
         return self.local_vocabulary | GlobalVocabulary.all_symbols()
     
     def has_symbol(self, symbol: str) -> bool:
@@ -69,8 +69,8 @@ class Dispatcher:
         self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
         self.log_file = "collisions.log"
-        # '@' is the root parent
-        self.agents = {"@claude", "@copilot", "@gemini", "@codex"}
+        # HelloWorld is the root parent
+        self.agents = {"Claude", "Copilot", "Gemini", "Codex"}
         self._bootstrap()
 
     def _log_collision(self, receiver: str, symbol: str, context: Optional[str] = None):
@@ -84,15 +84,15 @@ class Dispatcher:
 
     def _bootstrap(self):
         """Initialize default receivers with inheritance support."""
-        # The parent receiver '@' carries the global grounding
+        # The parent receiver 'HelloWorld' carries the global grounding
         defaults = {
-            "@": ["#Sunyata", "#Love", "#Superposition", "#become", "#"],
-            "@awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
-            "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-            "@gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#sync", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#observe", "#become"],
-            "@claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary"],
-            "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search"],
-            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
+            "HelloWorld": ["#Sunyata", "#Love", "#Superposition", "#become", "#", "#observe", "#orient", "#plan", "#act"],
+            "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
+            "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
+            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become"],
+            "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary"],
+            "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search"],
+            "Codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
         }
         
         for name, initial_vocab in defaults.items():
@@ -154,16 +154,16 @@ class Dispatcher:
         receiver_name = node.receiver.name
         symbol_name = node.symbol.name
         
-        # Special case: @.#symbol queries global definition
-        if receiver_name == "@":
-            if symbol_name == "#sync":
-                print("🤝 Handshake Protocol (@.#sync) initiated. Synchronizing system state...")
+        # Special case: HelloWorld.#symbol queries global definition
+        if receiver_name == "HelloWorld":
+            if symbol_name == "#observe":
+                print("🤝 Handshake Protocol (HelloWorld.#observe) initiated. Synchronizing system state...")
                 self.save() # Sync local state to disk
-                return "@.#sync → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
-            
+                return "HelloWorld.#observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
+
             global_def = GlobalVocabulary.definition(symbol_name)
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)
-            result = f"@.{symbol_name} → {global_def}"
+            result = f"HelloWorld.{symbol_name} → {global_def}"
             if wikidata:
                 result += f"\n  Wikidata: {wikidata}"
             return result
@@ -184,7 +184,7 @@ class Dispatcher:
             local_vocab = sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}" if is_inherited else None
             prompt = f"{receiver_name}.{symbol_name}?"
-            response = self.message_bus_send_and_wait("@meta", receiver_name, prompt, context=context)
+            response = self.message_bus_send_and_wait("Meta", receiver_name, prompt, context=context)
             if response:
                 return response
         
@@ -193,7 +193,7 @@ class Dispatcher:
         elif is_inherited:
             global_def = GlobalVocabulary.definition(symbol_name)
             local_ctx = sorted(receiver.local_vocabulary)
-            return f"{receiver_name}.{symbol_name} inherited from @.# → {global_def}\n  [{receiver_name}.# = {local_ctx}]"
+            return f"{receiver_name}.{symbol_name} inherited from HelloWorld.# → {global_def}\n  [{receiver_name}.# = {local_ctx}]"
         else:
             self._log_collision(receiver_name, symbol_name)
             
@@ -203,7 +203,7 @@ class Dispatcher:
                 local_vocab = sorted(list(receiver.local_vocabulary))
                 context = f"Local Vocabulary: {local_vocab}"
                 prompt = f"handle collision: {symbol_name}"
-                response = self.message_bus_send_and_wait("@meta", receiver_name, prompt, context=context)
+                response = self.message_bus_send_and_wait("Meta", receiver_name, prompt, context=context)
                 if response:
                     return response
             
@@ -226,9 +226,6 @@ class Dispatcher:
             target_name = target_val.name
         else:
             target_name = str(target_val)
-        # Ensure target name has @ prefix
-        if not target_name.startswith("@"):
-            target_name = f"@{target_name}"
 
         target = self._get_or_create_receiver(target_name)
 
@@ -237,7 +234,7 @@ class Dispatcher:
         if target.is_native(symbol_name):
             lines.append(f"  {target_name} already holds {symbol_name} (native)")
         elif target.is_inherited(symbol_name):
-            lines.append(f"  {target_name} inherits {symbol_name} from @.# (shared ground)")
+            lines.append(f"  {target_name} inherits {symbol_name} from HelloWorld.# (shared ground)")
         else:
             # Collision — the symbol is foreign to the target
             self._log_collision(target_name, symbol_name)
@@ -278,7 +275,7 @@ class Dispatcher:
     def _handle_message(self, node: MessageNode) -> str:
         receiver_name = node.receiver.name
         receiver = self._get_or_create_receiver(receiver_name)
-        parent = self._get_or_create_receiver("@")
+        parent = self._get_or_create_receiver("HelloWorld")
 
         # Build message string
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
@@ -290,7 +287,7 @@ class Dispatcher:
         keywords = list(node.arguments.keys())
         if keywords == ["send", "to"]:
             # First execute the root handler for the side effect/logging
-            root_response = self.message_handler_registry.handle("@", node, parent)
+            root_response = self.message_handler_registry.handle("HelloWorld", node, parent)
             if root_response:
                 print(root_response)
             return self._handle_cross_receiver_send(receiver_name, receiver, node)
@@ -330,7 +327,7 @@ class Dispatcher:
             print(f"📡 Dispatching to {receiver_name} for interpretive response...")
             local_vocab = sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}"
-            response = self.message_bus_send_and_wait("@meta", receiver_name, message_content, context=context)
+            response = self.message_bus_send_and_wait("Meta", receiver_name, message_content, context=context)
             if response:
                 return response
             else:

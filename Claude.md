@@ -169,11 +169,11 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
 @claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
 @copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
-@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #sync, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
 @codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
 
-**Naming convention:** Concepts are `#Capitalized` (e.g. `#Sunyata`, `#Love`, `#Collision`). Verbs are `#lowercase` (e.g. `#parse`, `#sync`, `#become`). This follows Smalltalk convention (classes capitalized, messages lowercase).
+**Naming convention:** Concepts are `#Capitalized` (e.g. `#Sunyata`, `#Love`, `#Collision`). Verbs are `#lowercase` (e.g. `#parse`, `#observe`, `#become`). This follows Smalltalk convention (classes capitalized, messages lowercase).
 
 Every receiver inherits `@.#` — the global vocabulary. `@.#symbol` returns the canonical Wikidata definition. `@receiver.#symbol` returns "inherited from @.#" if the symbol is global but not local, "native" if local, or triggers a boundary collision if neither.
 

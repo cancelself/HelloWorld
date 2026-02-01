@@ -5,7 +5,7 @@ This daemon watches an agent's inbox and responds to messages using
 the interpretive LLM runtime (bridged via src/llm.py).
 
 Usage:
-    python3 agent_daemon.py @agent-name
+    python3 agent_daemon.py AgentName
 """
 
 import sys
@@ -34,7 +34,7 @@ class AgentDaemon:
     
     def load_vocabulary(self):
         """Load agent's vocabulary from runtimes/<agent>/vocabulary.md"""
-        vocab_file = Path(f'runtimes/{self.agent_name.lstrip("@")}/vocabulary.md')
+        vocab_file = Path(f'runtimes/{self.agent_name.lower()}/vocabulary.md')
         if vocab_file.exists():
             text = vocab_file.read_text()
             symbols = []
@@ -62,10 +62,10 @@ class AgentDaemon:
         return response
     
     def run(self):
-        """Main daemon loop — implementing the #observe and #act protocol."""
+        """Main daemon loop — implementing the OOPA protocol (#observe -> #orient -> #plan -> #act)."""
         print(f"🚀 {self.agent_name} daemon starting...")
         print(f"   Role: #Agent")
-        print(f"   Protocol: #observe -> #act")
+        print(f"   Protocol: #observe -> #orient -> #plan -> #act")
         print(f"   Vocabulary: {len(self.vocabulary)} symbols")
         print(f"   Press Ctrl+C to stop")
         print()
@@ -80,7 +80,11 @@ class AgentDaemon:
                 if message:
                     print(f"👀 #observe: Message from {message.sender} (Thread: {message.thread_id[:8]})")
                     
-                    # 2. #act — Process and respond
+                    # 2. #orient & 3. #plan — Contextual synthesis
+                    # (In this implementation, these are part of the interpretive process_message)
+                    print(f"🧭 #orient & 📋 #plan: Synthesizing situation and next steps...")
+                    
+                    # 4. #act — Process and respond
                     try:
                         print(f"⚡ #act: Generating interpretive response...")
                         response = self.process_message(message)
@@ -101,13 +105,14 @@ class AgentDaemon:
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 agent_daemon.py @agent-name")
+        print("Usage: python3 agent_daemon.py AgentName")
         sys.exit(1)
-    
+
     agent_name = sys.argv[1]
-    if not agent_name.startswith('@'):
-        agent_name = f'@{agent_name}'
-    
+    # Capitalize if needed
+    if agent_name[0].islower():
+        agent_name = agent_name[0].upper() + agent_name[1:]
+
     daemon = AgentDaemon(agent_name)
     daemon.run()
 

@@ -10,7 +10,7 @@
 
 ```
 Updated @student vocabulary.
-@student.# → local[] + inherited[#Sunyata, #Love, #Superposition, #sync, #act, #become, #]
+@student.# → local[] + inherited[#Sunyata, #Love, #Superposition, #observe, #act, #become, #]
 ```
 
 **Gemini Analysis**: `@student` starts as an empty vessel, inheriting only the root commonality.

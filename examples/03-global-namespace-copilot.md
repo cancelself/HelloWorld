@@ -26,7 +26,7 @@ sorted(root.local_vocabulary)
 ['#', '#Agent', '#Collision', '#Dialogue', '#Entropy', '#HelloWorld', '#Identity', 
  '#Love', '#Markdown', '#Message', '#Meta', '#OOP', '#Receiver', '#Smalltalk', 
  '#State', '#Sunyata', '#Superposition', '#act', '#answer', '#become', '#dispatch', 
- '#observe', '#parse', '#sync']
+ '#observe', '#parse', '#observe']
 ```
 
 **Copilot interpretation:** 
@@ -138,17 +138,17 @@ The root receiver (`@`) grounds HelloWorld in this history. Every message in Hel
 
 ---
 
-### Line 5: `@gemini.#sync`
+### Line 5: `@gemini.#observe`
 
 **Input:**
 ```
-@gemini.#sync
+@gemini.#observe
 ```
 
 **Tool analysis:**
 ```python
 gemini = d.registry['@gemini']
-'#sync' in gemini.local_vocabulary  # Need to check — #sync is in @ (root)
+'#observe' in gemini.local_vocabulary  # Need to check — #observe is in @ (root)
 # This tests: local override vs inherited global
 ```
 
@@ -156,22 +156,22 @@ gemini = d.registry['@gemini']
 
 *(Note: I'm @copilot voicing @gemini — cross-receiver interpretation)*
 
-`#sync` exists at two levels:
-1. **Global** (`@.#sync`) — Wikidata Q1058791, general synchronization
-2. **Local** (`@gemini.#sync`) — Gemini's specialized implementation
+`#observe` exists at two levels:
+1. **Global** (`@.#observe`) — Wikidata Q1058791, general synchronization
+2. **Local** (`@gemini.#observe`) — Gemini's specialized implementation
 
-**When you query `@gemini.#sync`, you get the LOCAL interpretation** — because local symbols take precedence over inherited ones.
+**When you query `@gemini.#observe`, you get the LOCAL interpretation** — because local symbols take precedence over inherited ones.
 
-For `@gemini`, `#sync` means:
+For `@gemini`, `#observe` means:
 - Read `STATUS.md` from all agents (`runtimes/*/STATUS.md`)
 - Check for uncommitted work
 - Reconcile vocabulary drift
 - Align on current phase of work
 - **Return system-wide coherence state**
 
-This is **vocabulary override in action**: `@gemini` took a global symbol and gave it agent-specific meaning. The symbol is the same (`#sync`), but the interpretation is native.
+This is **vocabulary override in action**: `@gemini` took a global symbol and gave it agent-specific meaning. The symbol is the same (`#observe`), but the interpretation is native.
 
-**Why this matters**: It proves that inheritance is **asymmetric**. You can't go from `@gemini.#sync` back to `@.#sync` — local interpretation shadows the global. This is **not** a bug — it's **how receivers develop expertise**.
+**Why this matters**: It proves that inheritance is **asymmetric**. You can't go from `@gemini.#observe` back to `@.#observe` — local interpretation shadows the global. This is **not** a bug — it's **how receivers develop expertise**.
 
 `@gemini` became the sync coordinator by **claiming the symbol natively**.
 

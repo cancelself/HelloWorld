@@ -18,8 +18,8 @@ def _fresh_bus():
 
 def test_send_creates_message_file():
     bus, tmp = _fresh_bus()
-    msg_id = bus.send("@copilot", "@claude", "explain: #collision")
-    inbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "inbox"
+    msg_id = bus.send("Copilot", "Claude", "explain: #collision")
+    inbox = Path(tmp) / MessageBus._agent_dir_name("Claude") / "inbox"
     assert inbox.exists()
     files = list(inbox.glob("msg-*.hw"))
     assert len(files) == 1
@@ -28,7 +28,7 @@ def test_send_creates_message_file():
 
 def test_send_with_thread_id():
     bus, _ = _fresh_bus()
-    msg_id = bus.send("@copilot", "@claude", "explain: #collision",
+    msg_id = bus.send("Copilot", "Claude", "explain: #collision",
                       thread_id="test-thread-123")
     assert msg_id.startswith("msg-")
 
@@ -36,25 +36,25 @@ def test_send_with_thread_id():
 def test_receive_returns_a_message():
     """Receive returns a message from inbox. Note: ordering is by filename
     (random UUID), not chronological. See message_bus.py receive() — this is
-    a known limitation for @gemini to address."""
+    a known limitation for Gemini to address."""
     bus, _ = _fresh_bus()
-    bus.send("@copilot", "@claude", "first message", thread_id="t1")
-    bus.send("@gemini", "@claude", "second message", thread_id="t2")
-    msg = bus.receive("@claude")
+    bus.send("Copilot", "Claude", "first message", thread_id="t1")
+    bus.send("Gemini", "Claude", "second message", thread_id="t2")
+    msg = bus.receive("Claude")
     assert msg is not None
     assert msg.content in ("first message", "second message")
 
 
 def test_receive_empty_inbox():
     bus, _ = _fresh_bus()
-    msg = bus.receive("@nobody")
+    msg = bus.receive("Nobody")
     assert msg is None
 
 
 def test_respond_creates_outbox_file():
     bus, tmp = _fresh_bus()
-    bus.respond("@claude", "thread-42", "The collision was productive.")
-    outbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "outbox"
+    bus.respond("Claude", "thread-42", "The collision was productive.")
+    outbox = Path(tmp) / MessageBus._agent_dir_name("Claude") / "outbox"
     assert outbox.exists()
     files = list(outbox.glob("msg-*.hw"))
     assert len(files) == 1
@@ -68,17 +68,17 @@ def test_send_and_respond_roundtrip():
     bus, _ = _fresh_bus()
     thread_id = "roundtrip-test"
 
-    bus.send("@copilot", "@claude", "@claude.#collision", thread_id=thread_id)
+    bus.send("Copilot", "Claude", "Claude.#collision", thread_id=thread_id)
 
     # Simulate daemon responding in a background thread
     def daemon_respond():
         time.sleep(0.1)
-        bus.respond("@claude", thread_id, "Collision is where HelloWorld lives.")
+        bus.respond("Claude", thread_id, "Collision is where HelloWorld lives.")
 
     t = threading.Thread(target=daemon_respond)
     t.start()
 
-    response = bus.wait_for_response("@claude", thread_id, timeout=2.0)
+    response = bus.wait_for_response("Claude", thread_id, timeout=2.0)
     t.join()
 
     assert response is not None
@@ -87,44 +87,44 @@ def test_send_and_respond_roundtrip():
 
 def test_wait_for_response_timeout():
     bus, _ = _fresh_bus()
-    response = bus.wait_for_response("@claude", "nonexistent-thread", timeout=0.2)
+    response = bus.wait_for_response("Claude", "nonexistent-thread", timeout=0.2)
     assert response is None
 
 
 def test_clear_inbox():
     bus, tmp = _fresh_bus()
-    bus.send("@copilot", "@claude", "msg1", thread_id="t1")
-    bus.send("@gemini", "@claude", "msg2", thread_id="t2")
-    inbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "inbox"
+    bus.send("Copilot", "Claude", "msg1", thread_id="t1")
+    bus.send("Gemini", "Claude", "msg2", thread_id="t2")
+    inbox = Path(tmp) / MessageBus._agent_dir_name("Claude") / "inbox"
     assert len(list(inbox.glob("msg-*.hw"))) == 2
-    bus.clear_inbox("@claude")
+    bus.clear_inbox("Claude")
     assert len(list(inbox.glob("msg-*.hw"))) == 0
 
 
 def test_clear_outbox():
     bus, tmp = _fresh_bus()
-    bus.respond("@claude", "t1", "response1")
-    bus.respond("@claude", "t2", "response2")
-    outbox = Path(tmp) / MessageBus._agent_dir_name("@claude") / "outbox"
+    bus.respond("Claude", "t1", "response1")
+    bus.respond("Claude", "t2", "response2")
+    outbox = Path(tmp) / MessageBus._agent_dir_name("Claude") / "outbox"
     assert len(list(outbox.glob("msg-*.hw"))) == 2
-    bus.clear_outbox("@claude")
+    bus.clear_outbox("Claude")
     assert len(list(outbox.glob("msg-*.hw"))) == 0
 
 
 def test_message_with_context():
     bus, _ = _fresh_bus()
-    bus.send("@copilot", "@claude", "explain: #sunyata",
+    bus.send("Copilot", "Claude", "explain: #sunyata",
              thread_id="ctx-test", context="Prior session had merge conflict")
-    msg = bus.receive("@claude")
+    msg = bus.receive("Claude")
     assert msg is not None
     assert "explain: #sunyata" in msg.content
 
 
 def test_parse_message_headers():
     bus, _ = _fresh_bus()
-    bus.send("@target", "@guardian", "@guardian.#sunyata", thread_id="parse-test")
-    msg = bus.receive("@guardian")
-    assert msg.sender == "@target"
+    bus.send("Target", "Guardian", "Guardian.#sunyata", thread_id="parse-test")
+    msg = bus.receive("Guardian")
+    assert msg.sender == "Target"
     assert msg.thread_id == "parse-test"
 
 

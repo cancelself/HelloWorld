@@ -8,7 +8,7 @@
 @guardian.#fire
 @awakener.#fire
 @claude.#parse
-@copilot.#sync
+@copilot.#observe
 @copilot.#act
 @.#dialogue
 @.#collision

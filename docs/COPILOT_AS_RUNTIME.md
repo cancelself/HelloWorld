@@ -114,7 +114,7 @@ Parse "@copilot test: #lexer"
 Message: sync. act. (two unary messages chained)
 Receiver: @copilot
 Vocabulary check:
-  - #sync ∈ @.# (inherited from root)
+  - #observe ∈ @.# (inherited from root)
   - #act ∈ @.# (inherited from root)
 Context: User wants autonomous action after synchronization
 ```

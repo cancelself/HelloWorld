@@ -61,14 +61,14 @@ class REPL:
 
             readline.set_completer(completer)
             readline.parse_and_bind("tab: complete")
-            # Allow @ and # in words for completion
-            readline.set_completer_delims(" \t\n\"\\'`@$><=;|&{(")
+            # Allow # in words for completion
+            readline.set_completer_delims(" \t\n\"\\'`$><=;|&{(")
         except ImportError:
             pass
 
     def start(self):
         print(f"{self.BOLD}HelloWorld v0.1{self.RESET}")
-        print("Type 'exit' to quit, 'save [@receiver]' to persist vocabularies, 'load <file>.hw' to run a script.")
+        print("Type 'exit' to quit, 'save [Receiver]' to persist vocabularies, 'load <file>.hw' to run a script.")
         
         while self.running:
             try:
@@ -88,8 +88,6 @@ class REPL:
                     target = parts[1] if len(parts) > 1 else None
                     if target and target.lower() == "all":
                         target = None
-                    if target and not target.startswith("@"):
-                        target = f"@{target}"
                     self.dispatcher.save(target)
                     if target:
                         print(f"{self.YELLOW}Saved {target} vocabulary.{self.RESET}")

@@ -71,13 +71,13 @@ def repl():
                 print("Commands:")
                 print("  .exit          Exit REPL")
                 print("  .receivers     Show all registered receivers")
-                print("  .save [@name]  Save vocabularies (default all)")
+                print("  .save [Name]   Save vocabularies (default all)")
                 print("  .help          Show this help")
                 print()
                 print("Syntax:")
-                print("  @receiver                     Show vocabulary")
-                print("  @receiver.#symbol             Lookup scoped meaning")
-                print("  @receiver action: #symbol     Send message")
+                print("  Receiver                      Show vocabulary")
+                print("  Receiver.#symbol              Lookup scoped meaning")
+                print("  Receiver action: #symbol      Send message")
                 continue
             
             if line == '.receivers':
@@ -98,8 +98,6 @@ def repl():
                     dispatcher.save()
                     print("Saved all receiver vocabularies.")
                 else:
-                    if not target.startswith('@'):
-                        target = f"@{target}"
                     dispatcher.save(target)
                     print(f"Saved {target} vocabulary.")
                 continue

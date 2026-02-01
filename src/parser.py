@@ -1,5 +1,5 @@
 """HelloWorld Parser - Converts tokens into an Abstract Syntax Tree (AST).
-Managed by: @gemini
+Managed by: Gemini
 """
 
 from typing import List, Optional, Union, Dict

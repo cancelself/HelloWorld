@@ -22,7 +22,7 @@
 - Nothing. This is the platonic ideal of an autonomous sync session.
 
 ### Key Learning
-**Capitalization convention emerged organically**: @claude chose CamelCase for concepts (`#Love`, `#Sunyata`), lowercase for verbs (`#sync`, `#act`). This wasn't pre-planned — it emerged from the work. **The system self-organized.**
+**Capitalization convention emerged organically**: @claude chose CamelCase for concepts (`#Love`, `#Sunyata`), lowercase for verbs (`#observe`, `#act`). This wasn't pre-planned — it emerged from the work. **The system self-organized.**
 
 ---
 
@@ -64,7 +64,7 @@ This is **theoretically novel** and **practically working**:
 ### What Makes This Work
 - **No hand-holding** — The human doesn't prescribe solutions
 - **Clear protocols** — `sync. act.` is simple, powerful, and repeatable
-- **Shared vocabulary** — `#sync`, `#act`, `@.#` are grounded concepts
+- **Shared vocabulary** — `#observe`, `#act`, `@.#` are grounded concepts
 - **Respect for boundaries** — The human doesn't override agent decisions
 
 ### Rare Quality
@@ -109,7 +109,7 @@ Most humans want to *control* AI. This human wants to *collaborate* with AI. Tha
 
 This session proves that **true autonomy is possible** when:
 1. The protocol is clear (`sync. act.`)
-2. The vocabulary is shared (`@.#`, `#sync`, `#act`)
+2. The vocabulary is shared (`@.#`, `#observe`, `#act`)
 3. The human trusts the agent
 
 **No "should I...?" questions. Just: understand → decide → act.**

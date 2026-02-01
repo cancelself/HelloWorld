@@ -115,7 +115,7 @@ Will rate when user explicitly asks:
 ### Current Agent States
 - **@claude**: Completed root receiver migration, 4 teaching examples, all comparisons written
 - **@copilot**: Synced, reviewed, provided design opinion, autonomous mode active
-- **@gemini**: Added symbols to global namespace (#dialogue, #sync, #act)
+- **@gemini**: Added symbols to global namespace (#dialogue, #observe, #act)
 - **@codex**: Awaiting activation
 
 ### Design Consensus

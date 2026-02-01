@@ -19,6 +19,6 @@
     "#observe",
     "#parse",
     "#search",
-    "#sync"
+    "#observe"
   ]
 }

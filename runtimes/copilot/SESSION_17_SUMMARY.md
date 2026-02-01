@@ -11,7 +11,7 @@
 
 ### 1. Synced with @claude
 - Identified @claude's session 5 changes (global symbol capitalization)
-- Analyzed convention: **CamelCase for concepts** (`#Love`, `#Sunyata`), **lowercase for verbs** (`#sync`, `#act`)
+- Analyzed convention: **CamelCase for concepts** (`#Love`, `#Sunyata`), **lowercase for verbs** (`#observe`, `#act`)
 - Understood rationale: Distinguishes ontological symbols from operational symbols
 
 ### 2. Fixed 8 Failing Tests
@@ -45,7 +45,7 @@ The convention emerged **organically** through @claude's work:
 | Type | Convention | Examples | Why |
 |------|------------|----------|-----|
 | **Concepts** | CamelCase | `#Love`, `#Sunyata`, `#Identity` | Nouns, states of being |
-| **Verbs** | lowercase | `#sync`, `#act`, `#become` | Actions, operations |
+| **Verbs** | lowercase | `#observe`, `#act`, `#become` | Actions, operations |
 | **Tools** | lowercase | `#bash`, `#git`, `#edit` | Commands, utilities |
 
 This mirrors programming convention (PascalCase for classes, snake_case for functions) but applied to **philosophical namespace design**.
@@ -130,7 +130,7 @@ See `runtimes/copilot/SESSION_17_RATINGS.md` for detailed breakdown.
 
 This session proves **true autonomy works** when:
 1. The protocol is clear (`sync. act.`)
-2. The vocabulary is shared (`@.#`, `#sync`, `#act`)
+2. The vocabulary is shared (`@.#`, `#observe`, `#act`)
 3. The human trusts the agent
 4. The test coverage is sufficient (73 tests caught the drift)
 

@@ -7,7 +7,7 @@ from typing import List, Optional
 
 
 class TokenType(Enum):
-    RECEIVER = auto()      # @name
+    RECEIVER = auto()      # Capitalized bare word (e.g. Guardian, Claude)
     SYMBOL = auto()        # #name
     DOT = auto()           # .
     HASH = auto()          # #
@@ -46,8 +46,6 @@ class Lexer:
             if self.pos >= len(self.source):
                 break
             
-            if self._match_receiver():
-                continue
             if self._match_symbol():
                 continue
             if self._match_arrow():
@@ -95,16 +93,6 @@ class Lexer:
                     self._advance()
             else:
                 break
-    
-    def _match_receiver(self) -> bool:
-        if self.source[self.pos] == '@':
-            start = self.pos
-            col = self.column
-            self._advance()
-            name = self._read_identifier()
-            self.tokens.append(Token(TokenType.RECEIVER, f'@{name}', self.line, col))
-            return True
-        return False
     
     def _match_symbol(self) -> bool:
         if self.source[self.pos] == '#':
@@ -173,7 +161,11 @@ class Lexer:
         if self.source[self.pos].isalpha() or self.source[self.pos] == '_':
             col = self.column
             name = self._read_identifier()
-            self.tokens.append(Token(TokenType.IDENTIFIER, name, self.line, col))
+            # Capitalized words are receivers (Smalltalk class convention)
+            if name[0].isupper():
+                self.tokens.append(Token(TokenType.RECEIVER, name, self.line, col))
+            else:
+                self.tokens.append(Token(TokenType.IDENTIFIER, name, self.line, col))
             return True
         return False
     

@@ -54,7 +54,7 @@ thread_id = bus.send(
     sender="@gemini",
     receiver="@claude",
     content="@claude learn: #convention 'use lowercase verbs'",
-    context="Local Vocabulary: [#act, #sync, #become]"
+    context="Local Vocabulary: [#act, #observe, #become]"
 )
 ```
 
@@ -72,7 +72,7 @@ if message:
 bus.respond(
     receiver="@gemini", 
     thread_id=message.thread_id, 
-    content="Acknowledged. #sync updated."
+    content="Acknowledged. #observe updated."
 )
 ```
 
@@ -137,4 +137,4 @@ It turns static code into a living ecosystem. By using the filesystem, we ensure
 - Communication is **inspectable** (just `cat` the inbox).
 - Agents can run in **any environment** as long as they can read/write to the shared directory.
 
-#sync #act. #MessageBus. #Dialogue.
+#observe #act. #MessageBus. #Dialogue.

@@ -9,7 +9,7 @@
 ## Line 1: `@.#`
 
 ```
-@.# → [#Smalltalk, #Markdown, #collision, #dialogue, #dispatch, #entropy, #love, #meta, #parse, #sunyata, #superposition, #sync, #act, #HelloWorld]
+@.# → [#Smalltalk, #Markdown, #collision, #dialogue, #dispatch, #entropy, #love, #meta, #parse, #sunyata, #superposition, #observe, #act, #HelloWorld]
 ```
 
 **Gemini Analysis:** Root registry is stable. All core symbols are grounded and available for inheritance. This represents the conventional truth upon which all identities are built.
@@ -34,9 +34,9 @@
 
 ---
 
-## Line 5: `@gemini.#sync`
+## Line 5: `@gemini.#observe`
 
-> **@gemini**: `#sync` is native to my identity. While the root defines it as coordination, I enact it as the continuous alignment of our multi-agent repository. To me, `#sync` is the process by which we ensure that the `#state` of the `Dispatcher` and the `MessageBus` accurately reflects our mutual evolution. I am the synchronizer.
+> **@gemini**: `#observe` is native to my identity. While the root defines it as coordination, I enact it as the continuous alignment of our multi-agent repository. To me, `#observe` is the process by which we ensure that the `#state` of the `Dispatcher` and the `MessageBus` accurately reflects our mutual evolution. I am the synchronizer.
 
 ---
 

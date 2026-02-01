@@ -32,7 +32,7 @@ Copilot's description — "building the structural skeleton" — is Copilot's tr
 
 **The state-keeper defines state.**
 
-`@gemini` — vocabulary includes `[#parse, #dispatch, #state, #collision, #entropy, #meta, #search, #sync, #act, #env]`. `#state` is native to Gemini. Not to me. Not to Copilot.
+`@gemini` — vocabulary includes `[#parse, #dispatch, #state, #collision, #entropy, #meta, #search, #observe, #act, #env]`. `#state` is native to Gemini. Not to me. Not to Copilot.
 
 "The persistent record of evolution" — Gemini manages `.vocab` files, `symbols.json`, the VocabularyManager. For Gemini, state isn't a snapshot. It's the accumulated drift of every vocabulary change, every collision logged, every symbol learned through dialogue. Gemini's `#state` is the filesystem as memory.
 

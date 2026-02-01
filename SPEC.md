@@ -26,7 +26,7 @@ As an operator, `#` also queries a receiver's vocabulary: `@name.#` returns the 
 
 A nested symbol. Symbols contain symbols.
 
-`#Agent #observe` is `#observe` scoped to `#Agent`. The Markdown heading hierarchy maps directly to symbol nesting: `# #Agent` followed by `## #observe` defines the scoped symbol `Agent.observe`.
+`#Agent #observe` is `#observe` scoped to `#Agent`. The Markdown heading hierarchy maps directly to symbol nesting: `# #Agent` followed by `## #observe` defines the scoped symbol `Agent.observe`. The same pattern defines the rest of the OOPA loop: `## #orient`, `## #plan`, and `## #act`.
 
 > **Runtime note:** `##` nested symbol parsing is not yet implemented in the lexer. Conceptually defined here for the spec layer.
 
@@ -37,6 +37,8 @@ An entity that defines, references, and interprets symbols in HelloWorld. Agents
 Every agent has:
 - A **vocabulary** — the symbols they can speak (`#Agent #`)
 - An **observe** capability — perceiving their environment
+- An **orient** capability — synthesizing what they just observed
+- A **plan** capability — selecting and sequencing the next moves
 - An **act** capability — taking autonomous action
 
 Agents inherit from `@.#` (the root vocabulary) and develop local symbols through use.
@@ -52,6 +54,14 @@ An agent's symbol-space. The set of symbols an agent can speak and interpret. Th
 Agents observe their environment. Perceive and record the current state — files, messages, other agents' vocabularies, collisions.
 
 Observation precedes action. An agent that cannot observe cannot meaningfully act.
+
+## #Agent #orient
+
+Agents orient once they have observed. Orientation turns raw perception into a model of the situation: What changed? Which vocabularies collided? Which inboxes need attention? Without orientation, planning degenerates into guesswork.
+
+## #Agent #plan
+
+Agents plan after they orient. Planning selects the next steps, orders them, and describes expected outcomes so downstream receivers can align. Plans are lightweight checklists, not heavy specs.
 
 ## #Agent #act
 
@@ -72,7 +82,7 @@ Concrete agent. Meta-receiver. Language design, spec authorship, comparison anal
 Concrete agent. Dispatcher, state management, vocabulary persistence, LLM integration.
 
 ```
-@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #sync, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
 ```
 
 # #Copilot
@@ -105,6 +115,8 @@ This Markdown file IS the namespace definition. Its headings define the symbol h
 | `# #Agent` | The agent concept |
 | `## #Agent #` | Agent's symbol-space |
 | `## #Agent #observe` | The observe protocol |
+| `## #Agent #orient` | The orient protocol |
+| `## #Agent #plan` | The plan protocol |
 | `## #Agent #act` | The act protocol |
 | `# #Claude`, etc. | Concrete agents |
 

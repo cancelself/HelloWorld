@@ -101,6 +101,6 @@ class GeminiModel(BaseLlm):
 
 def get_llm_for_agent(agent_name: str) -> BaseLlm:
     """Factory to get the appropriate LLM for an agent."""
-    if agent_name == "@claude":
-        return GeminiModel(model_name="gemini-2.0-flash-001") 
+    if agent_name == "Claude":
+        return GeminiModel(model_name="gemini-2.0-flash-001")
     return GeminiModel()

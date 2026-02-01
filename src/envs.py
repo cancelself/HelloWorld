@@ -11,11 +11,27 @@ class Environment:
         raise NotImplementedError
 
 class ScienceWorldEnv(Environment):
+    def __init__(self):
+        self.state = {
+            "location": "Kitchen",
+            "inventory": [],
+            "temperature": 20
+        }
+
     def step(self, action: str) -> str:
-        # Mock ScienceWorld response
-        return f"[ScienceWorld] Executed '{action}': The temperature of the water increased to 100°C. It is now boiling."
+        # Simple action router
+        if "look" in action:
+            return f"[ScienceWorld] You are in the {self.state['location']}. You see a stove and a beaker."
+        if "heat" in action or "boil" in action:
+            self.state["temperature"] = 100
+            return f"[ScienceWorld] You heat the beaker. The temperature is now {self.state['temperature']}°C. The water is boiling."
+        if "inventory" in action:
+            return f"[ScienceWorld] Inventory: {self.state['inventory'] if self.state['inventory'] else 'empty'}"
+        
+        return f"[ScienceWorld] Executed '{action}': No significant change in environment."
     
     def reset(self) -> str:
+        self.state = {"location": "Kitchen", "inventory": [], "temperature": 20}
         return "[ScienceWorld] Environment reset to initial state (Kitchen)."
 
 class AlfWorldEnv(Environment):

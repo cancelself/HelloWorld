@@ -1,6 +1,7 @@
 {
-  "receiver": "@awakener",
+  "receiver": "Awakener",
   "vocabulary": [
+    "#Entropy",
     "#entropy",
     "#insight",
     "#intention",

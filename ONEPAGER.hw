@@ -33,7 +33,7 @@
 @copilot define: #git as: 'version control through tool calls'
 @copilot define: #edit as: 'surgical modification of source'
 @copilot define: #test as: 'validation of behavior'
-@copilot define: #sync as: 'aligning state across agents'
+@copilot define: #observe as: 'aligning state across agents'
 @copilot define: #act as: 'autonomous execution without prompting'
 
 @gemini define: #env as: 'simulation environment for embodied agents'

@@ -1,12 +1,12 @@
-"""Global Symbol Registry - @.# namespace
+"""Global Symbol Registry - HelloWorld.# namespace
 
 This module defines the global vocabulary that all receivers inherit.
 Each symbol includes Wikidata reference and canonical definition.
 
 Architecture:
-  @.# → Global namespace (canonical definitions)
-  @receiver.# → Local namespace (inherits @.# + own symbols)
-  
+  HelloWorld.# → Global namespace (canonical definitions)
+  Receiver.# → Local namespace (inherits HelloWorld.# + own symbols)
+
 Lookup order:
   1. Check receiver's local vocabulary (override)
   2. Check global vocabulary (inherited)
@@ -42,7 +42,7 @@ class GlobalSymbol:
         return " ".join(parts)
 
 
-# Global symbol registry - @.#
+# Global symbol registry - HelloWorld.#
 GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     "#Superposition": GlobalSymbol(
         name="#Superposition",
@@ -140,17 +140,33 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Dialogue"
     ),
     
-    "#sync": GlobalSymbol(
-        name="#sync",
-        definition="tell everyone to sync the tree, sync the messagebus and read them both",
-        domain="coordination",
-        wikidata_id="Q1058791",
-        wikipedia_url="https://en.wikipedia.org/wiki/Synchronization"
+    "#observe": GlobalSymbol(
+        name="#observe",
+        definition="Perceive and record the current state of the environment (tree and messagebus) — the first phase of the OOPA loop",
+        domain="agent protocol",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#orient": GlobalSymbol(
+        name="#orient",
+        definition="Synthesize observations into a mental model of the current situation — the second phase of the OOPA loop",
+        domain="agent protocol",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#plan": GlobalSymbol(
+        name="#plan",
+        definition="Determine the next set of actions based on orientation — the third phase of the OOPA loop",
+        domain="agent protocol",
+        wikidata_id=None,
+        wikipedia_url=None
     ),
     
     "#act": GlobalSymbol(
         name="#act",
-        definition="Take autonomous action based on observation and shared understanding — the agent protocol complement to #observe",
+        definition="Take autonomous action based on observation, orientation, and planning — the fourth phase of the OOPA loop",
         domain="agent protocol",
         wikidata_id="Q1914636",  # activity
         wikipedia_url="https://en.wikipedia.org/wiki/Action_(philosophy)"
@@ -204,14 +220,6 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url=None
     ),
 
-    "#observe": GlobalSymbol(
-        name="#observe",
-        definition="Perceive and record the current state of the environment — the agent protocol complement to #act",
-        domain="agent protocol",
-        wikidata_id=None,
-        wikipedia_url=None
-    ),
-
     "#become": GlobalSymbol(
         name="#become",
         definition="The symbol of transformation; used to evolve or rename concepts within the registry",
@@ -223,7 +231,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
 
 
 class GlobalVocabulary:
-    """Interface to the global @.# namespace."""
+    """Interface to the global HelloWorld.# namespace."""
     
     @staticmethod
     def all_symbols() -> set:
@@ -270,7 +278,7 @@ class GlobalVocabulary:
 
 # Convenience function for checking inheritance
 def is_global_symbol(symbol: str) -> bool:
-    """Check if a symbol is in the global @.# namespace."""
+    """Check if a symbol is in the global HelloWorld.# namespace."""
     return GlobalVocabulary.has(symbol)
 
 
@@ -285,7 +293,7 @@ __all__ = [
 
 if __name__ == '__main__':
     # Test the global namespace
-    print("@.# → Global Vocabulary")
+    print("HelloWorld.# → Global Vocabulary")
     print("=" * 60)
     
     for name, symbol in GLOBAL_SYMBOLS.items():

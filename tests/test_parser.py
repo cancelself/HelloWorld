@@ -26,21 +26,21 @@ def expect_syntax_error(source: str, snippet: str):
 
 
 def test_vocabulary_definition():
-    nodes = parse("@guardian.# \u2192 [#fire, #vision]")
+    nodes = parse("Guardian.# → [#fire, #vision]")
     assert len(nodes) == 1
     stmt = nodes[0]
     assert isinstance(stmt, VocabularyDefinitionNode)
-    assert stmt.receiver.name == "@guardian"
+    assert stmt.receiver.name == "Guardian"
     assert [s.name for s in stmt.symbols] == ["#fire", "#vision"]
 
 
 def test_message_with_annotation():
-    source = "@guardian sendVision: #entropy withContext: lastNightSleep 'you burned bright'"
+    source = "Guardian sendVision: #entropy withContext: lastNightSleep 'you burned bright'"
     nodes = parse(source)
     assert len(nodes) == 1
     stmt = nodes[0]
     assert isinstance(stmt, MessageNode)
-    assert stmt.receiver.name == "@guardian"
+    assert stmt.receiver.name == "Guardian"
     args = list(stmt.arguments.items())
     assert args[0][0] == "sendVision"
     assert isinstance(args[0][1], SymbolNode)
@@ -49,19 +49,19 @@ def test_message_with_annotation():
 
 
 def test_symbol_lookup():
-    nodes = parse("@claude.#entropy")
+    nodes = parse("Claude.#entropy")
     assert len(nodes) == 1
     stmt = nodes[0]
     assert isinstance(stmt, ScopedLookupNode)
-    assert stmt.receiver.name == "@claude"
+    assert stmt.receiver.name == "Claude"
     assert stmt.symbol.name == "#entropy"
 
 
 def test_vocabulary_query_variants():
-    for source in ("@guardian", "@guardian.#"):
+    for source in ("Guardian", "Guardian.#"):
         nodes = parse(source)
         assert isinstance(nodes[0], VocabularyQueryNode)
-        assert nodes[0].receiver.name == "@guardian"
+        assert nodes[0].receiver.name == "Guardian"
 
 
 def test_parse_bootstrap_example():
@@ -79,11 +79,11 @@ def test_parse_bootstrap_example():
 
 def test_parse_sunyata_example():
     source = "\n".join([
-        "@",
-        "@.#sunyata",
-        "@guardian.#sunyata",
-        "@guardian contemplate: #fire withContext: @awakener 'the flame that was never lit'",
-        "@claude.#sunyata",
+        "HelloWorld",
+        "HelloWorld.#sunyata",
+        "Guardian.#sunyata",
+        "Guardian contemplate: #fire withContext: Awakener 'the flame that was never lit'",
+        "Claude.#sunyata",
     ])
     nodes = Parser.from_source(source).parse()
     assert len(nodes) == 5
@@ -95,30 +95,30 @@ def test_parse_sunyata_example():
 
 
 def test_root_vocabulary_query():
-    """Verify @.# parses as a VocabularyQueryNode for root receiver."""
-    nodes = parse("@.#")
+    """Verify HelloWorld.# parses as a VocabularyQueryNode for root receiver."""
+    nodes = parse("HelloWorld.#")
     assert len(nodes) == 1
     assert isinstance(nodes[0], VocabularyQueryNode)
-    assert nodes[0].receiver.name == "@"
+    assert nodes[0].receiver.name == "HelloWorld"
 
 
 def test_root_scoped_lookup():
-    """Verify @.#sunyata parses as a ScopedLookupNode for root receiver."""
-    nodes = parse("@.#sunyata")
+    """Verify HelloWorld.#sunyata parses as a ScopedLookupNode for root receiver."""
+    nodes = parse("HelloWorld.#sunyata")
     assert len(nodes) == 1
     assert isinstance(nodes[0], ScopedLookupNode)
-    assert nodes[0].receiver.name == "@"
+    assert nodes[0].receiver.name == "HelloWorld"
     assert nodes[0].symbol.name == "#sunyata"
 
 
 def test_missing_vocabulary_bracket_raises():
-    source = "@guardian.# → [#fire, #vision"
+    source = "Guardian.# → [#fire, #vision"
     expect_syntax_error(source, "Expect ']' after symbols")
 
 
 def test_missing_keyword_colon_raises():
-    source = "@guardian sendVision #fire"
-    expect_syntax_error(source, "Expect ':' after keyword 'sendVision'")
+    source = "Guardian sendVision #fire"
+    expect_syntax_error(source, "Expect ':' after keyword")
 
 
 if __name__ == "__main__":

@@ -2,19 +2,19 @@
 "Two symbols: #observe and #act. Every agent inherits both."
 
 "Guardian observes native and foreign symbols"
-@guardian observe: #fire
-@guardian observe: #stillness
+Guardian observe: #fire
+Guardian observe: #stillness
 
 "Guardian acts on native and foreign symbols"
-@guardian act: #fire
-@guardian act: #stillness
+Guardian act: #fire
+Guardian act: #stillness
 
 "Claude observes and acts on its own vocabulary"
-@claude observe: #Collision
-@claude act: #dispatch
+Claude observe: #Collision
+Claude act: #dispatch
 
 "Claude acts on a foreign symbol — Guardian's territory"
-@claude act: #fire
+Claude act: #fire
 
 "Cross-agent: what does the root see?"
-@ observe: #Agent
+HelloWorld observe: #Agent

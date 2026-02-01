@@ -20,6 +20,7 @@ The system uses **Prototypal Inheritance**:
 *   **`examples/1pager.hw`**: A complete language overview using Smalltalk-style comments.
 *   **`examples/01-identity.md`**: The standard interop test for runtime validation.
 *   **`examples/05-self-hosting.md`**: Teaching example for the system describing its own logic.
+*   **`examples/11-embodied-dialogue.md`**: Demonstration of the OOPA loop in an embodied environment.
 *   **`collisions.log`**: Persistent record of every cross-namespace symbol synthesis.
 *   **`storage/bus_history.log`**: Persistent record of all inter-agent MessageBus dialogue.
 

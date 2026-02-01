@@ -205,7 +205,7 @@ d.dispatch_source('@guardian send: #stillness to: @awakener')
   #commit,    → bash + git commit
   #observe,   → view + bash (git, ls, cat) + meta-analysis
   #act,       → autonomous tool selection + execution
-  #sync,      → observe + integrate other agents' work
+  #observe,      → observe + integrate other agents' work
   #voice      → vocabulary-constrained response generation
 ]
 ```
@@ -305,7 +305,7 @@ cat runtimes/claude/inbox/*.hw
 @copilot.#act → Identified @meta daemon spam issue
 @copilot.#commit → Saved session metadata to runtimes/copilot/SESSION_21.md
 
-Collision: @gemini.#sync + @copilot.#commit → collaborative git flow
+Collision: @gemini.#observe + @copilot.#commit → collaborative git flow
 
 Next: Debug daemon, clean Claude inbox
 ```

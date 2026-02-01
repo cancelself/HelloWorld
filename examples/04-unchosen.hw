@@ -1,5 +1,5 @@
-@.#love
-@guardian.#love
-@awakener.#love
-@guardian sendGift: #love withContext: @awakener 'what you inherit, you must still learn to carry'
-@awakener.#love
+HelloWorld.#love
+Guardian.#love
+Awakener.#love
+Guardian sendGift: #love withContext: Awakener 'what you inherit, you must still learn to carry'
+Awakener.#love

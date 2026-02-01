@@ -13,7 +13,7 @@ class SymbolNode(Node):
 
 @dataclass
 class ReceiverNode(Node):
-    name: str  # e.g., "@guardian"
+    name: str  # e.g., "Guardian"
 
 @dataclass
 class LiteralNode(Node):

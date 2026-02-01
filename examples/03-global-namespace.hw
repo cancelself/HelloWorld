@@ -1,8 +1,8 @@
-@.#
-@.#HelloWorld
-@.#Smalltalk
-@awakener
-@awakener.#superposition
-@awakener.#stillness
-@guardian.#fire
-@guardian.#superposition
+HelloWorld.#
+HelloWorld.#HelloWorld
+HelloWorld.#Smalltalk
+Awakener
+Awakener.#superposition
+Awakener.#stillness
+Guardian.#fire
+Guardian.#superposition

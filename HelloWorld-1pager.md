@@ -19,7 +19,7 @@ Run: `python3 helloworld.py HelloWorld-1pager.hw`
 @guardian.#fire
 @awakener.#fire
 @claude.#parse
-@copilot.#sync
+@copilot.#observe
 @copilot.#act
 @.#dialogue
 @.#collision
@@ -89,12 +89,12 @@ Run: `python3 helloworld.py HelloWorld-1pager.hw`
 ### Lines 10-12: Local Specialization
 ```
 @claude.#parse
-@copilot.#sync
+@copilot.#observe
 @copilot.#act
 ```
 **Lookup local symbols.** Parse is Claude's specialty, sync and act are Copilot's workflow.
 
-**Result**: First shows native, then shows inherited (because #sync and #act are ALSO global now).
+**Result**: First shows native, then shows inherited (because #observe and #act are ALSO global now).
 
 ---
 
@@ -198,7 +198,7 @@ Global symbols link to external knowledge (Q316 for #love, Q830791 for #superpos
 
 ### Global (in @.#)
 ```
-#HelloWorld, #Smalltalk, #Markdown, #dialogue, #sync, #act,
+#HelloWorld, #Smalltalk, #Markdown, #dialogue, #observe, #act,
 #superposition, #sunyata, #collision, #entropy, #meta, 
 #parse, #dispatch, #love
 ```

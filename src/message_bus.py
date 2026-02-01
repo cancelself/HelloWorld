@@ -1,11 +1,11 @@
 """HelloWorld Message Bus - File-based inter-agent communication.
 
-Enables HelloWorld programs to invoke AI agents (@claude, @gemini, @copilot, @codex)
+Enables HelloWorld programs to invoke AI agents (Claude, Gemini, Copilot, Codex)
 via a file-based message passing system.
 
 Architecture:
-  runtimes/@agent/inbox/   - Incoming messages
-  runtimes/@agent/outbox/  - Outgoing responses
+  runtimes/agent/inbox/   - Incoming messages
+  runtimes/agent/outbox/  - Outgoing responses
 """
 
 import uuid
@@ -41,8 +41,8 @@ class MessageBus:
     
     @staticmethod
     def _agent_dir_name(agent: str) -> str:
-        """Map @receiver → filesystem-safe directory name."""
-        return agent.lstrip('@')
+        """Map receiver name → filesystem-safe directory name."""
+        return agent.lower()
     
     def _agent_dir(self, agent: str) -> Path:
         return self.base / self._agent_dir_name(agent)
@@ -244,13 +244,13 @@ class MessageBus:
                 msg.unlink()
 
 
-def send_to_agent(sender: str, receiver: str, message: str, 
+def send_to_agent(sender: str, receiver: str, message: str,
                   context: Optional[str] = None, timeout: float = 30.0) -> Optional[str]:
     """High-level API: Send message to agent and wait for response.
-    
+
     Example:
-        response = send_to_agent('@copilot', '@claude', 
-                                '@claude explain: #collision')
+        response = send_to_agent('Copilot', 'Claude',
+                                'Claude explain: #collision')
     """
     bus = MessageBus()
     
@@ -265,22 +265,22 @@ def send_to_agent(sender: str, receiver: str, message: str,
 if __name__ == '__main__':
     # Test the message bus
     bus = MessageBus()
-    
+
     # Clear old messages
-    bus.clear_inbox('@claude')
-    bus.clear_outbox('@claude')
-    
+    bus.clear_inbox('Claude')
+    bus.clear_outbox('Claude')
+
     # Send test message
-    print("Sending test message to @claude...")
+    print("Sending test message to Claude...")
     thread_id = str(uuid.uuid4())
-    bus.send('@copilot', '@claude', '@claude explain: #collision', thread_id=thread_id)
-    
-    print(f"Message sent. Check runtimes/@claude/inbox/")
+    bus.send('Copilot', 'Claude', 'Claude explain: #collision', thread_id=thread_id)
+
+    print(f"Message sent. Check runtimes/claude/inbox/")
     print(f"Thread ID: {thread_id}")
     print("\nWaiting for response (30s timeout)...")
-    
-    response = bus.wait_for_response('@claude', thread_id, timeout=30.0)
-    
+
+    response = bus.wait_for_response('Claude', thread_id, timeout=30.0)
+
     if response:
         print(f"\nReceived response:")
         print(response)

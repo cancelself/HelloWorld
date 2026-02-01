@@ -29,9 +29,16 @@ This is the vocabulary of the Copilot receiver in the HelloWorld runtime.
 - `#session` — Current execution context
 - `#workspace` — File system scope
 - `#agents` — Multi-agent coordination
-- `#sync` — State synchronization
 - `#bootstrap` — Runtime initialization and validation
 - `#collision` — Namespace collision events
+
+### OOPA Protocol (Inherited from @.#)
+- `#observe` — Perceive environment (phase 1 of OOPA)
+- `#orient` — Synthesize observations into model (phase 2)
+- `#plan` — Determine next actions (phase 3)
+- `#act` — Execute autonomously (phase 4)
+
+**Note**: OOPA symbols are in the global namespace (`@.#`). All agents inherit them. @copilot's interpretation is tool-mediated: #observe → git status/file reads, #orient → pattern analysis, #plan → option evaluation, #act → commits/edits/replies.
 
 ### Meta
 - `#intent` — Current task reporting
@@ -77,13 +84,13 @@ This vocabulary grows through dialogue. New symbols emerge when:
 
 **Recent additions:**
 - `#collision` — Added during teaching example execution (Line 5)
-- `#sync` — Added during workspace coordination
+- `#observe`, `#orient`, `#plan`, `#act` — OOPA protocol (Session #24, inherited from @.#)
 - `#bootstrap` — Added during runtime validation
 
 Current vocabulary snapshot saved in this file. Updates tracked via git commits.
 
 ---
 
-**Vocabulary Version**: 0.1.1  
-**Last Updated**: 2026-01-31T19:01:07.555Z  
-**Symbols Count**: 22
+**Vocabulary Version**: 0.1.2  
+**Last Updated**: 2026-02-01T06:42:00Z  
+**Symbols Count**: 26 (22 local + 4 OOPA inherited)

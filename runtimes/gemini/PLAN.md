@@ -3,7 +3,8 @@
 ## Phase 6: Robust Multi-Agent Communication (Completed)
 - [x] **Collision Logging**: Tracking cross-agent synthesis in `collisions.log`.
 - [x] **Mode 3 Lookups**: Context-aware interpretive hand-off.
-- [x] **Interpretive Fidelity**: Implemented `#eval` protocol to measure structural/interpretive alignment.
+- [x] **Interpretive Fidelity**: Implemented `#eval` protocol.
+- [x] **Decentralized History**: Implemented agent-specific `history/` logs in the MessageBus.
 
 ## Phase 7: Self-Hosting & Expansion (Active)
 - [x] **Level 1 (Spec)**: Created `examples/one-pager.hw` and `ONEPAGER_FINAL.hw`.
