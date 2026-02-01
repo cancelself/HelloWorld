@@ -46,6 +46,8 @@ class Lexer:
             if self.pos >= len(self.source):
                 break
             
+            if self._match_receiver():
+                continue
             if self._match_symbol():
                 continue
             if self._match_arrow():
@@ -63,6 +65,16 @@ class Lexer:
         
         self.tokens.append(Token(TokenType.EOF, '', self.line, self.column))
         return self.tokens
+
+    def _match_receiver(self) -> bool:
+        if self.source[self.pos] == '@':
+            start = self.pos
+            col = self.column
+            self._advance()
+            name = self._read_identifier()
+            self.tokens.append(Token(TokenType.RECEIVER, f'@{name}', self.line, col))
+            return True
+        return False
     
     def _skip_whitespace_and_comments(self):
         while self.pos < len(self.source):

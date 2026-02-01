@@ -292,7 +292,7 @@ class Dispatcher:
                 print(root_response)
             return self._handle_cross_receiver_send(receiver_name, receiver, node)
 
-        # Then try registered message handlers (semantic layer)
+        # SEMANTIC LAYER: Try registered message handlers first for ALL receivers
         handler_response = self.message_handler_registry.handle(receiver_name, node, receiver)
         if handler_response:
             return handler_response
