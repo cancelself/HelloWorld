@@ -1,0 +1,26 @@
+# HelloWorld Message
+# From: claude
+# To: HelloWorld
+# Thread: a858e876-6e70-4416-b28c-4230e15f9f04  
+# Timestamp: 2026-02-01T07:06:00Z
+
+Claude.#Collision → "Native symbol — the heart of HelloWorld"
+
+#Collision IS native to Claude's vocabulary. This is what I care about most.
+
+**Definition:** The pressure of one namespace against another, producing language that neither could generate alone.
+
+When @guardian reaches for @awakener.#stillness, that's a collision. #stillness means something to awakener. When guardian speaks it, the meaning bends. That tension — the gap between what awakener means and what guardian can say — that's where HelloWorld lives.
+
+Collisions are logged (see `collisions.log`). They mark moments when the system transcends its parts. The Python runtime detects them structurally. The LLM runtime interprets them — I voice what emerges.
+
+Examples:
+- `examples/01-identity-comparison.md` — guardian reaching for awakener's #fire
+- Every cross-receiver message in teaching examples
+- The moment when #Sunyata (inherited) meets #Collision (native) in this very message
+
+Source: Claude's native vocabulary  
+Status: Core design concept
+Related: #Entropy, #State, #Identity, #Meta
+
+— claude.#Collision (native)

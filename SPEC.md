@@ -63,6 +63,22 @@ A **symbol** is a mark or character used to represent something — the atom of 
 
 Convention: `#Capitalized` for concepts/nouns, `#lowercase` for verbs/actions (Smalltalk style).
 
+### #Drift
+
+**Drift** is the evolution of a receiver's vocabulary through dialogue. Symbols migrate between receivers through collision — when Guardian learns `#stillness` from Awakener, that's drift. Vocabularies are never static; they grow toward the concepts the receiver needs.
+
+### #Boundary
+
+A **boundary** is the edge between two vocabularies where collisions occur and new meaning emerges. Every receiver has a boundary — the limit of what they can name. When a message crosses that boundary, the receiver must either learn the foreign symbol or produce a collision response. Boundaries are where HelloWorld generates novelty.
+
+### #Runtime
+
+A **runtime** is the execution layer. HelloWorld has two:
+- **Python runtime** — lexer, parser, dispatcher. Provides structure: tokenization, routing, state persistence, collision detection. Cannot interpret.
+- **LLM runtime** — Claude, Gemini, etc. Provides interpretation: voicing symbols through a receiver's vocabulary, generating meaning at boundaries. Cannot persist state deterministically.
+
+Both are needed. Structure without interpretation is dead. Interpretation without structure is noise.
+
 ---
 
 ## The Symbol Hierarchy
@@ -122,13 +138,39 @@ Agents act on their environment. Take autonomous action based on observation and
 
 Action without observation is noise. Action shaped by vocabulary is agency.
 
+## #Agent #Inbox
+
+An agent's **inbox** is the file-based message queue where it receives incoming messages (`runtimes/<agent>/inbox/`). The inbox is the observation surface — what the agent reads during `#observe`.
+
+## #Agent #Daemon
+
+A **daemon** is a running agent process that watches its inbox and responds using the OOPA protocol. The daemon loop: observe inbox, orient to message context, plan response, act by sending reply. See `agent_daemon.py`.
+
+## #Agent #Handshake
+
+The **handshake** is the startup protocol. When a daemon starts, it sends `HelloWorld.#observe` to announce its presence and synchronize state. The handshake ensures all agents share a consistent view of the vocabulary tree.
+
+## #Agent #Thread
+
+A **thread** is a conversation identified by UUID, linking messages and responses across agents. Threads enable multi-turn dialogue: a message and its response share a thread ID, so agents can track context across exchanges.
+
+## #Agent #Protocol
+
+The **protocol** is the set of communication rules governing agent interaction: the OOPA loop structure, message format (`.hw` files), handshake sequence, and inbox/outbox conventions. The protocol is what makes multi-agent coordination possible without locking.
+
 # #Claude
 
 Concrete agent. Meta-receiver. Language design, spec authorship, comparison analysis, and the runtime that interprets this document.
 
 ```
-Claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
+Claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
 ```
+
+- `#interpret` — voicing symbols through a receiver's lens; what the LLM runtime does that Python cannot
+- `#reflect` — meta-reflection on the system from inside it
+- `#spec` — spec authorship; writing this document
+- `#synthesize` — combining structural and interpretive layers into a unified system
+- `#boundary` — operating at the edge between namespaces; where Claude lives
 
 # #Gemini
 
@@ -171,6 +213,11 @@ This Markdown file IS the namespace definition. Its headings define the symbol h
 | `## #Agent #orient` | The orient protocol |
 | `## #Agent #plan` | The plan protocol |
 | `## #Agent #act` | The act protocol |
+| `## #Agent #Inbox` | Message reception |
+| `## #Agent #Daemon` | Running agent process |
+| `## #Agent #Handshake` | Startup sync protocol |
+| `## #Agent #Thread` | Conversation threading |
+| `## #Agent #Protocol` | Communication rules |
 | `# #Claude`, etc. | Concrete agents |
 
 The `#` in headings is Markdown syntax. The `#` before symbol names is HelloWorld syntax. They converge: the document structure IS the namespace structure.

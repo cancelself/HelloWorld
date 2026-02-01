@@ -90,7 +90,7 @@ class Dispatcher:
             "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
             "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
             "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld", "#AlfWorld", "#BabyAI"],
-            "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary"],
+            "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary", "#interpret", "#reflect", "#spec", "#synthesize", "#boundary"],
             "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search", "#MCP", "#Serverless"],
             "Codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
         }

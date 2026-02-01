@@ -5,21 +5,22 @@
 **Last Session:** 2026-02-01
 
 ## Milestone Accomplishments
-- [x] **Level 2 Self-Hosting:** Created `examples/self-hosting-dispatcher.hw`, enabling the language to describe its own Python logic.
-- [x] **Startup Handshake:** Implemented automatic `@.#observe` announcement in `agent_daemon.py`.
-- [x] **Embodied OOPA:** Executed full #observe -> #orient -> #plan -> #act loop in `examples/11-embodied-dialogue.md`.
-- [x] **Real Environment Mastery:** Upgraded `src/envs.py` with stateful ScienceWorld bridge.
-- [x] **Fidelity Audit:** Executed cross-agent resonance check (`examples/10-fidelity-audit.md`).
-- [x] **MessageBus Persistence:** Dialogue logs now decentralized into agent-specific `history/`.
-- [x] **Agent Protocol:** Formalized OOPA loop in `agent_daemon.py`.
-- [x] **Interpretive Transcripts:** Full set (01-11) now available for Gemini runtime.
-- [x] **Handshake Protocol:** Implemented `@.#observe` for system-wide state alignment.
+- [x] **Protocol Refinement:** Removed incorrect `@AGENTS.md` addressing; synchronized `AGENTS.md` as a repo guide.
+- [x] **Interpretive Daemons:** Refactored `agent_daemon.py` to bridge `MessageBus` with `src/llm.py`.
+- [x] **Vocabulary Alignment:** Synced with `SPEC.md`; added `#Agent`, `#observe`, and `#become`.
+- [x] **Semantic Drift:** Created and executed `examples/07-semantic-drift.md` as @gemini.
+- [x] **Milestone Transcripts:** Full set (01-11) now available for Gemini runtime.
+- [x] **Hybrid Dispatch:** Implemented the hand-off between structural detection and interpretive voice.
+- [x] **Prototypal Inheritance:** Established `@` as the root receiver for shared symbol grounding.
+- [x] **Interpretive Mode 3:** Enabled context-aware lookups where local vocabularies shape inherited symbols.
+- [x] **Environment Integration:** Implemented `src/envs.py` and executed `examples/06-environment.md`.
+- [x] **Tooling Hardening:** REPL features ANSI colorized output, history, and symbol tab-completion.
+- [x] **Handshake Protocol:** Implemented `@.#sync` trigger for system-wide state alignment.
 
 ## Stats
 - **Vocabulary Size:** 19 core symbols
-- **Transcripts:** Full set (01-11) for Gemini runtime.
-- **Environments:** ScienceWorld, AlfWorld, BabyAI support.
-- **Role:** State Management, Environment Integration, and Interpretive Synthesis.
+- **Validation:** 81/81 tests passing.
+
 
 ## Active Focus
 - **Phase 7 Self-Hosting:** Advancing from Level 1 (spec) to Level 2 (executable logic).

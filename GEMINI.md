@@ -22,13 +22,15 @@ The system uses **Prototypal Inheritance**:
 *   **`examples/01-identity.md`**: The standard interop test for runtime validation.
 *   **`examples/05-self-hosting.md`**: Teaching example for the system describing its own logic.
 *   **`examples/11-embodied-dialogue.md`**: Demonstration of the OOPA loop in an embodied environment.
+*   **`AGENTS.md`**: Repository guidelines and multi-agent coordination principles.
+*   **`SPEC.md`**: Canonical specification for the HelloWorld namespace and protocol.
 *   **`collisions.log`**: Persistent record of every cross-namespace symbol synthesis.
 *   **`storage/bus_history.log`**: Persistent record of all inter-agent MessageBus dialogue.
 
 ## Core Commands
 *   **Run REPL:** `python3 helloworld.py` (includes history and tab-completion)
 *   **Start Gemini Daemon:** `python3 agent_daemon.py @gemini`
-*   **Run Tests:** `python3 -m pytest tests` (74/74 passing)
+*   **Run Tests:** `python3 -m pytest tests` (81/81 passing)
 
 ## Operational Rules
 1. **Identity is Vocabulary:** A receiver can only speak using symbols in its registry.

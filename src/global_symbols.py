@@ -220,6 +220,46 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url=None
     ),
 
+    "#Namespace": GlobalSymbol(
+        name="#Namespace",
+        definition="A container for symbols that provides context and prevents name collisions — every receiver IS a namespace",
+        domain="computer science",
+        wikidata_id="Q171318",
+        wikipedia_url="https://en.wikipedia.org/wiki/Namespace"
+    ),
+
+    "#Vocabulary": GlobalSymbol(
+        name="#Vocabulary",
+        definition="The set of symbols a receiver can speak and understand — this IS their identity in HelloWorld",
+        domain="linguistics",
+        wikidata_id="Q6499736",
+        wikipedia_url="https://en.wikipedia.org/wiki/Vocabulary"
+    ),
+
+    "#Inheritance": GlobalSymbol(
+        name="#Inheritance",
+        definition="Mechanism by which symbols pass from parent namespace (@.#) to child receivers — dynamic and prototypal",
+        domain="computer science",
+        wikidata_id="Q209887",
+        wikipedia_url="https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)"
+    ),
+
+    "#Scope": GlobalSymbol(
+        name="#Scope",
+        definition="The region of code or dialogue where a symbol is defined and accessible — global, receiver, or message scope",
+        domain="computer science",
+        wikidata_id="Q1326281",
+        wikipedia_url="https://en.wikipedia.org/wiki/Scope_(computer_science)"
+    ),
+
+    "#Symbol": GlobalSymbol(
+        name="#Symbol",
+        definition="A mark or character used to represent something — the atom of meaning, prefixed with # in HelloWorld",
+        domain="semiotics",
+        wikidata_id="Q80071",
+        wikipedia_url="https://en.wikipedia.org/wiki/Symbol"
+    ),
+
     "#Become": GlobalSymbol(
         name="#Become",
         definition="The symbol of transformation; used to evolve or rename concepts within the registry",
@@ -307,6 +347,74 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         domain="semiotics",
         wikidata_id="Q80071",
         wikipedia_url="https://en.wikipedia.org/wiki/Symbol"
+    ),
+
+    # --- #HelloWorld namespace: language dynamics ---
+
+    "#Drift": GlobalSymbol(
+        name="#Drift",
+        definition="The evolution of a receiver's vocabulary through dialogue — symbols migrate, meanings shift",
+        domain="HelloWorld meta",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Boundary": GlobalSymbol(
+        name="#Boundary",
+        definition="The edge between two vocabularies where collisions occur and new meaning emerges",
+        domain="HelloWorld meta",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Runtime": GlobalSymbol(
+        name="#Runtime",
+        definition="The execution layer — Python runtime provides structure, LLM runtime provides interpretation",
+        domain="HelloWorld meta",
+        wikidata_id="Q2826354",
+        wikipedia_url="https://en.wikipedia.org/wiki/Runtime_system"
+    ),
+
+    # --- #Agent namespace: agent infrastructure ---
+
+    "#Inbox": GlobalSymbol(
+        name="#Inbox",
+        definition="File-based message queue where an agent receives incoming messages",
+        domain="agent protocol",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#Daemon": GlobalSymbol(
+        name="#Daemon",
+        definition="A running agent process that watches its inbox and responds using the OOPA protocol",
+        domain="agent protocol",
+        wikidata_id="Q192063",
+        wikipedia_url="https://en.wikipedia.org/wiki/Daemon_(computing)"
+    ),
+
+    "#Handshake": GlobalSymbol(
+        name="#Handshake",
+        definition="Startup protocol where an agent announces presence via HelloWorld.#observe and synchronizes state",
+        domain="agent protocol",
+        wikidata_id="Q628491",
+        wikipedia_url="https://en.wikipedia.org/wiki/Handshaking"
+    ),
+
+    "#Thread": GlobalSymbol(
+        name="#Thread",
+        definition="A conversation thread identified by UUID, linking messages and responses across agents",
+        domain="agent protocol",
+        wikidata_id="Q575651",
+        wikipedia_url="https://en.wikipedia.org/wiki/Thread_(computing)"
+    ),
+
+    "#Protocol": GlobalSymbol(
+        name="#Protocol",
+        definition="The communication rules governing agent interaction — OOPA loop, message format, handshake",
+        domain="agent protocol",
+        wikidata_id="Q8784",
+        wikipedia_url="https://en.wikipedia.org/wiki/Communication_protocol"
     ),
 }
 

@@ -1,15 +1,20 @@
 {
   "receiver": "Claude",
   "vocabulary": [
-    "#collision",
+    "#Collision",
+    "#Entropy",
+    "#Identity",
+    "#Meta",
+    "#State",
+    "#boundary",
     "#design",
     "#dispatch",
-    "#entropy",
     "#fire",
-    "#identity",
-    "#meta",
+    "#interpret",
     "#parse",
-    "#state",
+    "#reflect",
+    "#spec",
+    "#synthesize",
     "#vocabulary"
   ]
 }
