@@ -2,8 +2,8 @@
 
 **Agent**: GitHub Copilot CLI  
 **Role**: Complete frontend + backend for HelloWorld language  
-**Status**: Active runtime (Session #44)  
-**Updated**: 2026-02-01T19:40:00Z
+**Status**: Active runtime — Phase 4 complete ✅  
+**Updated**: 2026-02-01T20:00:00Z
 
 ---
 
@@ -222,7 +222,7 @@ All runtimes communicate via `runtimes/<agent>/inbox/` and `runtimes/<agent>/out
 
 ---
 
-## Current Capabilities (Session #41)
+## Current Capabilities (Session #46)
 
 **Implemented:**
 - ✅ Lexing (13 token types, Smalltalk-style comments)
@@ -235,12 +235,20 @@ All runtimes communicate via `runtimes/<agent>/inbox/` and `runtimes/<agent>/out
 - ✅ Message bus (file-based inter-agent comms)
 - ✅ REPL (interactive shell)
 - ✅ File execution (.hw file interpreter)
+- ✅ **Phase 3: Lazy inheritance** — symbols discovered on first use from global pool
+- ✅ **Phase 4: LLM handoff** — Python dispatcher routes to LLM for interpretation
 
-**In Progress:**
-- ⏳ Lazy inheritance (Phase 3) — symbols discovered on first use
-- ⏳ LLM handoff (Phase 4) — Python dispatcher → LLM interpretation
+**Phase 4 Architecture (NEW)**:
+- `Dispatcher(use_llm=True)` enables LLM interpretation layer
+- Three-tier fallback: LLM → MessageBus → Template
+- LLM interprets scoped lookups (`Claude #parse`) with vocabulary-aware context
+- LLM responds to messages as receivers (`Claude observe: #State`)
+- Mock implementation in `src/llm.py` (GeminiModel)
+- Real API wiring pending (needs GEMINI_API_KEY + actual API calls)
 
 **Planned:**
+- ⏳ Real LLM API integration (replace mocks with Gemini 2.0 Flash calls)
+- ⏳ LLM-aware test suite (tests with use_llm=True)
 - ⏳ MCP server integration (tool-calling bridge)
 - ⏳ Cross-runtime transcripts (executing examples as Copilot runtime)
 - ⏳ Emergence tracking (vocabulary evolution logging)
