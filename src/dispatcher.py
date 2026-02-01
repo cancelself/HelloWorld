@@ -89,7 +89,7 @@ class Dispatcher:
             "@": ["#Sunyata", "#Love", "#Superposition", "#become", "#"],
             "@awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
             "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-            "@gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#sync", "#act", "#env", "#Love", "#Sunyata", "#Superposition", "#eval", "#config"],
+            "@gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#sync", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#observe", "#become"],
             "@claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary"],
             "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search"],
             "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]

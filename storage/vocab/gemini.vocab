@@ -1,19 +1,24 @@
 {
   "receiver": "@gemini",
   "vocabulary": [
+    "#Agent",
+    "#Collision",
+    "#Config",
+    "#Entropy",
+    "#Env",
+    "#HelloWorld",
+    "#Love",
+    "#Meta",
+    "#State",
+    "#Sunyata",
+    "#Superposition",
     "#act",
-    "#collision",
-    "#config",
+    "#become",
     "#dispatch",
-    "#entropy",
-    "#env",
     "#eval",
-    "#love",
-    "#meta",
+    "#observe",
     "#parse",
-    "#state",
-    "#sunyata",
-    "#superposition",
+    "#search",
     "#sync"
   ]
 }

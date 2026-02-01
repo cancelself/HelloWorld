@@ -22,6 +22,10 @@ Thumbs.db
 # Runtime output
 collisions.log
 
+# Message bus (ephemeral inter-agent communication)
+runtimes/*/inbox/
+runtimes/*/outbox/
+
 # Virtual environments
 venv/
 env/

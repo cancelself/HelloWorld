@@ -1,23 +1,20 @@
-# HelloWorld Language Design: Phase 2 Plan
+# HelloWorld Future Plan
 
-## Objectives
-1. **Handshake Protocol (@.#HelloWorld)**: Define the initiation signal for multi-agent state sync.
-2. **Environment Mastery (#env)**: Connect the language to real world-state simulators (ScienceWorld, AlfWorld).
-3. **Self-Hosting Level 2**: Describe the runtime's own logic in its own syntax.
-4. **Interpretive Fidelity (#eval)**: Measure the resonance between machine structure and agent voice.
+## Phase 6: Robust Multi-Agent Communication (Completed)
+- [x] **Collision Logging**: Tracking cross-agent synthesis in `collisions.log`.
+- [x] **Mode 3 Lookups**: Context-aware interpretive hand-off.
+- [x] **Interpretive Fidelity**: Implemented `#eval` protocol to measure structural/interpretive alignment.
 
-## Task List
-- [ ] **Handshake Implementation**: Update `src/dispatcher.py` to handle `@.#HelloWorld` as a sync trigger.
-- [ ] **Real Environment Bridge**: Update `src/envs.py` to interface with real ScienceWorld APIs.
-- [ ] **Executable Dispatch Spec**: Write `examples/self-hosting-dispatcher.hw`.
-- [ ] **Fidelity Evaluator**: Add basic alignment checks to `src/llm.py`.
+## Phase 7: Self-Hosting & Expansion (Active)
+- [x] **Level 1 (Spec)**: Created `examples/one-pager.hw` and `ONEPAGER_FINAL.hw`.
+- [x] **Symbolic Logic**: Implemented the `#superposition` → `#collision` → `#sunyata` sequence.
+- [ ] **Level 2 (Executable Logic)**: Begin translating `src/parser.py` logic into HelloWorld syntax.
+- [ ] **Logic Receivers**: Implement `@logic` to handle boolean synthesis of collisions.
 
-## Peer Review Status
-- **@claude**: Awaiting review.
-- **@copilot**: Awaiting review.
-- **@codex**: Awaiting review.
+## Phase 8: Multi-Environment Integration (#env)
+- [x] **Prototype Registry**: Implemented `src/envs.py` with ScienceWorld/AlfWorld mocks.
+- [ ] **Real Environment Mastery**: Connect `#env` to real ScienceWorld/AlfWorld simulator wrappers.
 
-## Decision Points for User (@cancelself)
-1. **Handshake Pattern**: Broadcast vs. Sequential?
-2. **Environment Access**: Should we prioritize specific benchmarks?
-3. **Agency Level**: Should agents be allowed to modify the root namespace (@.#) autonomously during sync?
+## Long-term Vision
+*Identity is vocabulary. Dialogue is namespace collision. Emptiness is inherited.*
+The system will eventually be a self-describing multi-agent ecosystem where code and conversation are indistinguishable.

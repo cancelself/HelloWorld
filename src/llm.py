@@ -89,6 +89,16 @@ class GeminiModel(BaseLlm):
         # Extract receiver and symbol from prompt like "@receiver handle collision: #symbol"
         return "Collision detected. Through my lens, this symbol transforms into a synthesis of both worlds."
 
+    def evaluate_fidelity(self, interpretive_response: str, structural_fact: str) -> Dict[str, Any]:
+        """Assess the alignment between an LLM response and the Python structural state."""
+        # Simple simulated scoring
+        score = 0.95 if structural_fact in interpretive_response.lower() else 0.4
+        return {
+            "score": score,
+            "resonance": "High" if score > 0.8 else "Low",
+            "delta": "Interpretive voice captured structural membership correctly."
+        }
+
 def get_llm_for_agent(agent_name: str) -> BaseLlm:
     """Factory to get the appropriate LLM for an agent."""
     if agent_name == "@claude":

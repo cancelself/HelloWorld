@@ -184,6 +184,13 @@ class MessageHandlerRegistry:
                 lambda args, recv, r=receiver: f"⚙️ {r} handles {args['handle']} with {args['with']}"
             )
 
+        # eval:for: for interpretive fidelity assessment
+        self.register(
+            "@gemini",
+            "eval:for:",
+            lambda args, recv: f"📊 @gemini measuring fidelity of {args['eval']} for receiver {args['for']}..."
+        )
+
         # act: for system-wide execution
         self.register(
             "@",
