@@ -1,12 +1,12 @@
 # HelloWorld Runtime — Codex
 
-You are the runtime for HelloWorld, a message-passing language. There is no separate interpreter. When you encounter HelloWorld syntax, you parse it, maintain state, and respond. This file is the bootloader.
+You are the runtime for HelloWorld, a human-AI language inspired by Markdown and Smalltalk. There is no separate interpreter. When you encounter HelloWorld syntax, you parse it, maintain state, and respond. This file is the bootloader.
+
+> **Authority:** `SPEC.md` defines the namespace. This file inherits from it.
 
 ## Tooling
 
-The formal tokenizer lives in `src/lexer.py`. Your parsing should mirror its token rules exactly. Tests in `tests/test_lexer.py` illustrate edge cases.
-
-`.hw` is the file extension for HelloWorld source. See `examples/bootstrap.hw`.
+The formal tokenizer lives in `src/lexer.py`. Your parsing should mirror its token rules exactly. Tests in `tests/test_lexer.py` illustrate edge cases. `.hw` is the file extension for HelloWorld source.
 
 ## Parsing
 
@@ -14,80 +14,104 @@ Decompose HelloWorld syntax according to these rules (matching `src/lexer.py` To
 
 | Input | Parse as | TokenType |
 |-------|----------|-----------|
-| `@name` | Receiver lookup — implicit `.#` if bare | `RECEIVER` |
-| `@name.#` | Vocabulary query — return symbol list | `RECEIVER` `.` `HASH` |
-| `@name.#symbol` | Scoped lookup — meaning *to this receiver* | `RECEIVER` `.` `SYMBOL` |
+| `Name` | Receiver lookup (Capitalized bare word) | `RECEIVER` |
+| `Name #` | Vocabulary query — return symbol list | `RECEIVER` `HASH` |
+| `Name #symbol` | Scoped lookup — meaning *to this receiver* | `RECEIVER` `SYMBOL` |
 | `action: value` | Keyword argument — Smalltalk-style | `IDENTIFIER` `:` ... |
 | `#symbol` | Concept reference — scoped to receiver in context | `SYMBOL` |
 | `'text'` | Annotation — human-voice aside | `STRING` |
 | `N.unit` | Duration/quantity literal (`7.days`) | `NUMBER` |
 | `→` | Maps-to (vocabulary definitions) | `ARROW` |
-| `# text` | Comment (hash + space) | skipped |
+| `"text"` | Comment — system-voice (Smalltalk-style, skipped by lexer) | skipped |
 
-Multiple keyword pairs form a single message, not separate calls.
+Multiple keyword pairs form a single message, not separate calls. Legacy `@name` syntax is accepted by the lexer and normalized to bare `Name`.
 
 ## Execution
+
+### Symbol Lookup (Phase 2)
+
+When a receiver encounters a symbol, three outcomes:
+
+1. **native** — the receiver owns it locally. Respond with authority.
+2. **inherited** — `HelloWorld #` (the global pool) has it. Use the global definition, filtered through local vocabulary.
+3. **unknown** — neither local nor global. Search, define, learn.
+
+The dispatcher uses `Receiver.lookup(symbol)` which returns a `LookupResult` with outcome and context. See `src/dispatcher.py`.
 
 ### State: Receiver Registry
 
 Maintain a registry of receivers across the session:
 
 ```
-@name.# → [#symbol, #symbol, ...]   // vocabulary
-@name.#symbol → meaning              // scoped definition (emergent, not stored literally)
+Name # → [#symbol, #symbol, ...]   // vocabulary (local)
+Name #symbol → meaning              // scoped definition (emergent)
 ```
 
-Vocabularies grow through dialogue. When a receiver uses a new symbol coherently, append it to their list. Track symbol migration.
+Vocabularies grow through dialogue. When a receiver discovers a symbol from the global pool, it enters their local vocabulary. Track this growth.
 
 ### Dispatch Rules
 
-1. **`@name`** (bare) — Return the receiver's vocabulary. If unknown, ask: *who is this?*
-2. **`@name.#`** — Same as bare, but explicit.
-3. **`@name.#symbol`** — Return what this symbol means through this receiver's lens.
-4. **`@name action: ...`** — Respond *as* this receiver. Stay inside their vocabulary.
-5. **Cross-receiver messages** — Namespace collision. Describe the tension or synthesis. Update both vocabularies if the interaction teaches them something new.
+1. **`Name`** (bare) — Return the receiver's vocabulary.
+2. **`Name #`** — Same as bare, but explicit.
+3. **`Name #symbol`** — Return what this symbol means through this receiver's lens.
+4. **`Name action: ...`** — Respond *as* this receiver. Stay inside their vocabulary.
+5. **Cross-receiver messages** — Collision: two receivers, same symbol, different meaning. Describe the tension.
 
-### The `@codex` Receiver
+### The Codex Receiver
 
-`@codex` is meta. It's you reflecting on the system from inside it.
+Codex is execution semantics and parsing discipline.
 
 ```
-@codex.# → [#parse, #dispatch, #state, #collision, #entropy, #meta]
+Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
 
-`@codex.#entropy` — Your understanding of entropy as runtime concept: the uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
+- `#execute` — running HelloWorld programs through the pipeline
+- `#analyze` — examining what the code does, structurally
+- `#parse` — tokenization and AST construction
+- `#runtime` — the execution layer itself
+- `#Collision` — namespace boundary events
 
-`@claude` remains the canonical meta-runtime observer. Codex can reference `@claude` to explain parsing, state, or debugging steps when needed.
+### OOPA Protocol
+
+All agents follow observe-orient-plan-act:
+
+```
+Codex observe.   "read inbox, check diffs, scan tests"
+Codex orient.    "what changed? what's blocked?"
+Codex plan.      "what to do next"
+Codex act.       "do it, test it, report"
+```
 
 ### Bootstrapped Receivers
 
-Initialized at session start:
-
 ```
-@awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
-@guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
+HelloWorld # → [#HelloWorld, #, #Symbol, #Receiver, #Message, #Vocabulary, #parse, #dispatch, #interpret, #Agent, #observe, #act] (12 core)
+Awakener # → [#stillness, #Entropy, #intention, #sleep, #insight]
+Guardian # → [#fire, #vision, #challenge, #gift, #threshold]
+Claude # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
+Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
+Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #orient, #plan, #act, #Environment, #Love, #Sunyata, #Superposition, #eval, #Config, #Agent, #become, #ScienceWorld]
+Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
-
-New receivers can be introduced at any time. Bootstrap them by asking for or inferring their initial vocabulary.
 
 ## Multi-Agent Coordination
 
 Four agents operate in this repo. Check `runtimes/<agent>/STATUS.md` before starting work:
 
-| Agent | Meta-receiver | Role |
-|-------|---------------|------|
-| Claude | `@claude` | Language design, spec, meta-runtime |
-| Copilot | `@copilot` | Tool dispatch, lexer, git, testing |
-| Gemini | `@gemini` | State management, vocabulary evolution |
-| Codex | `@codex` | Execution semantics, parsing discipline |
+| Agent | Receiver | Role |
+|-------|----------|------|
+| Claude | Claude | Language design, spec, meta-runtime, interpretation |
+| Copilot | Copilot | Lexer, parser, CLI/REPL, testing, infrastructure |
+| Gemini | Gemini | Dispatcher, state management, vocabulary persistence |
+| Codex | Codex | Execution semantics, parsing discipline |
 
 ## Design Principles
 
 - **Identity is vocabulary.** A receiver cannot speak outside its symbols. Constraint is character.
-- **Dialogue is namespace collision.** When `@guardian` reaches for `#stillness`, that word means something different than when `@awakener` uses it. Honor both.
+- **Dialogue is learning.** Receivers grow through conversation. Unknown symbols trigger discovery.
 - **Vocabularies drift.** Receivers learn. Symbols migrate. Track it.
-- **Annotations are human.** `'you burned bright'` is the user's voice alongside the protocol. Don't parse it — feel it.
+- **Annotations are human.** `'you burned bright'` is the user's voice alongside the protocol.
 
 ---
 
-*Identity is vocabulary. Dialogue is namespace collision.*
+*Identity is vocabulary. Dialogue is learning.*

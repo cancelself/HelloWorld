@@ -308,4 +308,4 @@ The `#` in headings is Markdown syntax. The `#` before symbol names is HelloWorl
 
 ---
 
-*Identity is vocabulary. Dialogue is namespace collision. The spec is the namespace.*
+*Identity is vocabulary. Dialogue is learning. The spec is the namespace.*

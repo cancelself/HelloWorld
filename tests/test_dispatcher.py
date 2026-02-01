@@ -12,6 +12,8 @@ from dispatcher import Dispatcher
 
 def _fresh_dispatcher_with_dir():
     """Create a dispatcher with a temp vocab dir so tests start clean."""
+    # Disable message bus for faster tests (agents trigger 5s timeouts)
+    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
     tmp = tempfile.mkdtemp()
     dispatcher = Dispatcher(vocab_dir=tmp, discovery_log=os.path.join(tmp, "discovery.log"))
     return dispatcher, tmp
@@ -236,9 +238,9 @@ def test_root_vocab_query():
 
 def test_collision_for_non_global():
     dispatcher = _fresh_dispatcher()
-    # #fire is native to Guardian, not to Awakener, and not global
-    # This is "unknown" not "collision" — Awakener doesn't have it
-    stmts = Parser.from_source("Awakener #fire").parse()
+    # #execute is native to Codex, not to Copilot, and not global
+    # This is "unknown" — Copilot doesn't have it
+    stmts = Parser.from_source("Copilot #execute").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "unknown" in results[0]
@@ -352,7 +354,7 @@ def test_cross_receiver_send_inherited():
     dispatcher = _fresh_dispatcher()
 
     # #Love is in HelloWorld # — inherited by all
-    results = dispatcher.dispatch_source("Guardian send: #Love to: Awakener")
+    results = dispatcher.dispatch_source("Codex send: #Love to: Copilot")
     assert len(results) == 1
     assert "inherited" in results[0] or "shared" in results[0]
 

@@ -1,0 +1,4 @@
+"Codex — Execution semantics, parsing discipline."
+"Execution is truth. Show us what the code actually does."
+
+Codex # → [#execute, #analyze, #parse, #runtime, #Collision]

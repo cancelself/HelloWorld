@@ -165,39 +165,8 @@ class MessageHandlerRegistry:
     def _register_default_handlers(self):
         """Register built-in vocabulary-aware handlers."""
 
-        # Awakener setIntention:forDuration:
-        self.register(
-            "Awakener",
-            "setIntention:forDuration:",
-            lambda args, recv: (
-                f"Awakener holds {args['setIntention']} for {args['forDuration']}"
-                + (f" ({_symbol_status(recv, args['setIntention'])})" if recv else "")
-            )
-        )
-
-        # Guardian sendVision:withContext: (vocabulary-aware)
-        self.register(
-            "Guardian",
-            "sendVision:withContext:",
-            lambda args, recv: (
-                f"Guardian sends vision of {args['sendVision']}"
-                + (f" ({_symbol_status(recv, args['sendVision'])})" if recv else "")
-                + f" (context: {args['withContext']})"
-            )
-        )
-
-        # Guardian challenge: (vocabulary-aware)
-        self.register(
-            "Guardian",
-            "challenge:",
-            lambda args, recv: (
-                f"Guardian challenges with {args['challenge']}"
-                + (f" ({_symbol_status(recv, args['challenge'])})" if recv else "")
-            )
-        )
-
         # Generic greet: for any receiver
-        for receiver in ["Awakener", "Guardian", "Claude", "Copilot", "Gemini"]:
+        for receiver in ["Claude", "Copilot", "Gemini", "Codex"]:
             self.register(
                 receiver,
                 "greet:",
@@ -213,7 +182,7 @@ class MessageHandlerRegistry:
             )
 
         # learn: for vocabulary expansion
-        for receiver in ["Awakener", "Guardian", "Claude", "Copilot", "Gemini"]:
+        for receiver in ["Claude", "Copilot", "Gemini", "Codex"]:
             self.register(
                 receiver,
                 "learn:",
@@ -275,7 +244,21 @@ class MessageHandlerRegistry:
         self.register(
             "HelloWorld",
             "become:",
-            lambda args, recv: f"Transformation: {args['become']} has become a new state of identity."
+            lambda args, recv: f"✨ Transformation: {args['become']} has become a new state of identity."
+        )
+
+        # report: for system visualization
+        self.register(
+            "HelloWorld",
+            "report:",
+            lambda args, recv: f"📊 HelloWorld reporting system status: {args['report']}... Generating registry snapshot."
+        )
+
+        # HelloWorldSystem: for Scribe orchestration
+        self.register(
+            "Scribe",
+            "HelloWorldSystem:",
+            lambda args, recv: f"🖋️ Scribe (System Orchestrator) responding to: '{args['HelloWorldSystem']}'. Forward momentum initialized."
         )
 
         # send:to: for inter-receiver delivery
@@ -297,7 +280,7 @@ class MessageHandlerRegistry:
         # observe: reports the symbol's status relative to the receiver.
         # act: acknowledges action, shaped by the receiver's vocabulary.
 
-        all_agents = ["Awakener", "Guardian", "Claude", "Copilot", "Gemini", "Codex"]
+        all_agents = ["Claude", "Copilot", "Gemini", "Codex"]
 
         for agent in all_agents:
             self.register(

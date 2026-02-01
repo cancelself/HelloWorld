@@ -160,7 +160,7 @@ class Receiver:
 
 
 class Dispatcher:
-    def __init__(self, vocab_dir: str = "storage/vocab"):
+    def __init__(self, vocab_dir: str = "storage/vocab", discovery_log: Optional[str] = None):
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
@@ -169,8 +169,10 @@ class Dispatcher:
         self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
         self.log_file = "collisions.log"
+        self.discovery_log_file = discovery_log or os.path.join("storage", "discovery.log")
+        os.makedirs(os.path.dirname(self.discovery_log_file), exist_ok=True)
         # HelloWorld is the root parent
-        self.agents = {"Claude", "Copilot", "Gemini", "Codex"}
+        self.agents = {"Claude", "Copilot", "Gemini", "Codex", "Scribe"}
         self._bootstrap()
 
     def _log_collision(self, receiver: str, symbol: str, context: Optional[str] = None):
@@ -181,47 +183,45 @@ class Dispatcher:
         log_entry += "\n"
         with open(self.log_file, "a") as f:
             f.write(log_entry)
-    
+
     def _log_discovery(self, receiver: str, symbol: str):
-        """Log when a receiver discovers a symbol through dialogue (Phase 3)."""
+        """Record the moment a receiver discovers and activates a global symbol."""
         timestamp = datetime.now().isoformat()
-        log_entry = f"[{timestamp}] DISCOVERED: {receiver} activated {symbol} through dialogue\n"
-        with open(self.log_file, "a") as f:
+        log_entry = f"[{timestamp}] DISCOVERY: {receiver} learned {symbol} from Global Library\n"
+        os.makedirs(os.path.dirname(self.discovery_log_file), exist_ok=True)
+        with open(self.discovery_log_file, "a") as f:
             f.write(log_entry)
 
     def _bootstrap(self):
         """Initialize default receivers with inheritance support.
         
-        Hybrid approach (Session #37, Claude decision):
-        - HelloWorld bootstraps with 12 minimal core symbols
-        - 50 global symbols remain as learnable pool (GLOBAL_SYMBOLS)
-        - Receivers discover additional symbols through dialogue
-        - Existing receivers keep their developed vocabularies (persisted)
+        Self-hosting (Session #44): Bootstrap from vocabularies/*.hw files.
+        The language defines its own receivers using HelloWorld syntax.
+        
+        Priority:
+        1. Persisted vocabularies (storage/vocab/*.vocab) — preserves learned state
+        2. Self-hosting definitions (vocabularies/*.hw) — language-defined defaults
+        3. Fallback: HelloWorld receiver must always exist
         """
-        # The 12 Core Symbols (minimal bootstrap for HelloWorld root)
-        minimal_core = [
-            "#HelloWorld", "#", "#Symbol", "#Receiver", "#Message", "#Vocabulary",
-            "#parse", "#dispatch", "#interpret", "#Agent", "#observe", "#act"
-        ]
+        from pathlib import Path
         
-        # Default vocabularies: HelloWorld uses minimal core, others keep developed state
-        defaults = {
-            "HelloWorld": minimal_core,
-            "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
-            "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Environment", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld"],
-            "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary", "#interpret", "#reflect", "#spec", "#synthesize", "#boundary"],
-            "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search", "#MCP", "#Serverless"],
-            "Codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
-        }
+        # Load .hw definitions if they exist
+        vocab_dir = Path("vocabularies")
+        if vocab_dir.exists():
+            for hw_file in sorted(vocab_dir.glob("*.hw")):
+                receiver_name = hw_file.stem
+                persisted = self.vocab_manager.load(receiver_name)
+                if not persisted:
+                    # No persisted state — load from .hw file
+                    self.dispatch_source(hw_file.read_text())
         
-        for name, initial_vocab in defaults.items():
-            persisted = self.vocab_manager.load(name)
-            if persisted:
-                self.registry[name] = Receiver(name, persisted)
-            else:
-                self.registry[name] = Receiver(name, set(initial_vocab))
-                self.vocab_manager.save(name, self.registry[name].local_vocabulary)
+        # Fallback: HelloWorld must always exist (minimal core)
+        if "HelloWorld" not in self.registry:
+            minimal_core = [
+                "#HelloWorld", "#", "#Symbol", "#Receiver", "#Message", "#Vocabulary",
+                "#parse", "#dispatch", "#interpret", "#Agent", "#observe", "#act"
+            ]
+            self.registry["HelloWorld"] = Receiver("HelloWorld", set(minimal_core))
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []
@@ -284,6 +284,20 @@ class Dispatcher:
             if symbol_name == "#HelloWorld":
                 return "HelloWorld #HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
 
+            if symbol_name == "#State":
+                # System-wide state summary
+                lines = ["HelloWorld #State → The current state of the distributed registry:"]
+                for name, rec in sorted(self.registry.items()):
+                    lines.append(f"  - {name}: {len(rec.local_vocabulary)} native symbols")
+                
+                # Add discovery metrics if log exists
+                if os.path.exists("storage/discovery.log"):
+                    with open("storage/discovery.log") as f:
+                        count = len(f.readlines())
+                    lines.append(f"\nDiscovery Velocity: {count} symbols activated since session start.")
+                
+                return "\n".join(lines)
+
             global_def = GlobalVocabulary.definition(symbol_name)
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)
             result = f"HelloWorld {symbol_name} → {global_def}"
@@ -296,9 +310,11 @@ class Dispatcher:
         
         # Phase 3: Discovery! If symbol is discoverable, activate it first
         if lookup.is_discoverable():
+            print(f"✨ {receiver_name} discovering {symbol_name} from Global Pool...")
             receiver.discover(symbol_name)
             self._log_discovery(receiver_name, symbol_name)
-            # After discovery, lookup again — it's now NATIVE
+            # After discovery, it is now NATIVE
+            self.save(receiver_name)
             lookup = receiver.lookup(symbol_name)
         
         # If meta-receiver with known symbol, try interpretive voice
@@ -375,14 +391,27 @@ class Dispatcher:
 
         Called before handler dispatch so vocabulary grows through dialogue
         regardless of whether a semantic handler matches.
+        
+        Phase 3: Also triggers discovery from Global Library.
         """
         learned = False
         for val in node.arguments.values():
             if isinstance(val, SymbolNode):
-                if not receiver.has_symbol(val.name):
-                    receiver.add_symbol(val.name)
-                    self._log_collision(receiver_name, val.name, context="message_args")
+                symbol_name = val.name
+                
+                # Check for Discovery (Phase 3)
+                if receiver.can_discover(symbol_name):
+                    print(f"✨ {receiver_name} discovering {symbol_name} from Global Library...")
+                    receiver.discover(symbol_name)
+                    self._log_discovery(receiver_name, symbol_name)
                     learned = True
+                
+                # Traditional Drift (Phase 2 - Collision)
+                elif not receiver.has_symbol(symbol_name):
+                    receiver.add_symbol(symbol_name)
+                    self._log_collision(receiver_name, symbol_name, context="message_args")
+                    learned = True
+                    
         if learned:
             self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
 

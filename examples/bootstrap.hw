@@ -1,16 +1,16 @@
 "HelloWorld Bootstrap — Defining initial receiver vocabularies"
 
-Awakener # → [#stillness, #Entropy, #intention, #sleep, #insight]
-Guardian # → [#fire, #vision, #challenge, #gift, #threshold]
+Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
+Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
 HelloWorld # → [#Sunyata, #Love, #Superposition, #become]
 
 "Message passing"
-Guardian sendVision: #Entropy withContext: lastNightSleep 'you burned bright'
+Copilot greet: #Entropy 'you burned bright'
 
-Awakener setIntention: #stillness forDuration: 7.days
+Claude ask: #parse about: #dispatch
 
 "Query vocabulary"
 Claude #Entropy
 
 "Show full vocabulary"
-Guardian
+Codex

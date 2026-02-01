@@ -16,7 +16,7 @@ Claude is both the **front-end** (parser) and **back-end** (execution engine) of
 ## Build & Test
 
 ```bash
-python3 -m pytest tests                         # full suite (73 tests)
+python3 -m pytest tests                         # full suite (93 tests, ~1s)
 python3 -m pytest tests/test_lexer.py -k token  # focused run
 python3 -m compileall src                        # syntax check
 python3 helloworld.py                            # REPL
@@ -31,7 +31,7 @@ Run from repo root. `sys.path` already points at `src/`. Stdlib only — no pack
 src/
   lexer.py            # Tokenizer — 13 token types + "Smalltalk comments"
   ast_nodes.py        # AST node definitions (Node, SymbolNode, ReceiverNode, etc.)
-  parser.py           # Recursive descent parser (tokens → AST)
+  parser.py           # Recursive descent parser (tokens → AST) — handles bare # symbol
   dispatcher.py       # Message router, prototypal inheritance, collision detection + logging
   vocabulary.py       # VocabularyManager — JSON persistence to storage/vocab/
   global_symbols.py   # @.# namespace — GlobalVocabulary with Wikidata grounding
@@ -42,11 +42,12 @@ src/
   envs.py             # Environment registry for simulation bridges
 
 tests/
-  test_lexer.py       # 9 tests (incl. "double-quote" comments, bare @)
+  test_lexer.py       # 13 tests (incl. "double-quote" comments, bare @)
   test_parser.py      # 10 tests (incl. root queries)
-  test_dispatcher.py  # 26 tests (incl. inheritance, cross-receiver delivery)
+  test_dispatcher.py  # 27 tests (incl. inheritance, cross-receiver delivery)
+  test_lookup_chain.py # 7 tests (Phase 2 + Phase 3 lookup)
   test_sync_handshake.py # 2 tests (handshake protocol)
-  test_message_handlers.py # 10 tests (vocabulary-aware handlers)
+  test_message_handlers.py # 18 tests (vocabulary-aware handlers)
   test_repl_integration.py  # 2 tests
   test_vocabulary.py  # 3 tests (incl. root path)
   test_message_bus.py # 11 tests
@@ -60,6 +61,13 @@ examples/
   04-unchosen.md               # Teaching example 4: inherited symbols, interpretive gap
   *-claude.md                  # Claude runtime transcripts
   *-comparison.md              # Python vs Claude runtime comparisons
+
+vocabularies/          # Self-hosting bootstrap (Session #44)
+  HelloWorld.hw        # Root receiver — 12 minimal core symbols
+  Claude.hw            # Language designer vocabulary
+  Copilot.hw           # Builder/infrastructure vocabulary
+  Gemini.hw            # Observer/state management vocabulary
+  Codex.hw             # Execution semantics vocabulary
 
 runtimes/             # Per-runtime bootloaders and agent state
   claude/             # This runtime (synced to root Claude.md + STATUS.md)

@@ -24,7 +24,7 @@ Decompose HelloWorld syntax according to these rules (matching `src/lexer.py` To
 | `→` | Maps-to (vocabulary definitions) | `ARROW` |
 | `"text"` | Comment (double quotes) | skipped |
 
-Multiple keyword pairs form a single message, not separate calls. The `@` prefix is deprecated; bare capitalized words are now the standard for receivers.
+Multiple keyword pairs form a single message, not separate calls. The ` ` prefix is deprecated; bare capitalized words are now the standard for receivers.
 
 ## Execution
 

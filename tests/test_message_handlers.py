@@ -74,45 +74,41 @@ def test_default_handlers_greet():
     registry = MessageHandlerRegistry()
 
     message = MessageNode(
-        receiver=ReceiverNode("Awakener"),
-        arguments={"greet": SymbolNode("#stillness")}
+        receiver=ReceiverNode("Copilot"),
+        arguments={"greet": SymbolNode("#parse")}
     )
 
-    result = registry.handle("Awakener", message)
-    assert "greets with #stillness" in result
+    result = registry.handle("Copilot", message)
+    assert "greets with #parse" in result
 
 
-def test_default_handlers_setIntention():
-    """Test built-in setIntention:forDuration: handler."""
+def test_default_handlers_ask_about():
+    """Test built-in ask:about: handler."""
     registry = MessageHandlerRegistry()
 
     message = MessageNode(
-        receiver=ReceiverNode("Awakener"),
+        receiver=ReceiverNode("Claude"),
         arguments={
-            "setIntention": SymbolNode("#stillness"),
-            "forDuration": LiteralNode("7 days")
+            "ask": SymbolNode("#parse"),
+            "about": SymbolNode("#dispatch")
         }
     )
 
-    result = registry.handle("Awakener", message)
-    assert "Awakener holds #stillness for 7 days" in result
+    result = registry.handle("Claude", message)
+    assert "Claude considers #dispatch" in result
 
 
-def test_default_handlers_sendVision():
-    """Test built-in sendVision:withContext: handler."""
+def test_default_handlers_learn():
+    """Test built-in learn: handler."""
     registry = MessageHandlerRegistry()
 
     message = MessageNode(
-        receiver=ReceiverNode("Guardian"),
-        arguments={
-            "sendVision": SymbolNode("#fire"),
-            "withContext": LiteralNode("dawn")
-        }
+        receiver=ReceiverNode("Codex"),
+        arguments={"learn": SymbolNode("#Sunyata")}
     )
 
-    result = registry.handle("Guardian", message)
-    assert "Guardian sends vision of #fire" in result
-    assert "context: dawn" in result
+    result = registry.handle("Codex", message)
+    assert "Codex learns #Sunyata" in result
 
 
 def test_handler_returns_none_for_no_match():
@@ -154,16 +150,16 @@ def test_handler_with_literal_arguments():
     registry = MessageHandlerRegistry()
 
     message = MessageNode(
-        receiver=ReceiverNode("Awakener"),
+        receiver=ReceiverNode("Claude"),
         arguments={
-            "setIntention": SymbolNode("#stillness"),
-            "forDuration": LiteralNode(7.5)
+            "ask": LiteralNode("what is meaning?"),
+            "about": LiteralNode("philosophy")
         }
     )
 
-    result = registry.handle("Awakener", message)
-    assert "#stillness" in result
-    assert "7.5" in result
+    result = registry.handle("Claude", message)
+    assert "philosophy" in result
+    assert "what is meaning?" in result
 
 
 def test_vocabulary_aware_handler():
@@ -171,22 +167,22 @@ def test_vocabulary_aware_handler():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    guardian = Receiver("Guardian", {"#fire", "#vision", "#challenge", "#gift", "#threshold"})
+    codex = Receiver("Codex", {"#execute", "#analyze", "#parse", "#runtime", "#Collision"})
 
-    # challenge: with native symbol
+    # observe: with native symbol
     message = MessageNode(
-        receiver=ReceiverNode("Guardian"),
-        arguments={"challenge": SymbolNode("#fire")}
+        receiver=ReceiverNode("Codex"),
+        arguments={"observe": SymbolNode("#execute")}
     )
-    result = registry.handle("Guardian", message, receiver=guardian)
+    result = registry.handle("Codex", message, receiver=codex)
     assert "native" in result
 
-    # challenge: with non-native, non-global symbol
+    # observe: with non-native, non-global symbol
     message2 = MessageNode(
-        receiver=ReceiverNode("Guardian"),
-        arguments={"challenge": SymbolNode("#stillness")}
+        receiver=ReceiverNode("Codex"),
+        arguments={"observe": SymbolNode("#stillness")}
     )
-    result2 = registry.handle("Guardian", message2, receiver=guardian)
+    result2 = registry.handle("Codex", message2, receiver=codex)
     assert "collision" in result2 or "boundary" in result2
 
 
@@ -195,14 +191,14 @@ def test_observe_handler_native():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    guardian = Receiver("Guardian", {"#fire", "#vision", "#challenge", "#gift", "#threshold"})
+    codex = Receiver("Codex", {"#execute", "#analyze", "#parse", "#runtime", "#Collision"})
 
     message = MessageNode(
-        receiver=ReceiverNode("Guardian"),
-        arguments={"observe": SymbolNode("#fire")}
+        receiver=ReceiverNode("Codex"),
+        arguments={"observe": SymbolNode("#execute")}
     )
-    result = registry.handle("Guardian", message, receiver=guardian)
-    assert "Guardian observes #fire" in result
+    result = registry.handle("Codex", message, receiver=codex)
+    assert "Codex observes #execute" in result
     assert "native" in result
 
 
@@ -211,14 +207,14 @@ def test_observe_handler_inherited():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    guardian = Receiver("Guardian", {"#fire", "#vision"})
+    codex = Receiver("Codex", {"#execute", "#analyze"})
 
     message = MessageNode(
-        receiver=ReceiverNode("Guardian"),
+        receiver=ReceiverNode("Codex"),
         arguments={"observe": SymbolNode("#Sunyata")}
     )
-    result = registry.handle("Guardian", message, receiver=guardian)
-    assert "Guardian observes #Sunyata" in result
+    result = registry.handle("Codex", message, receiver=codex)
+    assert "Codex observes #Sunyata" in result
     assert "inherited" in result
 
 
@@ -227,14 +223,14 @@ def test_observe_handler_collision():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    guardian = Receiver("Guardian", {"#fire", "#vision"})
+    codex = Receiver("Codex", {"#execute", "#analyze"})
 
     message = MessageNode(
-        receiver=ReceiverNode("Guardian"),
+        receiver=ReceiverNode("Codex"),
         arguments={"observe": SymbolNode("#stillness")}
     )
-    result = registry.handle("Guardian", message, receiver=guardian)
-    assert "Guardian observes #stillness" in result
+    result = registry.handle("Codex", message, receiver=codex)
+    assert "Codex observes #stillness" in result
     assert "collision" in result
 
 
@@ -274,7 +270,7 @@ def test_observe_act_all_agents():
     """Test that observe: and act: are registered for all agents."""
     registry = MessageHandlerRegistry()
 
-    for agent in ["Awakener", "Guardian", "Claude", "Copilot", "Gemini", "Codex"]:
+    for agent in ["Claude", "Copilot", "Gemini", "Codex"]:
         observe_msg = MessageNode(
             receiver=ReceiverNode(agent),
             arguments={"observe": SymbolNode("#State")}

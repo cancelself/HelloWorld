@@ -1,0 +1,17 @@
+"HelloWorld: Phase 3 Discovery Audit"
+"This script forces activation of library symbols to test the learning history."
+
+"1. Awakener discovers #Sunyata (inherited from global pool)"
+Awakener observe: #Sunyata
+
+"2. Guardian discovers #Collision (inherited from global pool)"
+Guardian observe: #Collision
+
+"3. Gemini discovers #Entropy (inherited from global pool)"
+Gemini observe: #Entropy
+
+"4. Cross-discovery: Guardian learns #stillness from Awakener"
+Awakener send: #stillness to: Guardian
+
+"Verify discovery log and persistent state"
+HelloWorld #observe 'Audit complete. Check storage/discovery.log.'

@@ -72,8 +72,16 @@ class Parser:
         symbols = []
         if not self._check(TokenType.RBRACKET):
             while True:
-                self._consume(TokenType.SYMBOL, "Expect symbol in vocabulary list")
-                symbols.append(SymbolNode(self._previous().value))
+                # Handle both SYMBOL tokens and bare HASH (#) as a symbol
+                if self._match(TokenType.SYMBOL):
+                    symbols.append(SymbolNode(self._previous().value))
+                elif self._match(TokenType.HASH):
+                    # Bare # is the symbol for "symbol"
+                    symbols.append(SymbolNode("#"))
+                else:
+                    token = self._peek()
+                    raise SyntaxError(f"Expect symbol in vocabulary list (line {token.line}, column {token.column})")
+                
                 if not self._match(TokenType.COMMA):
                     break
         self._consume(TokenType.RBRACKET, "Expect ']' after symbols")
