@@ -134,10 +134,10 @@ def test_no_collision_for_native_symbol():
 
 def test_root_receiver_bootstrap():
     dispatcher = _fresh_dispatcher()
-    assert "HelloWorld" in dispatcher.registry
-    assert "#Sunyata" in dispatcher.registry["HelloWorld"].vocabulary
-    assert "#Love" in dispatcher.registry["HelloWorld"].vocabulary
-    assert "#Superposition" in dispatcher.registry["HelloWorld"].vocabulary
+    assert "@" in dispatcher.registry
+    assert "#Sunyata" in dispatcher.registry["@"].vocabulary
+    assert "#Love" in dispatcher.registry["@"].vocabulary
+    assert "#Superposition" in dispatcher.registry["@"].vocabulary
 
 
 def test_dispatch_sunyata_sequence():
@@ -147,7 +147,7 @@ def test_dispatch_sunyata_sequence():
     return canonical global definitions."""
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
-        "HelloWorld",
+        "@",
         "HelloWorld.#Sunyata",
         "Guardian.#Sunyata",
         "Guardian contemplate: #fire withContext: Awakener 'the flame that was never lit'",
@@ -181,7 +181,7 @@ def test_manual_save_creates_file():
 
 def test_root_not_in_agents():
     dispatcher = _fresh_dispatcher()
-    assert "HelloWorld" not in dispatcher.agents
+    assert "@" not in dispatcher.agents
 
 
 def test_inheritance_lookup():
