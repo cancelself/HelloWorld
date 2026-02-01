@@ -78,8 +78,8 @@ class Lexer:
                 normalized = name[0].upper() + name[1:] if name else name
                 self.tokens.append(Token(TokenType.RECEIVER, normalized, self.line, col))
             else:
-                # Bare @ → HelloWorld (the root receiver)
-                self.tokens.append(Token(TokenType.RECEIVER, 'HelloWorld', self.line, col))
+                # Bare @ → @ (the root receiver)
+                self.tokens.append(Token(TokenType.RECEIVER, '@', self.line, col))
             return True
         return False
     

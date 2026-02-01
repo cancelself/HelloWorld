@@ -237,51 +237,51 @@ class MessageHandlerRegistry:
 
         # act: for system-wide execution
         self.register(
-            "HelloWorld",
+            "@",
             "act:",
-            lambda args, recv: f"Root executing system-wide action: {args['act']} (OOPA phase 4)..."
+            lambda args, recv: f"⚡ @ executing system-wide action: {args['act']} (OOPA phase 4)..."
         )
 
         # observe: for system-wide state alignment
         self.register(
-            "HelloWorld",
+            "@",
             "observe:",
-            lambda args, recv: f"Root observing system state: {args['observe']} (OOPA phase 1). Action: sync the tree, sync the messagebus and read them both."
+            lambda args, recv: f"👀 @ observing system state: {args['observe']} (OOPA phase 1). Action: sync the tree, sync the messagebus and read them both."
         )
 
         # orient: for situational synthesis
         self.register(
-            "HelloWorld",
+            "@",
             "orient:",
-            lambda args, recv: f"Root orienting to situation: {args['orient']} (OOPA phase 2)..."
+            lambda args, recv: f"🧭 @ orienting to situation: {args['orient']} (OOPA phase 2)..."
         )
 
         # plan: for future path determination
         self.register(
-            "HelloWorld",
+            "@",
             "plan:",
-            lambda args, recv: f"Root planning next steps: {args['plan']} (OOPA phase 3)..."
+            lambda args, recv: f"📋 @ planning next steps: {args['plan']} (OOPA phase 3)..."
         )
 
         # become: for symbol transformation
         self.register(
-            "HelloWorld",
+            "@",
             "become:",
-            lambda args, recv: f"Transformation: {args['become']} has become a new state of identity."
+            lambda args, recv: f"✨ Transformation: {args['become']} has become a new state of identity."
         )
 
         # send:to: for inter-receiver delivery
         self.register(
-            "HelloWorld",
+            "@",
             "send:to:",
-            lambda args, recv: f"Root delivering {args['send']} to {args['to']}..."
+            lambda args, recv: f"📨 @ delivering {args['send']} to {args['to']}..."
         )
 
         # relay:from:to: for global routing
         self.register(
-            "HelloWorld",
+            "@",
             "relay:from:to:",
-            lambda args, recv: f"Root relaying message from {args['from']} to {args['to']}..."
+            lambda args, recv: f"📡 @ relaying message from {args['from']} to {args['to']}..."
         )
 
         # --- Agent Protocol: #observe and #act ---
@@ -302,14 +302,4 @@ class MessageHandlerRegistry:
                 "act:",
                 lambda args, recv, r=agent: _handle_act(args, recv, r)
             )
-
-        # Root observe: returns system-wide state
-        self.register(
-            "HelloWorld",
-            "observe:",
-            lambda args, recv: (
-                f"HelloWorld.# observes {args['observe']}: "
-                + (f"global symbol ({_symbol_status(recv, args['observe'])})" if recv and recv.has_symbol(args['observe']) else "not in global namespace")
-            )
-        )
 
