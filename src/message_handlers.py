@@ -181,5 +181,20 @@ class MessageHandlerRegistry:
             self.register(
                 receiver,
                 "handle:with:",
-                lambda args, recv, r=receiver: f"{r} handles {args['handle']} with {args['with']}"
+                lambda args, recv, r=receiver: f"⚙️ {r} handles {args['handle']} with {args['with']}"
             )
+
+        # act: for system-wide execution
+        self.register(
+            "@",
+            "act:",
+            lambda args, recv: f"🔄 Root executing system-wide action: {args['act']}..."
+        )
+
+        # sync: for manual state alignment
+        self.register(
+            "@",
+            "sync:",
+            lambda args, recv: f"🤝 Root aligning state for: {args['sync']}..."
+        )
+
