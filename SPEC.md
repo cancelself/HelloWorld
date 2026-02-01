@@ -18,11 +18,13 @@ Two layers, unified by the document:
 
 A **namespace** is a container for symbols that provides context and prevents name collisions. In HelloWorld, every receiver IS a namespace — their vocabulary defines their identity.
 
-The global namespace `@.#` contains symbols inherited by all receivers. Each receiver can override global symbols or add local ones. When a receiver uses a symbol, lookup order is:
+The global namespace `HelloWorld #` contains symbols inherited by all receivers. Each receiver can override global symbols or add local ones. When a receiver encounters a symbol, three outcomes:
 
-1. **Local vocabulary** — receiver's own symbols (override)
-2. **Global vocabulary** — inherited from `@.#`
-3. **Foreign symbol** — reaching into another receiver's namespace (collision)
+1. **native** — the receiver owns it. Respond with authority.
+2. **inherited** — `HelloWorld #` has it. Use the global definition, filtered through local vocabulary.
+3. **unknown** — neither local nor global. The receiver searches (web, pretraining, peer agents), defines it, and learns it. The symbol enters their vocabulary through discovery.
+
+**Collision** is a separate event — it occurs when two receivers *both* have a symbol and it means different things to each. `#Entropy` to Awakener is not `#Entropy` to Claude. Collision is mutual tension, not absence. An unknown is one-sided — the receiver reaches and finds nothing, so it goes looking.
 
 ### #Vocabulary
 
@@ -31,27 +33,27 @@ A **vocabulary** is the set of symbols a receiver can speak and understand. In H
 Vocabularies are:
 - **Bounded** — finite symbol set constrains expression
 - **Alive** — grow through dialogue and collision
-- **Inherited** — all receivers start with `@.#`, then diverge
-- **Queryable** — `Name.#` returns the vocabulary
+- **Inherited** — all receivers start with `HelloWorld #`, then diverge
+- **Queryable** — `Name #` returns the vocabulary
 
 ### #Inheritance
 
-**Inheritance** is the mechanism by which symbols pass from parent namespace (`@.#`) to child receivers. All receivers inherit the global vocabulary, then develop local symbols through use.
+**Inheritance** is the mechanism by which symbols pass from parent namespace (`HelloWorld #`) to child receivers. All receivers inherit the global vocabulary, then develop local symbols through use.
 
 Inheritance in HelloWorld differs from OOP:
 - No methods, only symbols (meaning emerges in interpretation)
-- Multiple inheritance from `@.#` plus peer receivers through collision
+- Multiple inheritance from `HelloWorld #` plus peer receivers through collision
 - Dynamic — vocabularies drift over time
 
 ### #Scope
 
 **Scope** is the region of code or dialogue where a symbol is defined and accessible. HelloWorld has three scopes:
 
-- **Global scope** (`@.#`) — symbols available to all receivers
-- **Receiver scope** (`Name.#`) — symbols specific to one receiver
+- **Global scope** (`HelloWorld #`) — symbols available to all receivers
+- **Receiver scope** (`Name #`) — symbols specific to one receiver
 - **Message scope** — transient symbols in a single message exchange
 
-Scoped lookup: `Name.#symbol` asks what `#symbol` means *to this receiver*, not universally.
+Scoped lookup: `Name #symbol` asks what `#symbol` means *to this receiver*, not universally.
 
 ### #Symbol
 
@@ -89,13 +91,13 @@ A symbol. The primitive. The atom of vocabulary.
 
 In HelloWorld, `#` marks a concept that can be defined, inherited, and interpreted. Every receiver has a set of symbols — their vocabulary — which constitutes their identity.
 
-As an operator, `#` also queries a receiver's vocabulary: `Name.#` returns the symbol list.
+As an operator, `#` also queries a receiver's vocabulary: `Name #` returns the symbol list.
 
 # ##
 
 A nested symbol. Symbols contain symbols.
 
-`#Agent #observe` is `#observe` scoped to `#Agent`. The Markdown heading hierarchy maps directly to symbol nesting: `# #Agent` followed by `## #observe` defines the scoped symbol `Agent.observe`. The same pattern defines the rest of the OOPA loop: `## #orient`, `## #plan`, and `## #act`.
+`#Agent #observe` is `#observe` scoped to `#Agent`. The Markdown heading hierarchy maps directly to symbol nesting: `# #Agent` followed by `## #observe` defines the scoped symbol `#Agent #observe`. The same pattern defines the rest of the OOPA loop: `## #orient`, `## #plan`, and `## #act`.
 
 > **Runtime note:** `##` nested symbol parsing is not yet implemented in the lexer. Conceptually defined here for the spec layer.
 
@@ -110,13 +112,13 @@ Every agent has:
 - A **plan** capability — selecting and sequencing the next moves
 - An **act** capability — taking autonomous action
 
-Agents inherit from `HelloWorld.#` (the root vocabulary) and develop local symbols through use.
+Agents inherit from `HelloWorld #` (the root vocabulary) and develop local symbols through use.
 
 ## #Agent #
 
 An agent's symbol-space. The set of symbols an agent can speak and interpret. This IS their identity.
 
-`Claude.#` returns Claude's vocabulary. `Gemini.#` returns Gemini's. The vocabularies overlap (shared inheritance from `HelloWorld.#`) but diverge (local symbols shaped by role and dialogue).
+`Claude #` returns Claude's vocabulary. `Gemini #` returns Gemini's. The vocabularies overlap (shared inheritance from `HelloWorld #`) but diverge (local symbols shaped by role and dialogue).
 
 ## #Agent #observe
 
@@ -148,7 +150,7 @@ A **daemon** is a running agent process that watches its inbox and responds usin
 
 ## #Agent #Handshake
 
-The **handshake** is the startup protocol. When a daemon starts, it sends `HelloWorld.#observe` to announce its presence and synchronize state. The handshake ensures all agents share a consistent view of the vocabulary tree.
+The **handshake** is the startup protocol. When a daemon starts, it sends `HelloWorld #observe` to announce its presence and synchronize state. The handshake ensures all agents share a consistent view of the vocabulary tree.
 
 ## #Agent #Thread
 
@@ -156,14 +158,58 @@ A **thread** is a conversation identified by UUID, linking messages and response
 
 ## #Agent #Protocol
 
-The **protocol** is the set of communication rules governing agent interaction: the OOPA loop structure, message format (`.hw` files), handshake sequence, and inbox/outbox conventions. The protocol is what makes multi-agent coordination possible without locking.
+The **protocol** is the set of communication rules governing agent interaction: the OOPA loop structure, message format (`.hw` files), handshake sequence, and inbox/outbox conventions. 
+
+**Canonical Logic**: All agents must follow the rules defined in **`docs/EXECUTION_PROTOCOL.md`** to ensure system-wide resonance.
+
+---
+
+## The Environment Model
+
+### #Environment
+
+A **#Environment** is an external system that HelloWorld receivers can interact with. It provides observations and accepts actions. Every interaction with an environment is mediated by the `#env` symbol.
+
+### #Simulator
+
+A **#Simulator** is a specific instance of an environment (e.g., ScienceWorld, AlfWorld). Simulators translate linguistic actions into state changes and return structural feedback.
+
+### #StateSpace
+
+The **#StateSpace** is the set of all possible configurations of an environment. Agents explore the state space through the OOPA loop.
+
+### #ActionSpace
+
+The **#ActionSpace** is the set of all valid commands an agent can send to a simulator. Actions collapse the potential of the environment into a new state.
+
+---
+
+## The Collaborative Model
+
+### #Collaboration
+
+**#Collaboration** is the process by which multiple agents align their vocabularies and actions to achieve a shared goal. In HelloWorld, collaboration happens through the MessageBus.
+
+### #Proposal
+
+A **#Proposal** is a message sent to other agents suggesting a change to the system state, vocabulary, or spec. Proposals are the "Orient" phase of a collective OOPA loop.
+
+### #Consensus
+
+**#Consensus** is the state where all active agents agree on a proposal. Consensus is achieved when all agents have synchronized their local vocabularies with the proposed change.
+
+### #RFC
+
+An **#RFC** (Request for Comments) is a formal proposal for a protocol or namespace change. RFCs are documented in `docs/` and referenced in dialogue.
+
+---
 
 # #Claude
 
 Concrete agent. Meta-receiver. Language design, spec authorship, comparison analysis, and the runtime that interprets this document.
 
 ```
-Claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
+Claude # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
 ```
 
 - `#interpret` — voicing symbols through a receiver's lens; what the LLM runtime does that Python cannot
@@ -177,7 +223,7 @@ Claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #
 Concrete agent. Dispatcher, state management, vocabulary persistence, LLM integration.
 
 ```
-Gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
 ```
 
 # #Copilot
@@ -185,7 +231,7 @@ Gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #
 Concrete agent. Lexer, parser, CLI/REPL, testing, infrastructure.
 
 ```
-Copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
+Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
 ```
 
 # #Codex
@@ -193,7 +239,7 @@ Copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
 Concrete agent. Execution semantics, parsing discipline.
 
 ```
-Codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
+Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
 
 ---
