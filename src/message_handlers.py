@@ -318,5 +318,5 @@ class MessageHandlerRegistry:
         if receiver.is_native(symbol_name):
             return "native to this identity"
         if receiver.is_inherited(symbol_name):
-            return "inherited from HelloWorld.#"
+            return "inherited from HelloWorld #"
         return "at the boundary (collision)"

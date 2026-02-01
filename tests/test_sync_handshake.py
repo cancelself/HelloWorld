@@ -10,7 +10,7 @@ from parser import Parser
 from dispatcher import Dispatcher
 
 def test_handshake_protocol():
-    """Verify that HelloWorld.#observe triggers a sync (save)."""
+    """Verify that HelloWorld #observe triggers a sync (save)."""
     tmp = tempfile.mkdtemp()
     dispatcher = Dispatcher(vocab_dir=tmp)
 
@@ -18,7 +18,7 @@ def test_handshake_protocol():
     dispatcher.registry["Guardian"].add_symbol("#new_fire")
 
     # 2. Trigger handshake
-    results = dispatcher.dispatch_source("HelloWorld.#observe")
+    results = dispatcher.dispatch_source("HelloWorld #observe")
     assert "successful" in results[0]
 
     # 3. Verify persistence

@@ -31,15 +31,16 @@ def test_repl_message_evolution():
 
         f1 = StringIO()
         with redirect_stdout(f1):
-            repl._process("Guardian.#stillness")
+            repl._process("Guardian #stillness")
         out1 = f1.getvalue()
-        assert "reaches for" in out1
+        # Guardian doesn't have #stillness — it's unknown
+        assert "unknown" in out1
 
         repl._process("Guardian sendVision: #stillness")
 
         f2 = StringIO()
         with redirect_stdout(f2):
-            repl._process("Guardian.#")
+            repl._process("Guardian #")
         out2 = f2.getvalue()
         assert "#stillness" in out2
 

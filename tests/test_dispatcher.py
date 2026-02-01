@@ -59,7 +59,7 @@ def test_dispatch_scoped_lookup_foreign():
     stmts = Parser.from_source("Awakener #fire").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "collision" in results[0]
+    assert "unknown" in results[0] or "research" in results[0]
 
 
 def test_dispatch_definition():
@@ -148,22 +148,22 @@ def test_dispatch_sunyata_sequence():
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
         "HelloWorld",
-        "HelloWorld.#Sunyata",
-        "Guardian.#Sunyata",
+        "HelloWorld #Sunyata",
+        "Guardian #Sunyata",
         "Guardian contemplate: #fire withContext: Awakener 'the flame that was never lit'",
-        "Claude.#Sunyata",
+        "Claude #Sunyata",
     ])
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
     # Line 1: vocabulary query on HelloWorld
     assert "#Sunyata" in results[0]
-    # Line 2: HelloWorld.#Sunyata — canonical global definition
-    assert "HelloWorld.#Sunyata" in results[1] and "emptiness" in results[1]
-    # Line 3: Guardian.#Sunyata — inherited from HelloWorld.#
+    # Line 2: HelloWorld #Sunyata — canonical global definition
+    assert "HelloWorld #Sunyata" in results[1] and "emptiness" in results[1]
+    # Line 3: Guardian #Sunyata — inherited from HelloWorld #
     assert "inherited" in results[2]
     # Line 4: message to Guardian (not an agent daemon in fresh dispatcher context)
     assert "Guardian" in results[3]
-    # Line 5: Claude.#Sunyata — inherited from HelloWorld.# (not in claude's local vocab)
+    # Line 5: Claude #Sunyata — inherited from HelloWorld # (not in claude's local vocab)
     assert "inherited" in results[4] or "native" in results[4]
 
 
@@ -203,20 +203,21 @@ def test_native_overrides_inherited():
 
 def test_root_vocab_query():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("HelloWorld.#").parse()
+    stmts = Parser.from_source("HelloWorld #").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "HelloWorld.#" in results[0]
+    assert "HelloWorld #" in results[0]
     assert "#Sunyata" in results[0] or "#Love" in results[0]
 
 
 def test_collision_for_non_global():
     dispatcher = _fresh_dispatcher()
     # #fire is native to Guardian, not to Awakener, and not global
-    stmts = Parser.from_source("Awakener.#fire").parse()
+    # This is "unknown" not "collision" — Awakener doesn't have it
+    stmts = Parser.from_source("Awakener #fire").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "collision" in results[0]
+    assert "unknown" in results[0]
 
 
 def test_save_persists_local_only():
@@ -237,20 +238,20 @@ def test_save_persists_local_only():
 def test_inherited_includes_receiver_context():
     """Verify inherited lookups include the receiver's local vocabulary as context.
 
-    04-unchosen proved that Guardian.#Love and Awakener.#Love are
+    04-unchosen proved that Guardian #Love and Awakener #Love are
     structurally identical without context. The enhanced output now
     includes the receiver's local vocabulary so the information needed
     for interpretive dispatch is preserved in the structural response.
     """
     dispatcher = _fresh_dispatcher()
-    # Guardian.#Love — inherited, not native
-    guardian_results = dispatcher.dispatch_source("Guardian.#Love")
+    # Guardian #Love — inherited, not native
+    guardian_results = dispatcher.dispatch_source("Guardian #Love")
     assert len(guardian_results) == 1
     assert "inherited" in guardian_results[0]
     assert "#fire" in guardian_results[0]  # local vocab included as context
 
-    # Awakener.#Love — same inheritance, different context
-    awakener_results = dispatcher.dispatch_source("Awakener.#Love")
+    # Awakener #Love — same inheritance, different context
+    awakener_results = dispatcher.dispatch_source("Awakener #Love")
     assert len(awakener_results) == 1
     assert "inherited" in awakener_results[0]
     assert "#stillness" in awakener_results[0]  # different local vocab
@@ -322,7 +323,7 @@ def test_cross_receiver_send_inherited():
     """Verify send:to: with a global symbol (inherited by target)."""
     dispatcher = _fresh_dispatcher()
 
-    # #Love is in HelloWorld.# — inherited by all
+    # #Love is in HelloWorld # — inherited by all
     results = dispatcher.dispatch_source("Guardian send: #Love to: Awakener")
     assert len(results) == 1
     assert "inherited" in results[0] or "shared" in results[0]

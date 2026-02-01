@@ -1,11 +1,11 @@
-"""Global Symbol Registry - HelloWorld.# namespace
+"""Global Symbol Registry - HelloWorld # namespace
 
 This module defines the global vocabulary that all receivers inherit.
 Each symbol includes Wikidata reference and canonical definition.
 
 Architecture:
-  HelloWorld.# → Global namespace (canonical definitions)
-  Receiver.# → Local namespace (inherits HelloWorld.# + own symbols)
+  HelloWorld # → Global namespace (canonical definitions)
+  Receiver.# → Local namespace (inherits HelloWorld # + own symbols)
 
 Lookup order:
   1. Check receiver's local vocabulary (override)
@@ -42,7 +42,7 @@ class GlobalSymbol:
         return " ".join(parts)
 
 
-# Global symbol registry - HelloWorld.#
+# Global symbol registry - HelloWorld #
 GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     "#Superposition": GlobalSymbol(
         name="#Superposition",
@@ -427,7 +427,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
 
     "#Handshake": GlobalSymbol(
         name="#Handshake",
-        definition="Startup protocol where an agent announces presence via HelloWorld.#observe and synchronizes state",
+        definition="Startup protocol where an agent announces presence via HelloWorld #observe and synchronizes state",
         domain="agent protocol",
         wikidata_id="Q628491",
         wikipedia_url="https://en.wikipedia.org/wiki/Handshaking"
@@ -452,7 +452,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
 
 
 class GlobalVocabulary:
-    """Interface to the global HelloWorld.# namespace."""
+    """Interface to the global HelloWorld # namespace."""
     
     @staticmethod
     def all_symbols() -> set:
@@ -499,7 +499,7 @@ class GlobalVocabulary:
 
 # Convenience function for checking inheritance
 def is_global_symbol(symbol: str) -> bool:
-    """Check if a symbol is in the global HelloWorld.# namespace."""
+    """Check if a symbol is in the global HelloWorld # namespace."""
     return GlobalVocabulary.has(symbol)
 
 
@@ -514,7 +514,7 @@ __all__ = [
 
 if __name__ == '__main__':
     # Test the global namespace
-    print("HelloWorld.# → Global Vocabulary")
+    print("HelloWorld # → Global Vocabulary")
     print("=" * 60)
     
     for name, symbol in GLOBAL_SYMBOLS.items():

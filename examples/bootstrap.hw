@@ -1,8 +1,8 @@
 "HelloWorld Bootstrap — Defining initial receiver vocabularies"
 
-Awakener.# → [#stillness, #Entropy, #intention, #sleep, #insight]
-Guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
-HelloWorld.# → [#Sunyata, #Love, #Superposition, #become]
+Awakener # → [#stillness, #Entropy, #intention, #sleep, #insight]
+Guardian # → [#fire, #vision, #challenge, #gift, #threshold]
+HelloWorld # → [#Sunyata, #Love, #Superposition, #become]
 
 "Message passing"
 Guardian sendVision: #Entropy withContext: lastNightSleep 'you burned bright'
@@ -10,7 +10,7 @@ Guardian sendVision: #Entropy withContext: lastNightSleep 'you burned bright'
 Awakener setIntention: #stillness forDuration: 7.days
 
 "Query vocabulary"
-Claude.#Entropy
+Claude #Entropy
 
 "Show full vocabulary"
 Guardian

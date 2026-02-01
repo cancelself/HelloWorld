@@ -95,7 +95,7 @@ def test_parse_sunyata_example():
 
 
 def test_root_vocabulary_query():
-    """Verify HelloWorld.# parses as a VocabularyQueryNode for root receiver."""
+    """Verify HelloWorld # parses as a VocabularyQueryNode for root receiver."""
     nodes = parse("HelloWorld #")
     assert len(nodes) == 1
     assert isinstance(nodes[0], VocabularyQueryNode)
@@ -103,7 +103,7 @@ def test_root_vocabulary_query():
 
 
 def test_root_scoped_lookup():
-    """Verify HelloWorld.#sunyata parses as a ScopedLookupNode for root receiver."""
+    """Verify HelloWorld #sunyata parses as a ScopedLookupNode for root receiver."""
     nodes = parse("HelloWorld #sunyata")
     assert len(nodes) == 1
     assert isinstance(nodes[0], ScopedLookupNode)
@@ -113,6 +113,7 @@ def test_root_scoped_lookup():
 
 def test_missing_vocabulary_bracket_raises():
     source = "Guardian # → [#fire, #vision"
+    expect_syntax_error(source, "Expect ']' after symbols")
 
 
 def test_legacy_dot_lookup_parses():
@@ -121,7 +122,6 @@ def test_legacy_dot_lookup_parses():
     stmt = nodes[0]
     assert isinstance(stmt, ScopedLookupNode)
     assert stmt.receiver.name == "Claude"
-    expect_syntax_error(source, "Expect ']' after symbols")
 
 
 def test_missing_keyword_colon_raises():

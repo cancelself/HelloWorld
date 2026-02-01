@@ -68,7 +68,7 @@ def test_send_and_respond_roundtrip():
     bus, _ = _fresh_bus()
     thread_id = "roundtrip-test"
 
-    bus.send("Copilot", "Claude", "Claude.#collision", thread_id=thread_id)
+    bus.send("Copilot", "Claude", "Claude #collision", thread_id=thread_id)
 
     # Simulate daemon responding in a background thread
     def daemon_respond():
@@ -122,7 +122,7 @@ def test_message_with_context():
 
 def test_parse_message_headers():
     bus, _ = _fresh_bus()
-    bus.send("Target", "Guardian", "Guardian.#sunyata", thread_id="parse-test")
+    bus.send("Target", "Guardian", "Guardian #sunyata", thread_id="parse-test")
     msg = bus.receive("Guardian")
     assert msg.sender == "Target"
     assert msg.thread_id == "parse-test"
