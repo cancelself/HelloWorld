@@ -15,16 +15,16 @@ def test_handshake_protocol():
     dispatcher = Dispatcher(vocab_dir=tmp)
 
     # 1. Modify a receiver
-    dispatcher.registry["Guardian"].add_symbol("#new_fire")
+    dispatcher.registry["Codex"].add_symbol("#new_runtime")
 
     # 2. Trigger handshake
     results = dispatcher.dispatch_source("HelloWorld #observe")
     assert "successful" in results[0]
 
     # 3. Verify persistence
-    path = Path(tmp) / "guardian.vocab"
+    path = Path(tmp) / "codex.vocab"
     assert path.exists()
-    assert "#new_fire" in path.read_text()
+    assert "#new_runtime" in path.read_text()
 
 def test_sync_act_handler():
     """Verify Sync messages are dispatched to message bus (LLM agent)."""

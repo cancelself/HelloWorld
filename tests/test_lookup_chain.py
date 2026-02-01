@@ -12,30 +12,30 @@ from dispatcher import Dispatcher, LookupOutcome, LookupResult
 def test_lookup_native_symbol():
     """Test lookup returns NATIVE for locally-held symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    receiver = dispatcher.registry["Guardian"]
+    receiver = dispatcher.registry["Codex"]
     
-    result = receiver.lookup("#fire")
+    result = receiver.lookup("#execute")
     
     assert result.outcome == LookupOutcome.NATIVE
-    assert result.symbol == "#fire"
-    assert result.receiver_name == "Guardian"
+    assert result.symbol == "#execute"
+    assert result.receiver_name == "Codex"
     assert result.is_native()
     assert not result.is_inherited()
     assert not result.is_unknown()
-    assert "#fire" in result.context["local_vocabulary"]
+    assert "#execute" in result.context["local_vocabulary"]
 
 
 def test_lookup_inherited_symbol():
     """Phase 3: Test lookup returns DISCOVERABLE for global symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    receiver = dispatcher.registry["Guardian"]
+    receiver = dispatcher.registry["Codex"]
     
     result = receiver.lookup("#Sunyata")
     
     # Phase 3: Now returns DISCOVERABLE instead of INHERITED
     assert result.outcome == LookupOutcome.DISCOVERABLE
     assert result.symbol == "#Sunyata"
-    assert result.receiver_name == "Guardian"
+    assert result.receiver_name == "Codex"
     assert result.is_inherited()  # Backward compat alias
     assert result.is_discoverable()
     assert not result.is_native()
@@ -47,13 +47,13 @@ def test_lookup_inherited_symbol():
 def test_lookup_unknown_symbol():
     """Test lookup returns UNKNOWN for foreign symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    receiver = dispatcher.registry["Guardian"]
+    receiver = dispatcher.registry["Codex"]
     
     result = receiver.lookup("#newSymbol")
     
     assert result.outcome == LookupOutcome.UNKNOWN
     assert result.symbol == "#newSymbol"
-    assert result.receiver_name == "Guardian"
+    assert result.receiver_name == "Codex"
     assert result.is_unknown()
     assert not result.is_native()
     assert not result.is_inherited()
@@ -65,20 +65,20 @@ def test_scoped_lookup_uses_new_API():
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     
     # Native symbol
-    result = dispatcher.dispatch_source("Guardian #fire")
+    result = dispatcher.dispatch_source("Codex #execute")
     assert len(result) == 1
     assert "native" in result[0]
     
     # Discoverable symbol — gets activated, becomes native
-    guardian = dispatcher.registry["Guardian"]
-    assert guardian.can_discover("#Sunyata")  # Before lookup
-    result = dispatcher.dispatch_source("Guardian #Sunyata")
+    codex = dispatcher.registry["Codex"]
+    assert codex.can_discover("#Sunyata")  # Before lookup
+    result = dispatcher.dispatch_source("Codex #Sunyata")
     assert len(result) == 1
     assert "native" in result[0]  # After discovery
-    assert "#Sunyata" in guardian.vocabulary  # Now in local
+    assert "#Sunyata" in codex.vocabulary  # Now in local
     
     # Unknown symbol
-    result = dispatcher.dispatch_source("Guardian #newSymbol")
+    result = dispatcher.dispatch_source("Codex #newSymbol")
     assert len(result) == 1
     assert "unknown" in result[0]
 
@@ -94,13 +94,13 @@ def test_unknown_symbol_logged():
         log_path.unlink()
     
     # Trigger unknown lookup
-    dispatcher.dispatch_source("Guardian #unknownSymbol")
+    dispatcher.dispatch_source("Codex #unknownSymbol")
     
     # Verify log entry
     assert log_path.exists()
     log_content = log_path.read_text()
     assert "UNKNOWN" in log_content
-    assert "Guardian" in log_content
+    assert "Codex" in log_content
     assert "#unknownSymbol" in log_content
 
 
@@ -112,7 +112,7 @@ def test_discovery_promotes_symbol():
     """
     tmpdir = tempfile.mkdtemp()
     dispatcher = Dispatcher(vocab_dir=tmpdir)
-    receiver = dispatcher.registry["Guardian"]
+    receiver = dispatcher.registry["Codex"]
     
     # Initially unknown
     result = receiver.lookup("#newSymbol")
