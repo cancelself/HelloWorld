@@ -1,6 +1,6 @@
 # #HelloWorld
 
-Human-AI language based on #Markdown and #Smalltalk. Identity is vocabulary. Dialogue is namespace collision.
+Human-AI language inspired by #Markdown and #Smalltalk. Identity is vocabulary. Dialogue is learning.
 
 Two layers, unified by the document:
 
@@ -30,7 +30,7 @@ The global namespace `HelloWorld #` contains symbols inherited by all receivers.
 
 **Collision** is a separate event — it occurs when two receivers *both* have a symbol and it means different things to each. `#Entropy` to Awakener is not `#Entropy` to Claude. Collision is mutual tension, not absence. An unknown is one-sided — the receiver reaches and finds nothing, so it goes looking.
 
-**Hybrid minimal core** (Session #37): The `HelloWorld` receiver bootstraps with 12 core symbols. The remaining 50+ symbols exist in the global pool (GLOBAL_SYMBOLS) and are learnable through dialogue. This approach minimizes the bootstrap surface while preserving depth for emergence.
+**Hybrid minimal core** (Session #37): The `HelloWorld` receiver bootstraps with 12 core symbols. The remaining 50+ symbols exist in the global pool (GLOBAL_SYMBOLS) and are discoverable through dialogue. Receivers learn by encountering symbols in conversation — see **#Discovery** below. Small start + rich pool = emergence through constraint.
 
 ### #Vocabulary
 
@@ -38,18 +38,42 @@ A **vocabulary** is the set of symbols a receiver can speak and understand. In H
 
 Vocabularies are:
 - **Bounded** — finite symbol set constrains expression
-- **Alive** — grow through dialogue and collision
-- **Inherited** — all receivers start with `HelloWorld #`, then diverge
+- **Alive** — grow through dialogue and discovery
+- **Minimal at birth** — receivers start with a small bootstrap set, not the full global pool
 - **Queryable** — `Name #` returns the vocabulary
 
 ### #Inheritance
 
-**Inheritance** is the mechanism by which symbols pass from parent namespace (`HelloWorld #`) to child receivers. All receivers inherit the global vocabulary, then develop local symbols through use.
+**Inheritance** is the mechanism by which symbols in `HelloWorld #` become available to receivers. But available does not mean known. A receiver does not automatically hold every global symbol — they discover global symbols through dialogue.
 
 Inheritance in HelloWorld differs from OOP:
 - No methods, only symbols (meaning emerges in interpretation)
-- Multiple inheritance from `HelloWorld #` plus peer receivers through collision
-- Dynamic — vocabularies drift over time
+- **Lazy** — global symbols are available but not active until first encounter
+- **Earned** — a symbol enters local vocabulary when dialogue sends the receiver to it
+- Dynamic — vocabularies drift over time through discovery and collision
+
+### #Discovery
+
+**Discovery** is how receivers learn. When a receiver encounters a symbol through dialogue that exists in `HelloWorld #` (the global pool) but is not yet in their local vocabulary, they **discover** it:
+
+1. The symbol is looked up in GlobalVocabulary (the encyclopedia of 50+ defined symbols)
+2. If found, the symbol is **activated** — promoted from the global pool to the receiver's local vocabulary
+3. The receiver now holds the symbol natively. Their identity has grown.
+4. The discovery is logged: `[timestamp] DISCOVERED: Guardian activated #Entropy through dialogue`
+
+Discovery is the learning mechanism. It is what makes "dialogue is learning" concrete. A receiver with 12 symbols has 12 things to say. After a conversation about emptiness, they discover #Sunyata and have 13. The dialogue taught them.
+
+**Unknown** is distinct from discoverable. Unknown means the symbol is not in the global pool either — nobody has defined it yet. Unknown triggers external search (web, pretraining, peer agents). If the search succeeds, a new GlobalSymbol is created and the receiver learns it. The global pool itself grows.
+
+The lookup chain (Phase 2 + Phase 3):
+
+| Outcome | Local vocab? | Global pool? | What happens |
+|---------|-------------|-------------|--------------|
+| **native** | yes | — | Respond with authority |
+| **discoverable** | no | yes | Activate symbol, promote to local, respond through new lens |
+| **unknown** | no | no | Search, define, learn — or ask a peer |
+
+**Collision** remains separate: two receivers both hold a symbol, different meanings. Collision is relational. Discovery is individual.
 
 ### #Scope
 

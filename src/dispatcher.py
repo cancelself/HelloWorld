@@ -30,9 +30,10 @@ from message_handlers import MessageHandlerRegistry
 
 
 class LookupOutcome(Enum):
-    """Three-outcome model for symbol lookup."""
+    """Three-outcome model for symbol lookup (Phase 2 + Phase 3)."""
     NATIVE = "native"
-    INHERITED = "inherited"
+    INHERITED = "inherited"  # Alias for DISCOVERABLE (backward compat)
+    DISCOVERABLE = "discoverable"  # Phase 3: Global symbol not yet activated
     UNKNOWN = "unknown"
 
 
@@ -40,10 +41,10 @@ class LookupOutcome(Enum):
 class LookupResult:
     """Structured result of symbol lookup.
     
-    Encapsulates the three-outcome model:
-    - native: receiver owns the symbol locally
-    - inherited: symbol comes from HelloWorld # (global namespace)
-    - unknown: neither local nor global — triggers discovery
+    Phase 3 discovery model:
+    - native: receiver owns the symbol locally (already learned)
+    - discoverable/inherited: symbol in global pool, not yet in local (can learn)
+    - unknown: not in local OR global — truly new
     
     Context preserves information needed for interpretation or learning.
     """
@@ -56,7 +57,11 @@ class LookupResult:
         return self.outcome == LookupOutcome.NATIVE
     
     def is_inherited(self) -> bool:
-        return self.outcome == LookupOutcome.INHERITED
+        """Check if discoverable (backward compat name)."""
+        return self.outcome in (LookupOutcome.INHERITED, LookupOutcome.DISCOVERABLE)
+    
+    def is_discoverable(self) -> bool:
+        return self.outcome in (LookupOutcome.INHERITED, LookupOutcome.DISCOVERABLE)
     
     def is_unknown(self) -> bool:
         return self.outcome == LookupOutcome.UNKNOWN
@@ -69,11 +74,19 @@ class Receiver:
     
     @property
     def vocabulary(self) -> Set[str]:
-        """Returns full vocabulary: local + inherited from HelloWorld #"""
-        return self.local_vocabulary | GlobalVocabulary.all_symbols()
+        """Phase 3: Returns local vocabulary ONLY (not global pool).
+        
+        Global symbols are discoverable, not inherited. Receivers must activate
+        symbols through dialogue before they enter local vocabulary.
+        """
+        return self.local_vocabulary.copy()
+    
+    def can_discover(self, symbol: str) -> bool:
+        """Check if symbol is discoverable from global pool."""
+        return is_global_symbol(symbol) and symbol not in self.local_vocabulary
     
     def has_symbol(self, symbol: str) -> bool:
-        """Check if receiver has symbol (local or inherited)."""
+        """Check if receiver has symbol (local or discoverable)."""
         return symbol in self.local_vocabulary or is_global_symbol(symbol)
     
     def is_native(self, symbol: str) -> bool:
@@ -81,20 +94,34 @@ class Receiver:
         return symbol in self.local_vocabulary
     
     def is_inherited(self, symbol: str) -> bool:
-        """Check if symbol is inherited from global namespace."""
-        return is_global_symbol(symbol) and symbol not in self.local_vocabulary
+        """Check if symbol is discoverable (Phase 3: same as can_discover)."""
+        return self.can_discover(symbol)
+    
+    def is_discoverable(self, symbol: str) -> bool:
+        """Check if symbol can be discovered from global pool."""
+        return self.can_discover(symbol)
 
     def add_symbol(self, symbol: str):
         """Add symbol to local vocabulary."""
         self.local_vocabulary.add(symbol)
     
+    def discover(self, symbol: str) -> bool:
+        """Discover a symbol: promote from global pool to local vocabulary.
+        
+        Phase 3 learning mechanism. Returns True if discovery happened.
+        """
+        if self.can_discover(symbol):
+            self.local_vocabulary.add(symbol)
+            return True
+        return False
+    
     def lookup(self, symbol: str) -> LookupResult:
         """Perform symbol lookup and return structured result.
         
-        Three outcomes:
-        1. NATIVE — symbol in local vocabulary
-        2. INHERITED — symbol in global namespace (HelloWorld #)
-        3. UNKNOWN — symbol not found anywhere (triggers discovery)
+        Phase 3 three outcomes:
+        1. NATIVE — symbol in local vocabulary (already learned)
+        2. DISCOVERABLE — symbol in global pool, not yet local (can learn)
+        3. UNKNOWN — symbol not found anywhere (truly new)
         
         Returns LookupResult with context for downstream handlers.
         """
@@ -105,11 +132,11 @@ class Receiver:
                 receiver_name=self.name,
                 context={"local_vocabulary": sorted(self.local_vocabulary)}
             )
-        elif self.is_inherited(symbol):
+        elif self.can_discover(symbol):
             global_def = GlobalVocabulary.definition(symbol)
             wikidata_url = GlobalVocabulary.wikidata_url(symbol)
             return LookupResult(
-                outcome=LookupOutcome.INHERITED,
+                outcome=LookupOutcome.DISCOVERABLE,
                 symbol=symbol,
                 receiver_name=self.name,
                 context={
@@ -128,8 +155,8 @@ class Receiver:
 
     def __repr__(self):
         local = sorted(list(self.local_vocabulary))
-        inherited = sorted(list(GlobalVocabulary.all_symbols()))
-        return f"{self.name} # → local{local} + inherited{inherited}"
+        discoverable_count = len([s for s in GlobalVocabulary.all_symbols() if self.can_discover(s)])
+        return f"{self.name} # → local{local} + {discoverable_count} discoverable"
 
 
 class Dispatcher:
@@ -152,6 +179,13 @@ class Dispatcher:
         if context:
             log_entry += f" in context of {context}"
         log_entry += "\n"
+        with open(self.log_file, "a") as f:
+            f.write(log_entry)
+    
+    def _log_discovery(self, receiver: str, symbol: str):
+        """Log when a receiver discovers a symbol through dialogue (Phase 3)."""
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] DISCOVERED: {receiver} activated {symbol} through dialogue\n"
         with open(self.log_file, "a") as f:
             f.write(log_entry)
 
@@ -260,17 +294,23 @@ class Dispatcher:
         receiver = self._get_or_create_receiver(receiver_name)
         lookup = receiver.lookup(symbol_name)
         
+        # Phase 3: Discovery! If symbol is discoverable, activate it first
+        if lookup.is_discoverable():
+            receiver.discover(symbol_name)
+            self._log_discovery(receiver_name, symbol_name)
+            # After discovery, lookup again — it's now NATIVE
+            lookup = receiver.lookup(symbol_name)
+        
         # If meta-receiver with known symbol, try interpretive voice
         if (
-            (lookup.is_native() or lookup.is_inherited())
+            lookup.is_native()
             and receiver_name in self.agents
             and self.message_bus_enabled
             and self.message_bus
         ):
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
-            # Mode 3: Inherited-Interpretive — include local vocabulary as context
             local_vocab = sorted(list(receiver.local_vocabulary))
-            context = f"Local Vocabulary: {local_vocab}" if lookup.is_inherited() else None
+            context = f"Local Vocabulary: {local_vocab}"
             prompt = f"{receiver_name} {symbol_name}?"
             response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
             if response:
@@ -279,10 +319,6 @@ class Dispatcher:
         # Structural response based on lookup outcome
         if lookup.is_native():
             return f"{receiver_name} {symbol_name} is native to this identity."
-        elif lookup.is_inherited():
-            global_def = lookup.context.get("global_definition", "")
-            local_ctx = lookup.context.get("local_vocabulary", [])
-            return f"{receiver_name} {symbol_name} inherited from HelloWorld # → {global_def}\n  [{receiver_name} # = {local_ctx}]"
         else:
             return self._handle_unknown_symbol(receiver_name, receiver, symbol_name, lookup)
 

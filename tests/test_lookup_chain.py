@@ -26,16 +26,18 @@ def test_lookup_native_symbol():
 
 
 def test_lookup_inherited_symbol():
-    """Test lookup returns INHERITED for global symbols."""
+    """Phase 3: Test lookup returns DISCOVERABLE for global symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Guardian"]
     
     result = receiver.lookup("#Sunyata")
     
-    assert result.outcome == LookupOutcome.INHERITED
+    # Phase 3: Now returns DISCOVERABLE instead of INHERITED
+    assert result.outcome == LookupOutcome.DISCOVERABLE
     assert result.symbol == "#Sunyata"
     assert result.receiver_name == "Guardian"
-    assert result.is_inherited()
+    assert result.is_inherited()  # Backward compat alias
+    assert result.is_discoverable()
     assert not result.is_native()
     assert not result.is_unknown()
     assert "global_definition" in result.context
@@ -58,8 +60,8 @@ def test_lookup_unknown_symbol():
     assert "local_vocabulary" in result.context
 
 
-def test_scoped_lookup_uses_new_api():
-    """Test _handle_scoped_lookup uses new Receiver.lookup() API."""
+def test_scoped_lookup_uses_new_API():
+    """Phase 3: Test _handle_scoped_lookup discovers and activates symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     
     # Native symbol
@@ -67,10 +69,13 @@ def test_scoped_lookup_uses_new_api():
     assert len(result) == 1
     assert "native" in result[0]
     
-    # Inherited symbol
+    # Discoverable symbol — gets activated, becomes native
+    guardian = dispatcher.registry["Guardian"]
+    assert guardian.can_discover("#Sunyata")  # Before lookup
     result = dispatcher.dispatch_source("Guardian #Sunyata")
     assert len(result) == 1
-    assert "inherited" in result[0]
+    assert "native" in result[0]  # After discovery
+    assert "#Sunyata" in guardian.vocabulary  # Now in local
     
     # Unknown symbol
     result = dispatcher.dispatch_source("Guardian #newSymbol")
@@ -124,7 +129,7 @@ def test_discovery_promotes_symbol():
 
 
 def test_lookup_preserves_context():
-    """Test LookupResult preserves context for interpretation."""
+    """Phase 3: Test LookupResult preserves context for interpretation."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Claude"]
     
@@ -133,11 +138,12 @@ def test_lookup_preserves_context():
     assert native_result.is_native()
     assert "#interpret" in native_result.context["local_vocabulary"]
     
-    # Inherited lookup includes global definition + Wikidata
-    inherited_result = receiver.lookup("#Love")
-    assert inherited_result.is_inherited()
-    assert "global_definition" in inherited_result.context
-    assert "wikidata_url" in inherited_result.context
+    # Discoverable lookup includes global definition + Wikidata
+    discoverable_result = receiver.lookup("#Love")
+    assert discoverable_result.is_discoverable()
+    assert discoverable_result.is_inherited()  # Backward compat
+    assert "global_definition" in discoverable_result.context
+    assert "wikidata_url" in discoverable_result.context
     
     # Unknown lookup includes local vocabulary for research context
     unknown_result = receiver.lookup("#brandNewSymbol")

@@ -135,9 +135,13 @@ def test_no_collision_for_native_symbol():
 def test_root_receiver_bootstrap():
     dispatcher = _fresh_dispatcher()
     assert "HelloWorld" in dispatcher.registry
-    assert "#Sunyata" in dispatcher.registry["HelloWorld"].vocabulary
-    assert "#Love" in dispatcher.registry["HelloWorld"].vocabulary
-    assert "#Superposition" in dispatcher.registry["HelloWorld"].vocabulary
+    # Phase 3: HelloWorld starts with 12 minimal core, can discover 35+ more
+    root = dispatcher.registry["HelloWorld"]
+    assert len(root.vocabulary) == 12  # minimal core
+    assert "#HelloWorld" in root.vocabulary
+    assert root.can_discover("#Sunyata")
+    assert root.can_discover("#Love")
+    assert root.can_discover("#Superposition")
 
 
 def test_dispatch_sunyata_sequence():
@@ -155,16 +159,16 @@ def test_dispatch_sunyata_sequence():
     ])
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
-    # Line 1: vocabulary query on HelloWorld
-    assert "#Sunyata" in results[0]
+    # Line 1: vocabulary query on HelloWorld — shows 12 minimal core + discoverable count
+    assert "HelloWorld #" in results[0] and "discoverable" in results[0]
     # Line 2: HelloWorld #Sunyata — canonical global definition
     assert "HelloWorld #Sunyata" in results[1] and "emptiness" in results[1]
-    # Line 3: Guardian #Sunyata — inherited from HelloWorld #
-    assert "inherited" in results[2]
+    # Line 3: Guardian #Sunyata — Phase 3: discovered and activated, now native
+    assert "native" in results[2]
     # Line 4: message to Guardian (not an agent daemon in fresh dispatcher context)
     assert "Guardian" in results[3]
-    # Line 5: Claude #Sunyata — inherited from HelloWorld # (not in claude's local vocab)
-    assert "inherited" in results[4] or "native" in results[4]
+    # Line 5: Claude #Sunyata — Phase 3: discovered and activated, now native
+    assert "native" in results[4]
 
 
 def test_manual_save_creates_file():
@@ -186,10 +190,14 @@ def test_root_not_in_agents():
 
 def test_inheritance_lookup():
     dispatcher = _fresh_dispatcher()
-    # #Love is a global symbol — all receivers inherit it
-    assert "#Love" in dispatcher.registry["Guardian"].vocabulary
-    assert dispatcher.registry["Guardian"].is_inherited("#Love")
-    assert not dispatcher.registry["Guardian"].is_native("#Love")
+    # Phase 3: #Love is discoverable from global pool, not automatically in vocabulary
+    guardian = dispatcher.registry["Guardian"]
+    assert guardian.can_discover("#Love")
+    assert guardian.is_inherited("#Love")  # Same as can_discover
+    assert not guardian.is_native("#Love")  # Not yet learned
+    # After lookup/discovery, it becomes native
+    dispatcher.dispatch_source("Guardian #Love")
+    assert guardian.is_native("#Love")
 
 
 def test_native_overrides_inherited():
@@ -207,7 +215,8 @@ def test_root_vocab_query():
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "HelloWorld #" in results[0]
-    assert "#Sunyata" in results[0] or "#Love" in results[0]
+    # Phase 3: vocabulary shows local only, plus count of discoverable symbols
+    assert "discoverable" in results[0]
 
 
 def test_collision_for_non_global():
@@ -236,28 +245,32 @@ def test_save_persists_local_only():
 
 
 def test_inherited_includes_receiver_context():
-    """Verify inherited lookups include the receiver's local vocabulary as context.
+    """Phase 3: Verify discovery mechanism works and symbols become native.
 
-    04-unchosen proved that Guardian #Love and Awakener #Love are
-    structurally identical without context. The enhanced output now
-    includes the receiver's local vocabulary so the information needed
-    for interpretive dispatch is preserved in the structural response.
+    When a receiver encounters a global symbol for the first time,
+    it discovers and activates it. After discovery, the symbol is native,
+    and the receiver's vocabulary has grown.
     """
     dispatcher = _fresh_dispatcher()
-    # Guardian #Love — inherited, not native
+    # Guardian #Love — discoverable, will be activated
+    guardian = dispatcher.registry["Guardian"]
+    assert guardian.can_discover("#Love")
+    assert "#Love" not in guardian.vocabulary  # Not yet learned
+    
     guardian_results = dispatcher.dispatch_source("Guardian #Love")
     assert len(guardian_results) == 1
-    assert "inherited" in guardian_results[0]
-    assert "#fire" in guardian_results[0]  # local vocab included as context
+    # After discovery, #Love is now native to Guardian
+    assert "native" in guardian_results[0]
+    assert "#Love" in guardian.vocabulary  # Now in local vocab
 
-    # Awakener #Love — same inheritance, different context
+    # Awakener #Love — same symbol, also gets discovered
+    awakener = dispatcher.registry["Awakener"]
+    assert awakener.can_discover("#Love")
     awakener_results = dispatcher.dispatch_source("Awakener #Love")
     assert len(awakener_results) == 1
-    assert "inherited" in awakener_results[0]
-    assert "#stillness" in awakener_results[0]  # different local vocab
-
-    # The two outputs must differ — the receiver context makes them unique
-    assert guardian_results[0] != awakener_results[0]
+    # After discovery, it is native to Awakener too
+    assert "native" in awakener_results[0]
+    assert "#Love" in awakener.vocabulary
 
 
 def test_handlers_do_not_prevent_vocabulary_learning():
