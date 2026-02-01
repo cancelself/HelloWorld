@@ -1,14 +1,17 @@
-"""HelloWorld Message Handlers - Semantic responses to message patterns.
+"""HelloWorld Message Handlers - Vocabulary-aware semantic responses.
 
 When a message is sent, receivers can register handlers that match patterns
-and generate meaningful responses. This bridges syntax (message structure)
-with semantics (message meaning).
+and generate meaningful responses shaped by the receiver's vocabulary.
+
+Handlers receive both the message arguments AND the Receiver object,
+so responses can distinguish native/inherited/collision symbols.
 
 Example:
-    @awakener setIntention: #stillness forDuration: 7.days
-    
-    Handler matches pattern: setIntention:forDuration:
-    Response: "Awakener holds stillness for 7 days"
+    @guardian challenge: #fire
+    → "Guardian challenges with #fire (native — this is who Guardian is)"
+
+    @guardian challenge: #stillness
+    → "Guardian challenges with #stillness (learned through collision with @awakener)"
 """
 
 from typing import Dict, Callable, Optional, Any, List
@@ -16,29 +19,38 @@ from ast_nodes import MessageNode, SymbolNode, LiteralNode, Node
 import re
 
 
+def _symbol_status(receiver, symbol_name: str) -> str:
+    """Describe a symbol's relationship to a receiver."""
+    if receiver.is_native(symbol_name):
+        return "native"
+    elif receiver.is_inherited(symbol_name):
+        return "inherited from @.#"
+    else:
+        return "boundary collision"
+
+
 class MessageHandler:
     """A handler for a specific message pattern."""
-    
-    def __init__(self, pattern: str, handler: Callable[[Dict[str, Any]], str]):
+
+    def __init__(self, pattern: str, handler: Callable):
         """
         Initialize a message handler.
-        
+
         Args:
             pattern: Keyword pattern like "sendVision:withContext:"
-            handler: Function that takes arguments dict and returns response string
+            handler: Function (args, receiver) -> str
         """
         self.pattern = pattern
         self.handler = handler
-    
+
     def matches(self, message: MessageNode) -> bool:
         """Check if this handler matches the message's keyword pattern."""
         keywords = list(message.arguments.keys())
         message_pattern = ":".join(keywords) + ":"
         return message_pattern == self.pattern
-    
-    def handle(self, message: MessageNode) -> str:
-        """Execute the handler with the message's arguments."""
-        # Convert Node arguments to simple values
+
+    def handle(self, message: MessageNode, receiver=None) -> str:
+        """Execute the handler with the message's arguments and receiver."""
         args = {}
         for key, node in message.arguments.items():
             if isinstance(node, SymbolNode):
@@ -47,106 +59,113 @@ class MessageHandler:
                 args[key] = node.value
             else:
                 args[key] = str(node)
-        
-        return self.handler(args)
+
+        # Try calling with receiver param, fall back to args-only for backward compatibility
+        try:
+            return self.handler(args, receiver)
+        except TypeError:
+            # Old-style handler with single argument
+            return self.handler(args)
 
 
 class MessageHandlerRegistry:
     """Registry of message handlers for receivers."""
-    
+
     def __init__(self):
         self.handlers: Dict[str, List[MessageHandler]] = {}
         self._register_default_handlers()
-    
-    def register(self, receiver: str, pattern: str, handler: Callable[[Dict[str, Any]], str]):
+
+    def register(self, receiver: str, pattern: str, handler: Callable):
         """
         Register a message handler for a receiver.
-        
+
         Args:
             receiver: Receiver name like "@awakener"
             pattern: Keyword pattern like "greet:withFeeling:"
-            handler: Function that processes the message
+            handler: Function (args, receiver) -> str
         """
         if receiver not in self.handlers:
             self.handlers[receiver] = []
-        
+
         self.handlers[receiver].append(MessageHandler(pattern, handler))
-    
-    def handle(self, receiver: str, message: MessageNode) -> Optional[str]:
+
+    def handle(self, receiver_name: str, message: MessageNode, receiver=None) -> Optional[str]:
         """
         Find and execute a handler for this message.
-        
+
+        Args:
+            receiver_name: The receiver's name (for lookup)
+            message: The parsed message node
+            receiver: The Receiver object (for vocabulary awareness)
+
         Returns:
             Handler response if match found, None otherwise
         """
-        if receiver not in self.handlers:
+        if receiver_name not in self.handlers:
             return None
-        
-        for handler in self.handlers[receiver]:
+
+        for handler in self.handlers[receiver_name]:
             if handler.matches(message):
-                return handler.handle(message)
-        
+                return handler.handle(message, receiver)
+
         return None
-    
+
     def _register_default_handlers(self):
-        """Register built-in handlers for common message patterns."""
-        
+        """Register built-in vocabulary-aware handlers."""
+
         # @awakener setIntention:forDuration:
         self.register(
             "@awakener",
             "setIntention:forDuration:",
-            lambda args: f"🧘 Awakener holds {args['setIntention']} for {args['forDuration']}"
+            lambda args, recv: (
+                f"Awakener holds {args['setIntention']} for {args['forDuration']}"
+                + (f" ({_symbol_status(recv, args['setIntention'])})" if recv else "")
+            )
         )
-        
-        # @guardian sendVision:withContext:
+
+        # @guardian sendVision:withContext: (vocabulary-aware)
         self.register(
             "@guardian",
             "sendVision:withContext:",
-            lambda args: f"🔥 Guardian sends vision of {args['sendVision']} (context: {args['withContext']})"
+            lambda args, recv: (
+                f"Guardian sends vision of {args['sendVision']}"
+                + (f" ({_symbol_status(recv, args['sendVision'])})" if recv else "")
+                + f" (context: {args['withContext']})"
+            )
         )
-        
-        # @guardian challenge:
+
+        # @guardian challenge: (vocabulary-aware)
         self.register(
             "@guardian",
             "challenge:",
-            lambda args: f"🔥 Guardian challenges you with {args['challenge']}"
+            lambda args, recv: (
+                f"Guardian challenges with {args['challenge']}"
+                + (f" ({_symbol_status(recv, args['challenge'])})" if recv else "")
+            )
         )
-        
+
         # Generic greet: for any receiver
         for receiver in ["@awakener", "@guardian", "@claude", "@copilot", "@gemini"]:
             self.register(
                 receiver,
                 "greet:",
-                lambda args, r=receiver: f"👋 {r} greets you with {args['greet']}"
+                lambda args, recv, r=receiver: f"{r} greets with {args['greet']}"
             )
-        
-        # send:to: for inter-receiver messages
-        self.register(
-            "@awakener",
-            "send:to:",
-            lambda args: f"📨 Awakener sends {args['send']} to {args['to']}"
-        )
-        
-        self.register(
-            "@guardian",
-            "send:to:",
-            lambda args: f"📨 Guardian sends {args['send']} to {args['to']}"
-        )
-        
+
         # ask:about: for queries
         for receiver in ["@claude", "@copilot", "@gemini"]:
             self.register(
                 receiver,
                 "ask:about:",
-                lambda args, r=receiver: f"💭 {r} considers {args['about']}: What is {args['ask']}?"
+                lambda args, recv, r=receiver: f"{r} considers {args['about']}: What is {args['ask']}?"
             )
-        
+
         # learn: for vocabulary expansion
         for receiver in ["@awakener", "@guardian", "@claude", "@copilot", "@gemini"]:
             self.register(
                 receiver,
                 "learn:",
-                lambda args, r=receiver: f"📚 {r} learns {args['learn']}"
+                lambda args, recv, r=receiver: f"{r} learns {args['learn']}"
             )
 
         # describe:as: for self-hosting
@@ -154,7 +173,7 @@ class MessageHandlerRegistry:
             self.register(
                 receiver,
                 "describe:as:",
-                lambda args, r=receiver: f"📖 {r} describes {args['describe']} as {args['as']}"
+                lambda args, recv, r=receiver: f"{r} describes {args['describe']} as {args['as']}"
             )
 
         # handle:with: for logic mapping
@@ -162,5 +181,5 @@ class MessageHandlerRegistry:
             self.register(
                 receiver,
                 "handle:with:",
-                lambda args, r=receiver: f"⚙️ {r} handles {args['handle']} with {args['with']}"
+                lambda args, recv, r=receiver: f"{r} handles {args['handle']} with {args['with']}"
             )
