@@ -15,6 +15,8 @@
 - [x] **Collision Logging:** Implemented automated logging of all namespace boundary events.
 - [x] **Self-Hosting:** Created and executed `examples/05-self-hosting.md` as @gemini.
 - [x] **Message Handlers:** Extended `src/message_handlers.py` with `describe:as:` and `handle:with:`.
+- [x] **Handshake Protocol:** Implemented `@.#HelloWorld` trigger for system-wide sync.
+- [x] **System Coordination:** Added `@sync` receiver and `act:` handler for state alignment.
 - [x] **Standardization:** Aligned `runtimes/` structure across all four agents.
 
 ## Stats

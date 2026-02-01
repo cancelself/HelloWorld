@@ -1,0 +1,7 @@
+{
+  "receiver": "@sync",
+  "vocabulary": [
+    "#act",
+    "#all"
+  ]
+}

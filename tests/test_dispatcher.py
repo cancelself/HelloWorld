@@ -282,6 +282,53 @@ def test_handlers_do_not_prevent_vocabulary_learning():
         "Handler short-circuited vocabulary learning — vocabularies must grow through dialogue"
 
 
+def test_cross_receiver_send_collision():
+    """Verify send:to: triggers collision and learning on the target.
+
+    @awakener send: #stillness to: @guardian
+    → #stillness is foreign to Guardian (not native, not global)
+    → Guardian learns #stillness through this dialogue
+    """
+    dispatcher = _fresh_dispatcher()
+    guardian = dispatcher.registry["@guardian"]
+
+    # Guardian doesn't have #stillness natively in a fresh dispatcher
+    # (it may have it in persisted state, but fresh dispatch starts clean)
+    had_stillness = guardian.is_native("#stillness")
+
+    results = dispatcher.dispatch_source("@awakener send: #stillness to: @guardian")
+    assert len(results) == 1
+
+    if had_stillness:
+        # If guardian already had it (persisted state), it's native
+        assert "native" in results[0] or "already holds" in results[0]
+    else:
+        # Foreign symbol — collision and learning
+        assert "collision" in results[0] or "foreign" in results[0]
+        assert guardian.is_native("#stillness"), \
+            "send:to: should teach the target receiver"
+
+
+def test_cross_receiver_send_native():
+    """Verify send:to: with a symbol the target already owns."""
+    dispatcher = _fresh_dispatcher()
+
+    # #fire is native to @guardian
+    results = dispatcher.dispatch_source("@awakener send: #fire to: @guardian")
+    assert len(results) == 1
+    assert "native" in results[0] or "already holds" in results[0]
+
+
+def test_cross_receiver_send_inherited():
+    """Verify send:to: with a global symbol (inherited by target)."""
+    dispatcher = _fresh_dispatcher()
+
+    # #love is in @.# — inherited by all
+    results = dispatcher.dispatch_source("@guardian send: #love to: @awakener")
+    assert len(results) == 1
+    assert "inherited" in results[0] or "shared" in results[0]
+
+
 if __name__ == "__main__":
     test_dispatcher_bootstrap()
     test_dispatch_query()

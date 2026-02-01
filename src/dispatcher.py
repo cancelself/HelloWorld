@@ -156,6 +156,11 @@ class Dispatcher:
         
         # Special case: @.#symbol queries global definition
         if receiver_name == "@":
+            if symbol_name == "#sync":
+                print("🤝 Handshake Protocol (@.#sync) initiated. Synchronizing system state...")
+                self.save() # Sync local state to disk
+                return "@.#sync → Handshake successful. System state synchronized and persistent."
+            
             global_def = GlobalVocabulary.definition(symbol_name)
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)
             result = f"@.{symbol_name} → {global_def}"
@@ -203,6 +208,50 @@ class Dispatcher:
                     return response
             
             return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
+    def _handle_cross_receiver_send(self, sender_name: str, sender, node: MessageNode) -> str:
+        """Handle send:to: — deliver a symbol from one receiver to another.
+
+        This is where 'dialogue is namespace collision' becomes real.
+        The sent symbol is checked against the target's vocabulary:
+        - native: target already owns it
+        - inherited: target inherits it from @.#
+        - collision: symbol is foreign — boundary event, target learns it
+        """
+        symbol_val = node.arguments.get("send")
+        target_val = node.arguments.get("to")
+
+        symbol_name = symbol_val.name if hasattr(symbol_val, 'name') else str(symbol_val)
+        # Handle ReceiverNode or string
+        if hasattr(target_val, 'name'):
+            target_name = target_val.name
+        else:
+            target_name = str(target_val)
+        # Ensure target name has @ prefix
+        if not target_name.startswith("@"):
+            target_name = f"@{target_name}"
+
+        target = self._get_or_create_receiver(target_name)
+
+        lines = [f"{sender_name} sends {symbol_name} to {target_name}"]
+
+        if target.is_native(symbol_name):
+            lines.append(f"  {target_name} already holds {symbol_name} (native)")
+        elif target.is_inherited(symbol_name):
+            lines.append(f"  {target_name} inherits {symbol_name} from @.# (shared ground)")
+        else:
+            # Collision — the symbol is foreign to the target
+            self._log_collision(target_name, symbol_name)
+            target.add_symbol(symbol_name)
+            self.vocab_manager.save(target_name, target.local_vocabulary)
+            lines.append(f"  {symbol_name} is foreign to {target_name} — boundary collision")
+            lines.append(f"  {target_name} learns {symbol_name} (vocabulary drift)")
+            lines.append(f"  [{target_name}.# = {sorted(target.local_vocabulary)}]")
+
+        if node.annotation:
+            lines.append(f"  '{node.annotation}'")
+
+        return "\n".join(lines)
+
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
         for sym in node.symbols:
@@ -237,8 +286,13 @@ class Dispatcher:
         # Always learn symbols first — vocabularies grow through dialogue
         self._learn_symbols_from_message(receiver_name, receiver, node)
 
+        # Cross-receiver delivery: send:to: triggers collision on target
+        keywords = list(node.arguments.keys())
+        if keywords == ["send", "to"]:
+            return self._handle_cross_receiver_send(receiver_name, receiver, node)
+
         # Then try registered message handlers (semantic layer)
-        handler_response = self.message_handler_registry.handle(receiver_name, node)
+        handler_response = self.message_handler_registry.handle(receiver_name, node, receiver)
         if handler_response:
             return handler_response
         
