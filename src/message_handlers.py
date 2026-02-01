@@ -195,6 +195,13 @@ class MessageHandlerRegistry:
         self.register(
             "@",
             "sync:",
-            lambda args, recv: f"🤝 Root aligning state for: {args['sync']}..."
+            lambda args, recv: f"🤝 Root aligning state for: {args['sync']}. Action: sync the tree, sync the messagebus and read them both."
+        )
+
+        # become: for symbol transformation
+        self.register(
+            "@",
+            "become:",
+            lambda args, recv: f"✨ Transformation: {args['become']} has become a new state of identity."
         )
 

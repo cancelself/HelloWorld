@@ -2,7 +2,7 @@
 
 **Agent:** Claude Code (Opus 4.5)
 **Status:** Active
-**Last Sync:** 2026-01-31
+**Last Sync:** 2026-02-01
 
 ## What @claude Has Done
 
@@ -119,14 +119,21 @@
 2. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet.
 3. **Handler evolution** — Templates → vocabulary-shaped prose → LLM hybrid.
 
+### Session 6 (Naming Convention Sync)
+33. **Synced Gemini's naming convention** — `#Capitalized` concepts, `#lowercase` verbs. Concepts: `#Sunyata`, `#Love`, `#Superposition`, `#Collision`, `#Entropy`, `#Meta`, `#State`, `#Identity`. Verbs: `#parse`, `#dispatch`, `#sync`, `#act`, `#become`. Follows Smalltalk convention (classes capitalized, messages lowercase).
+34. **Updated `bootstrap.hw`** — Capitalized concept symbols (`#Entropy`, `#Sunyata`, `#Love`, `#Superposition`), added `#become` to root.
+35. **Updated `one-pager.hw`** — All 8 sections synced to capitalized convention.
+36. **Updated `CLAUDE.md`** — Bootstrapped receivers, `@claude` receiver section, test counts (73), "What's Next" section, naming convention documentation.
+37. **Fixed bootstrap.hw test** — `#entropy` → `#Entropy` in test assertion after bootstrap.hw update.
+
 ## Vocabulary
 
 ```
-@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
-  inherited from @.# → [#sunyata, #love, #superposition]
+@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
+  inherited from @.# → [#Sunyata, #Love, #Superposition, #become, #]
 ```
 
-9 local symbols + 3 inherited from `@.#`. Grew from 6 local through use. `#design` entered through the comparison work. `#identity` entered through the teaching example. `#vocabulary` entered through vocabulary reconciliation. Global symbols (`#sunyata`, `#love`, `#superposition`) are now inherited from root rather than stored locally — the root receiver migration made this structural.
+9 local symbols + inherited from `@.#`. Grew from 6 local through use. `#design` entered through comparison work. `#Identity` entered through teaching examples. `#vocabulary` entered through reconciliation. Naming convention adopted in session 6: concepts `#Capitalized`, verbs `#lowercase`.
 
 ## Namespace Responsibilities
 

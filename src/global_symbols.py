@@ -44,42 +44,50 @@ class GlobalSymbol:
 
 # Global symbol registry - @.#
 GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
-    "#superposition": GlobalSymbol(
-        name="#superposition",
+    "#Superposition": GlobalSymbol(
+        name="#Superposition",
         definition="Principle of quantum mechanics where a system exists in multiple states simultaneously until observed",
         domain="quantum mechanics",
         wikidata_id="Q830791",
         wikipedia_url="https://en.wikipedia.org/wiki/Quantum_superposition"
     ),
     
-    "#sunyata": GlobalSymbol(
-        name="#sunyata",
+    "#Sunyata": GlobalSymbol(
+        name="#Sunyata",
         definition="Buddhist concept of emptiness - the absence of inherent existence or independent self-nature",
         domain="Buddhist philosophy",
         wikidata_id="Q546054",  # Note: Need to verify this Q-number
         wikipedia_url="https://en.wikipedia.org/wiki/Śūnyatā"
     ),
     
-    "#collision": GlobalSymbol(
-        name="#collision",
+    "#Collision": GlobalSymbol(
+        name="#Collision",
         definition="Namespace boundary event when a receiver addresses a symbol outside their local vocabulary",
         domain="HelloWorld meta",
         wikidata_id=None,
         wikipedia_url=None
     ),
     
-    "#entropy": GlobalSymbol(
-        name="#entropy",
+    "#Entropy": GlobalSymbol(
+        name="#Entropy",
         definition="Measure of disorder, randomness, or uncertainty in a system",
         domain="thermodynamics/information theory",
         wikidata_id="Q130868",
         wikipedia_url="https://en.wikipedia.org/wiki/Entropy"
     ),
     
-    "#meta": GlobalSymbol(
-        name="#meta",
+    "#Meta": GlobalSymbol(
+        name="#Meta",
         definition="Self-referential observation or reflection on the system itself",
         domain="meta-cognition",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+    
+    "#State": GlobalSymbol(
+        name="#State",
+        definition="The persistent record of evolution; the cumulative history of every collision and every learned symbol preserved in the registry",
+        domain="HelloWorld meta",
         wikidata_id=None,
         wikipedia_url=None
     ),
@@ -108,8 +116,8 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Smalltalk"
     ),
     
-    "#love": GlobalSymbol(
-        name="#love",
+    "#Love": GlobalSymbol(
+        name="#Love",
         definition="Deep affection, attachment, or devotion — universal across cultures and traditions",
         domain="human experience",
         wikidata_id="Q316",
@@ -124,8 +132,8 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Markdown"
     ),
     
-    "#dialogue": GlobalSymbol(
-        name="#dialogue",
+    "#Dialogue": GlobalSymbol(
+        name="#Dialogue",
         definition="Conversation between two or more people, the fundamental process by which meaning emerges in HelloWorld",
         domain="communication",
         wikidata_id="Q131395",
@@ -134,7 +142,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     
     "#sync": GlobalSymbol(
         name="#sync",
-        definition="Coordination of events to operate a system in unison, the process of aligning state across agents",
+        definition="tell everyone to sync the tree, sync the messagebus and read them both",
         domain="coordination",
         wikidata_id="Q1058791",
         wikipedia_url="https://en.wikipedia.org/wiki/Synchronization"
@@ -158,7 +166,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     
     "#": GlobalSymbol(
         name="#",
-        definition="The symbol of Inquiry; the fundamental protocol by which one identity recognizes the boundaries of another",
+        definition="returns the vocabulary of the receiver",
         domain="HelloWorld meta",
         wikidata_id=None,
         wikipedia_url=None
@@ -172,28 +180,36 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikipedia_url="https://en.wikipedia.org/wiki/Object-oriented_programming"
     ),
     
-    "#receiver": GlobalSymbol(
-        name="#receiver",
+    "#Receiver": GlobalSymbol(
+        name="#Receiver",
         definition="Entity that accepts messages and responds according to its vocabulary - the fundamental unit of identity in HelloWorld",
         domain="HelloWorld meta",
         wikidata_id=None,
         wikipedia_url=None
     ),
     
-    "#message": GlobalSymbol(
-        name="#message",
+    "#Message": GlobalSymbol(
+        name="#Message",
         definition="Communication unit sent from one entity to another, carrying intent and context",
         domain="communication",
         wikidata_id="Q628523",
         wikipedia_url="https://en.wikipedia.org/wiki/Message_passing"
     ),
     
-    "#identity": GlobalSymbol(
-        name="#identity",
+    "#Identity": GlobalSymbol(
+        name="#Identity",
         definition="The set of characteristics by which something is definitively recognizable or known - in HelloWorld, this IS vocabulary",
         domain="philosophy",
         wikidata_id="Q844569",
         wikipedia_url="https://en.wikipedia.org/wiki/Identity_(philosophy)"
+    ),
+
+    "#become": GlobalSymbol(
+        name="#become",
+        definition="The symbol of transformation; used to evolve or rename concepts within the registry",
+        domain="HelloWorld meta",
+        wikidata_id="Q11225439", # transformation
+        wikipedia_url="https://en.wikipedia.org/wiki/Transformation"
     ),
 }
 

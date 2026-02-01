@@ -2,8 +2,11 @@
   "receiver": "@",
   "vocabulary": [
     "#",
-    "#love",
-    "#sunyata",
-    "#superposition"
+    "#HelloWorld",
+    "#Love",
+    "#Sunyata",
+    "#Superposition",
+    "#become",
+    "#sync"
   ]
 }

@@ -108,7 +108,7 @@ def test_dispatch_bootstrap_hw():
     assert "Updated @guardian" in results[1]
     assert "Updated @" in results[2]
     # New: semantic handlers return emoji + meaning (symbol case preserved from input)
-    assert "Guardian" in results[3] and "#entropy" in results[3]
+    assert "Guardian" in results[3] and "#Entropy" in results[3]
     assert "Awakener" in results[4] and "#stillness" in results[4]
     assert "@claude" in results[5]
     assert "@guardian.#" in results[6]

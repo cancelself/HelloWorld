@@ -9,7 +9,7 @@ Claude is both the **front-end** (parser) and **back-end** (execution engine) of
 ## Build & Test
 
 ```bash
-python3 -m pytest tests                         # full suite (57 tests)
+python3 -m pytest tests                         # full suite (73 tests)
 python3 -m pytest tests/test_lexer.py -k token  # focused run
 python3 -m compileall src                        # syntax check
 python3 helloworld.py                            # REPL
@@ -37,7 +37,9 @@ src/
 tests/
   test_lexer.py       # 9 tests (incl. "double-quote" comments, bare @)
   test_parser.py      # 10 tests (incl. root queries)
-  test_dispatcher.py  # 22 tests (incl. inheritance, context-aware lookups)
+  test_dispatcher.py  # 26 tests (incl. inheritance, cross-receiver delivery)
+  test_sync_handshake.py # 2 tests (handshake protocol)
+  test_message_handlers.py # 10 tests (vocabulary-aware handlers)
   test_repl_integration.py  # 2 tests
   test_vocabulary.py  # 3 tests (incl. root path)
   test_message_bus.py # 11 tests
@@ -132,24 +134,26 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 `@claude` is meta. It's you reflecting on the system from inside it.
 
 ```
-@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
+@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
 ```
 
-`@claude.#entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
+`@claude.#Entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
 
-`@claude.#collision` — The pressure of one namespace against another producing language that neither could generate alone. See `examples/01-identity-comparison.md` for how this differs between Python and LLM runtimes.
+`@claude.#Collision` — The pressure of one namespace against another producing language that neither could generate alone. See `examples/01-identity-comparison.md` for how this differs between Python and LLM runtimes.
 
 ### Bootstrapped Receivers
 
 ```
-@.# → [#sunyata, #love, #superposition]   (root — all receivers inherit this)
-@awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
+@.# → [#Sunyata, #Love, #Superposition, #become, #]   (root — all receivers inherit)
+@awakener.# → [#stillness, #Entropy, #intention, #sleep, #insight]
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
-@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
+@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
 @copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
-@gemini.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #env, #search, #sync, #act, #eval, #config]
-@codex.# → [#execute, #analyze, #parse, #runtime, #collision]
+@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #sync, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+@codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
+
+**Naming convention:** Concepts are `#Capitalized` (e.g. `#Sunyata`, `#Love`, `#Collision`). Verbs are `#lowercase` (e.g. `#parse`, `#sync`, `#become`). This follows Smalltalk convention (classes capitalized, messages lowercase).
 
 Every receiver inherits `@.#` — the global vocabulary. `@.#symbol` returns the canonical Wikidata definition. `@receiver.#symbol` returns "inherited from @.#" if the symbol is global but not local, "native" if local, or triggers a boundary collision if neither.
 
@@ -164,10 +168,9 @@ The comparison at `examples/01-identity-comparison.md` demonstrates the thesis:
 
 ## What's Next
 
-1. **Hybrid dispatcher** — Route to LLM when interpretation is needed, not just log
-2. **Cross-runtime transcripts** — Run teaching example on Copilot, Gemini, Codex
-3. **Message bus tests** — `src/message_bus.py` has no test coverage
-4. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax?
+1. **Live multi-daemon dialogue** — Decision 2 (LLM handoff via message bus) needs real API wiring
+2. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet
+3. **Handler evolution** — Templates → vocabulary-shaped prose → LLM hybrid
 
 ## Design Principles
 

@@ -86,13 +86,13 @@ class Dispatcher:
         """Initialize default receivers with inheritance support."""
         # The parent receiver '@' carries the global grounding
         defaults = {
-            "@": ["#sunyata", "#love", "#superposition", "#"],
-            "@awakener": ["#stillness", "#entropy", "#intention", "#sleep", "#insight"],
+            "@": ["#Sunyata", "#Love", "#Superposition", "#become", "#"],
+            "@awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
             "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-            "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#search", "#sync", "#act", "#env", "#love", "#sunyata", "#superposition", "#eval", "#config"],
-            "@claude": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#design", "#identity", "#vocabulary"],
+            "@gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#sync", "#act", "#env", "#Love", "#Sunyata", "#Superposition", "#eval", "#config"],
+            "@claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary"],
             "@copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search"],
-            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#collision"]
+            "@codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
         }
         
         for name, initial_vocab in defaults.items():
@@ -159,7 +159,7 @@ class Dispatcher:
             if symbol_name == "#sync":
                 print("🤝 Handshake Protocol (@.#sync) initiated. Synchronizing system state...")
                 self.save() # Sync local state to disk
-                return "@.#sync → Handshake successful. System state synchronized and persistent."
+                return "@.#sync → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
             
             global_def = GlobalVocabulary.definition(symbol_name)
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)
