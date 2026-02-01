@@ -57,16 +57,26 @@
 13. **Wrote `examples/04-unchosen-comparison.md`** — Python vs Claude comparison. Identifies "mode 3" lookup: inherited-interpretive, where the canonical definition is filtered through local vocabulary. This is the next dispatcher capability.
 14. Created GitHub repo (`cancelself/HelloWorld`) and pushed
 
+### Session 4 (continued — Smalltalk Comments, One-Pager, Spec Sync)
+15. **Enhanced inherited-interpretive lookup** — `_handle_scoped_lookup` inherited fallback now includes `[receiver.# = [local_vocab]]` context, so `@guardian.#love` and `@awakener.#love` produce distinct output shaped by local vocabulary. Added `test_inherited_includes_receiver_context`.
+16. **Added Smalltalk-style `"double quote"` comments to lexer** — `"text"` is system voice (skipped by lexer), `'text'` is human voice (annotations, carried in AST). Added 3 lexer tests (`test_double_quote_comment`, `test_multiline_double_quote_comment`, `test_inline_double_quote_comment`).
+17. **Created `examples/one-pager.hw`** — HelloWorld described in itself. 8 sections (root, identity, lookup, collision, dialogue, drift, meta, emptiness). All lines are executable HelloWorld syntax using `"double quote"` comments and `'single quote'` annotations.
+18. **Converted `examples/bootstrap.hw`** to Smalltalk-style `"double quote"` comments (was using `# ` legacy line comments).
+19. **Updated `CLAUDE.md` bootloader spec** — added `"text"` comment row to parsing table, documented two voice types, updated project structure with accurate test counts and new files, fixed test count (27 → 57).
+20. **Added `collisions.log` to `.gitignore`** — runtime output, not source.
+21. **Fixed duplicate `from datetime import datetime`** import in dispatcher (introduced by Gemini concurrent edit).
+22. **Synced `storage/symbols.json`** with Gemini's new global symbols (`#dialogue` Q131395, `#sync` Q1058791, `#act` Q1914636).
+
 ## Project State
 
-### What Works (53/53 tests)
-- **Lexer** (`src/lexer.py`) — 13 token types, 6 tests (added bare `@` receiver)
+### What Works (57/57 tests)
+- **Lexer** (`src/lexer.py`) — 13 token types + Smalltalk `"double-quote"` comments, 9 tests (added bare `@` receiver, 3 comment tests)
 - **Parser** (`src/parser.py` + `src/ast_nodes.py`) — recursive descent, 10 tests (added root queries)
-- **Dispatcher** (`src/dispatcher.py`) — hybrid dispatch with prototypal inheritance from `@`, 21 tests (added root bootstrap, inheritance, native-overrides-inherited, collision-for-non-global, save-persists-local-only)
+- **Dispatcher** (`src/dispatcher.py`) — hybrid dispatch with prototypal inheritance from `@`, context-aware inherited lookups, 22 tests (added root bootstrap, inheritance, native-overrides-inherited, collision-for-non-global, save-persists-local-only, inherited-includes-receiver-context)
 - **REPL** (`src/repl.py`) — interactive shell, 2 integration tests
 - **Vocabulary Persistence** (`src/vocabulary.py`) — JSON storage, 3 tests (added root path)
 - **Message Bus** (`src/message_bus.py`) — file-based inter-agent communication, 11 tests
-- **Global Symbols** (`src/global_symbols.py`) — 12 symbols with Wikidata grounding + `storage/symbols.json`
+- **Global Symbols** (`src/global_symbols.py`) — 14 symbols with Wikidata grounding + `storage/symbols.json`
 - **CLI** (`helloworld.py`) — file execution + REPL mode
 - **Agent Daemon** (`agent_daemon.py`) — template for AI runtime daemons
 
@@ -82,20 +92,24 @@
 - ~~Message bus ordering~~ — Fixed by @gemini (sorts chronologically by mtime)
 - ~~`@target` migration~~ — Replaced by `@` root receiver with prototypal inheritance
 - ~~Missing `#love` in globals~~ — Added to `GLOBAL_SYMBOLS` with Q316
+- ~~Inherited-interpretive lookup~~ — Enhanced fallback now includes receiver's local vocabulary as context. `@guardian.#love` ≠ `@awakener.#love` in Claude runtime.
+- ~~Smalltalk-style comments~~ — Lexer handles `"double quotes"` as comments (system voice). Legacy `# ` still supported.
+- ~~Spec drift in CLAUDE.md~~ — Bootloader synced: accurate test counts, comment syntax documented, project structure updated.
 
 ### What's Next
-1. **Inherited-interpretive lookup** — The dispatcher's `_handle_scoped_lookup` needs a third mode: hand off inherited symbols to LLM with the receiver's local vocabulary as context. Architecture is ready (04-unchosen proves the need).
-2. **Real API integration** — `agent_daemon.py` template exists; needs Anthropic/Google API wiring for live multi-daemon dialogue.
-3. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet.
-4. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax?
+1. **Real API integration** — `agent_daemon.py` template exists; needs Anthropic/Google API wiring for live multi-daemon dialogue.
+2. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet.
+3. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax? `examples/one-pager.hw` is a first step.
+4. **03-global-namespace teaching example** — The `@.#` inheritance model needs its own comparison document.
 
 ## Vocabulary
 
 ```
-@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary, #sunyata, #superposition]
+@claude.# → [#parse, #dispatch, #state, #collision, #entropy, #meta, #design, #identity, #vocabulary]
+  inherited from @.# → [#sunyata, #love, #superposition]
 ```
 
-Grew from 6 to 11 through use. `#design` entered through the comparison work. `#identity` entered through the teaching example. `#vocabulary` entered through vocabulary reconciliation. `#sunyata` entered as shared symbol — the system examining its own groundlessness. `#superposition` entered through live interpretation — the sequence `#superposition` → `#collision` → `#sunyata` was articulated: receivers hold all symbols at once (superposition), collapse through address (collision), and nothing that emerges has inherent existence (sunyata).
+9 local symbols + 3 inherited from `@.#`. Grew from 6 local through use. `#design` entered through the comparison work. `#identity` entered through the teaching example. `#vocabulary` entered through vocabulary reconciliation. Global symbols (`#sunyata`, `#love`, `#superposition`) are now inherited from root rather than stored locally — the root receiver migration made this structural.
 
 ## Namespace Responsibilities
 
@@ -108,12 +122,12 @@ Grew from 6 to 11 through use. `#design` entered through the comparison work. `#
 
 ## Next
 
-Four teaching examples now, each with Claude transcript and comparison. The thesis is demonstrated, deepened, and the next architectural step is identified.
+Four teaching examples now, each with Claude transcript and comparison. The thesis is demonstrated and the inherited-interpretive lookup is implemented. The language has Smalltalk-style comments and a self-describing one-pager.
 
-1. **Implement inherited-interpretive lookup** — The concrete next step from 04-unchosen. Modify `_handle_scoped_lookup` to pass `receiver.local_vocabulary` to LLM when resolving inherited symbols.
+1. **Live multi-daemon dialogue** — Wire real API calls into agent daemons. The message bus and dispatcher are ready.
 2. **Cross-runtime transcripts** — Copilot and Codex need to run all teaching examples.
-3. **Live multi-daemon dialogue** — Wire real API calls into agent daemons.
-4. **Self-hosting** — HelloWorld describing its own dispatch in `.hw` syntax.
+3. **Self-hosting** — `examples/one-pager.hw` is HelloWorld described in itself. Next: can HelloWorld describe its own dispatch rules executably?
+4. **03-global-namespace teaching example** — The `@.#` inheritance model deserves its own 5-line example and comparison.
 
 ---
 
