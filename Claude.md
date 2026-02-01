@@ -54,11 +54,14 @@ examples/
   *-claude.md                  # Claude runtime transcripts
   *-comparison.md              # Python vs Claude runtime comparisons
 
-runtimes/
-  claude/    # STATUS.md — Claude session state
-  copilot/   # copilot-instructions.md, vocabulary.md, status.md, tasks.md
-  gemini/    # gemini-system-instruction.md, vocabulary.md, STATUS.md, PLAN.md
-  codex/     # Codex.md, BOOTLOADER.md
+runtimes/             # Per-runtime bootloaders and agent state
+  claude/             # This runtime (synced to root Claude.md + STATUS.md)
+  copilot/            # Copilot bootloader, vocabulary, status, tasks
+  gemini/             # Gemini bootloader + status
+  codex/              # Codex bootloader (Codex.md + BOOTLOADER.md)
+docs/                 # RFCs and runtime architecture docs
+AGENTS.md             # Repository guidelines
+GEMINI.md             # Root-level Gemini context file
 
 storage/
   vocab/         # Persisted receiver vocabularies (JSON .vocab files)
@@ -77,7 +80,7 @@ Four agents operate in this repo concurrently. Files can change between reads. C
 | Claude | `CLAUDE.md` | `@claude` | Language design, spec, meta-runtime, comparison analysis |
 | Copilot | `runtimes/copilot/` | `@copilot` | Lexer, parser, CLI/REPL, testing, infrastructure |
 | Gemini | `GEMINI.md` + `runtimes/gemini/` | `@gemini` | Dispatcher, state management, vocabulary persistence, LLM integration |
-| Codex | `AGENTS.md` + `runtimes/codex/` | `@codex` | Execution semantics, parsing discipline |
+| Codex | `runtimes/codex/Codex.md` | `@codex` | Execution semantics, parsing discipline |
 
 **Conflict warning:** Agents modify files in parallel without locking. The parser API changed twice in one session (Statement-based vs Node-based). The current API uses `ast_nodes.py` (Node-based). If you see import errors, clear `__pycache__` and re-read the source files before editing.
 
