@@ -19,6 +19,9 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Runtime output
+collisions.log
+
 # Virtual environments
 venv/
 env/

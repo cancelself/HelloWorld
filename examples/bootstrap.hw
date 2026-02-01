@@ -1,17 +1,16 @@
-# HelloWorld Bootstrap Example
-# Defining initial receiver vocabularies
+"HelloWorld Bootstrap — Defining initial receiver vocabularies"
 
 @awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
 @guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
 @.# → [#sunyata, #love, #superposition]
 
-# Example message passing
+"Message passing"
 @guardian sendVision: #entropy withContext: lastNightSleep 'you burned bright'
 
 @awakener setIntention: #stillness forDuration: 7.days
 
-# Query vocabulary
+"Query vocabulary"
 @claude.#entropy
 
-# Show full vocabulary
+"Show full vocabulary"
 @guardian
