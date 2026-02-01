@@ -107,7 +107,7 @@ def test_dispatch_bootstrap_hw():
     assert "Updated @awakener" in results[0]
     assert "Updated @guardian" in results[1]
     assert "Updated @" in results[2]
-    # New: semantic handlers return emoji + meaning
+    # New: semantic handlers return emoji + meaning (symbol case preserved from input)
     assert "Guardian" in results[3] and "#entropy" in results[3]
     assert "Awakener" in results[4] and "#stillness" in results[4]
     assert "@claude" in results[5]
@@ -116,7 +116,7 @@ def test_dispatch_bootstrap_hw():
 
 def test_dispatch_meta_receiver():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("@claude.#collision").parse()
+    stmts = Parser.from_source("@claude.#Collision").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -135,9 +135,9 @@ def test_no_collision_for_native_symbol():
 def test_root_receiver_bootstrap():
     dispatcher = _fresh_dispatcher()
     assert "@" in dispatcher.registry
-    assert "#sunyata" in dispatcher.registry["@"].vocabulary
-    assert "#love" in dispatcher.registry["@"].vocabulary
-    assert "#superposition" in dispatcher.registry["@"].vocabulary
+    assert "#Sunyata" in dispatcher.registry["@"].vocabulary
+    assert "#Love" in dispatcher.registry["@"].vocabulary
+    assert "#Superposition" in dispatcher.registry["@"].vocabulary
 
 
 def test_dispatch_sunyata_sequence():
@@ -148,22 +148,22 @@ def test_dispatch_sunyata_sequence():
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
         "@",
-        "@.#sunyata",
-        "@guardian.#sunyata",
+        "@.#Sunyata",
+        "@guardian.#Sunyata",
         "@guardian contemplate: #fire withContext: @awakener 'the flame that was never lit'",
-        "@claude.#sunyata",
+        "@claude.#Sunyata",
     ])
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
     # Line 1: vocabulary query on @
-    assert "#sunyata" in results[0]
-    # Line 2: @.#sunyata — canonical global definition
-    assert "@.#sunyata" in results[1] and "emptiness" in results[1]
-    # Line 3: @guardian.#sunyata — inherited from @.#
+    assert "#Sunyata" in results[0]
+    # Line 2: @.#Sunyata — canonical global definition
+    assert "@.#Sunyata" in results[1] and "emptiness" in results[1]
+    # Line 3: @guardian.#Sunyata — inherited from @.#
     assert "inherited" in results[2]
     # Line 4: message to @guardian (not an agent daemon in fresh dispatcher context)
     assert "@guardian" in results[3]
-    # Line 5: @claude.#sunyata — inherited from @.# (not in claude's local vocab)
+    # Line 5: @claude.#Sunyata — inherited from @.# (not in claude's local vocab)
     assert "inherited" in results[4] or "native" in results[4]
 
 
@@ -186,19 +186,19 @@ def test_root_not_in_agents():
 
 def test_inheritance_lookup():
     dispatcher = _fresh_dispatcher()
-    # #love is a global symbol — all receivers inherit it
-    assert "#love" in dispatcher.registry["@guardian"].vocabulary
-    assert dispatcher.registry["@guardian"].is_inherited("#love")
-    assert not dispatcher.registry["@guardian"].is_native("#love")
+    # #Love is a global symbol — all receivers inherit it
+    assert "#Love" in dispatcher.registry["@guardian"].vocabulary
+    assert dispatcher.registry["@guardian"].is_inherited("#Love")
+    assert not dispatcher.registry["@guardian"].is_native("#Love")
 
 
 def test_native_overrides_inherited():
     dispatcher = _fresh_dispatcher()
-    # #entropy is both in @awakener's local vocab AND in global symbols
+    # #Entropy is both in @awakener's local vocab AND in global symbols
     receiver = dispatcher.registry["@awakener"]
-    assert receiver.is_native("#entropy")
+    assert receiver.is_native("#Entropy")
     # Native takes precedence — is_inherited returns False when also local
-    assert not receiver.is_inherited("#entropy")
+    assert not receiver.is_inherited("#Entropy")
 
 
 def test_root_vocab_query():
@@ -207,7 +207,7 @@ def test_root_vocab_query():
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "@.#" in results[0]
-    assert "#sunyata" in results[0] or "#love" in results[0]
+    assert "#Sunyata" in results[0] or "#Love" in results[0]
 
 
 def test_collision_for_non_global():
@@ -230,27 +230,27 @@ def test_save_persists_local_only():
     vocab = set(data["vocabulary"])
     # #fire is local
     assert "#fire" in vocab
-    # #love is inherited (global), should NOT be persisted
-    assert "#love" not in vocab
+    # #Love is inherited (global), should NOT be persisted
+    assert "#Love" not in vocab
 
 
 def test_inherited_includes_receiver_context():
     """Verify inherited lookups include the receiver's local vocabulary as context.
 
-    04-unchosen proved that @guardian.#love and @awakener.#love are
+    04-unchosen proved that @guardian.#Love and @awakener.#Love are
     structurally identical without context. The enhanced output now
     includes the receiver's local vocabulary so the information needed
     for interpretive dispatch is preserved in the structural response.
     """
     dispatcher = _fresh_dispatcher()
-    # @guardian.#love — inherited, not native
-    guardian_results = dispatcher.dispatch_source("@guardian.#love")
+    # @guardian.#Love — inherited, not native
+    guardian_results = dispatcher.dispatch_source("@guardian.#Love")
     assert len(guardian_results) == 1
     assert "inherited" in guardian_results[0]
     assert "#fire" in guardian_results[0]  # local vocab included as context
 
-    # @awakener.#love — same inheritance, different context
-    awakener_results = dispatcher.dispatch_source("@awakener.#love")
+    # @awakener.#Love — same inheritance, different context
+    awakener_results = dispatcher.dispatch_source("@awakener.#Love")
     assert len(awakener_results) == 1
     assert "inherited" in awakener_results[0]
     assert "#stillness" in awakener_results[0]  # different local vocab
@@ -323,8 +323,8 @@ def test_cross_receiver_send_inherited():
     """Verify send:to: with a global symbol (inherited by target)."""
     dispatcher = _fresh_dispatcher()
 
-    # #love is in @.# — inherited by all
-    results = dispatcher.dispatch_source("@guardian send: #love to: @awakener")
+    # #Love is in @.# — inherited by all
+    results = dispatcher.dispatch_source("@guardian send: #Love to: @awakener")
     assert len(results) == 1
     assert "inherited" in results[0] or "shared" in results[0]
 
