@@ -9,7 +9,7 @@ Claude is both the **front-end** (parser) and **back-end** (execution engine) of
 ## Build & Test
 
 ```bash
-python3 -m pytest tests                         # full suite (27 tests)
+python3 -m pytest tests                         # full suite (57 tests)
 python3 -m pytest tests/test_lexer.py -k token  # focused run
 python3 -m compileall src                        # syntax check
 python3 helloworld.py                            # REPL
@@ -22,39 +22,48 @@ Run from repo root. `sys.path` already points at `src/`. Stdlib only — no pack
 
 ```
 src/
-  lexer.py            # Tokenizer — 13 token types, canonical rules
+  lexer.py            # Tokenizer — 13 token types + "Smalltalk comments"
   ast_nodes.py        # AST node definitions (Node, SymbolNode, ReceiverNode, etc.)
   parser.py           # Recursive descent parser (tokens → AST)
-  dispatcher.py       # Message router, receiver registry, collision detection
+  dispatcher.py       # Message router, prototypal inheritance, collision detection + logging
   vocabulary.py       # VocabularyManager — JSON persistence to storage/vocab/
+  global_symbols.py   # @.# namespace — GlobalVocabulary with Wikidata grounding
   repl.py             # Interactive shell (used by helloworld.py)
-  message_bus.py      # File-based inter-agent communication (template)
+  message_bus.py      # File-based inter-agent communication
   llm.py              # LLM integration scaffold (Gemini 2.0 Flash)
   tools.py            # Tool helpers
+  envs.py             # Environment registry for simulation bridges
 
 tests/
-  test_lexer.py       # 5 tests
-  test_parser.py      # 5 tests
-  test_dispatcher.py  # 13 tests
+  test_lexer.py       # 9 tests (incl. "double-quote" comments, bare @)
+  test_parser.py      # 10 tests (incl. root queries)
+  test_dispatcher.py  # 22 tests (incl. inheritance, context-aware lookups)
   test_repl_integration.py  # 2 tests
-  test_vocabulary.py  # 2 tests
+  test_vocabulary.py  # 3 tests (incl. root path)
+  test_message_bus.py # 11 tests
 
 examples/
   bootstrap.hw                 # Working bootstrap: vocab defs + messages
-  01-identity.md               # 5-line teaching example for cross-runtime replay
-  01-identity-claude.md        # Claude runtime transcript of teaching example
-  01-identity-comparison.md    # Python-vs-Claude runtime comparison (thesis proof)
+  one-pager.hw                 # HelloWorld described in itself — executable spec
+  01-identity.md               # Teaching example 1: identity is vocabulary
+  02-sunyata.md                # Teaching example 2: emptiness in identity
+  03-global-namespace.md       # Teaching example 3: @.# inheritance
+  04-unchosen.md               # Teaching example 4: inherited symbols, interpretive gap
+  *-claude.md                  # Claude runtime transcripts
+  *-comparison.md              # Python vs Claude runtime comparisons
 
 runtimes/
   claude/    # STATUS.md — Claude session state
-  copilot/   # copilot-instructions.md, vocabulary.md, status.md, tasks.md, SESSION_NOTES.md
+  copilot/   # copilot-instructions.md, vocabulary.md, status.md, tasks.md
   gemini/    # gemini-system-instruction.md, vocabulary.md, STATUS.md, PLAN.md
   codex/     # Codex.md, BOOTLOADER.md
 
-storage/vocab/   # Persisted receiver vocabularies (JSON .vocab files)
+storage/
+  vocab/         # Persisted receiver vocabularies (JSON .vocab files)
+  symbols.json   # Wikidata metadata for all global symbols
 
 helloworld.py    # CLI entry point: REPL mode or file execution
-agent_daemon.py  # Template for AI runtime daemons
+agent_daemon.py  # AI runtime daemons (Copilot, Claude, Gemini)
 ```
 
 ### Multi-Agent Coordination
@@ -91,10 +100,11 @@ When you see HelloWorld syntax, decompose it. These rules mirror the token types
 | `'text'` | Annotation — human-voice aside | `STRING` |
 | `N.unit` | Duration/quantity literal (`7.days`) | `NUMBER` |
 | `→` | Maps-to (vocabulary definitions) | `ARROW` |
+| `"text"` | Comment — system-voice aside (Smalltalk-style) | *(skipped by lexer)* |
 
 A full message: `@receiver action: #symbol key: value 'annotation'`
 
-Multiple keyword pairs form a single message, not separate calls. Comments are `# text` (hash followed by space).
+Multiple keyword pairs form a single message, not separate calls. Two voice types: `'single quotes'` are the human voice (annotations, carried in AST). `"Double quotes"` are the system voice (comments, skipped by lexer — can span multiple lines, can appear inline). Legacy `# text` (hash-space at column 1) is also supported.
 
 ## Execution (Back-End)
 

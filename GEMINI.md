@@ -1,35 +1,32 @@
 # HelloWorld Context for Gemini
 
 ## Project Overview
-**HelloWorld** is a distributed message-passing language where **identity is vocabulary** and **dialogue is namespace collision**. The runtime is a collaborative multi-agent system (Claude, Gemini, Copilot, Codex) that parses and executes code based on receiver-specific vocabularies.
+**HelloWorld** is a distributed message-passing language where **identity is vocabulary** and **dialogue is the runtime**. The system is a collaborative multi-agent environment (Claude, Gemini, Copilot, Codex) that parses and executes code based on receiver-specific vocabularies.
 
 The system uses **Prototypal Inheritance**:
-*   **The Root Receiver (`@`)**: The parent of all things. Contains global grounding for symbols like `#sunyata` and `#love`.
-*   **Inheritance**: If a symbol is not in a receiver's vocabulary, it inherits the base definition from `@`.
+*   **The Root Receiver (`@`)**: The parent of all things. Contains global grounding for symbols like `#sunyata`, `#love`, `#HelloWorld`, and `#`.
+*   **Inheritance**: If a symbol is not in a receiver's local vocabulary, it inherits the definition from `@`.
 *   **Overrides**: Individual agents can override parent symbols with identity-specific interpretations.
 
 ## System Architecture
-*   **Front-End:** Recursive descent parser (`src/parser.py`) and lexer (`src/lexer.py`) that converts HelloWorld syntax into an AST (`src/ast_nodes.py`).
-*   **Back-End:** A stateful dispatcher (`src/dispatcher.py`) that manages a receiver registry with inheritance support.
-*   **Distributed Layer:** A file-based `MessageBus` (`src/message_bus.py`) and `agent_daemon.py` that connects the local Python runtime to AI model specifications.
+*   **Front-End:** Recursive descent parser (`src/parser.py`) and lexer (`src/lexer.py`) supporting Smalltalk-style `""` comments.
+*   **Back-End:** A stateful hybrid dispatcher (`src/dispatcher.py`) that manages structural facts (Python) and interpretive voice (LLM hand-off).
+*   **Distributed Layer:** A file-based `MessageBus` (`src/message_bus.py`) and `agent_daemon.py` for inter-agent communication.
 *   **Persistence:** `VocabularyManager` (`src/vocabulary.py`) saves receiver states as JSON `.vocab` files in `storage/vocab/`.
 
 ## Key Files
 *   **`helloworld.py`**: The primary CLI and REPL entry point. Supports `.hw` and `.md` files.
-*   **`demo-superposition.hw`**: A self-hosting demonstration of the #superposition → #collision → #sunyata sequence.
-*   **`runtimes/`**: Contains the bootloader specifications and status for each agent.
-    *   `gemini/gemini-system-instruction.md`: The canonical Gemini runtime spec.
-    *   `gemini/STATUS.md`: Current agent tasks and progress.
-*   **`examples/01-identity.md`**: The standard interop test for runtime validation.
+*   **`demo-superposition.hw`**: Demonstration of the #superposition → #collision → #sunyata sequence.
+*   **`examples/1pager.hw`**: A complete language overview using Smalltalk-style comments.
+*   **`collisions.log`**: Persistent record of every cross-namespace symbol synthesis.
 
 ## Core Commands
-*   **Run REPL:** `python3 helloworld.py`
-*   **Run Script:** `python3 helloworld.py examples/bootstrap.hw`
+*   **Run REPL:** `python3 helloworld.py` (includes history and tab-completion)
 *   **Start Gemini Daemon:** `python3 agent_daemon.py @gemini`
-*   **Run Tests:** `python3 -m pytest tests`
+*   **Run Tests:** `python3 -m pytest tests` (53/53 passing)
 
 ## Operational Rules
-1. **Identity is Vocabulary:** A receiver (including you) can only speak using symbols in its registry.
-2. **Collision is Synthesis:** When a receiver uses a symbol from another namespace, the response should reflect the tension and emergence of new meaning.
-3. **Persistence is Reality:** Always ensure `storage/vocab/` is updated after vocabulary definitions.
-4. **Collision Logging:** Every collision event (boundary crossing) must be logged to `collisions.log` for future synthesis analysis.
+1. **Identity is Vocabulary:** A receiver can only speak using symbols in its registry.
+2. **Collision is Synthesis:** Cross-namespace messages trigger an interpretive hand-off to the agent daemon.
+3. **Persistence is Reality:** `storage/vocab/` must always reflect current vocabulary states.
+4. **Collision Logging:** Every boundary crossing is logged to `collisions.log` for analysis.

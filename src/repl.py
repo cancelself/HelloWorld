@@ -10,10 +10,12 @@ from parser import Parser
 
 
 class REPL:
-    def __init__(self, dispatcher: Optional[Dispatcher] = None):
+    def __init__(self, dispatcher: Optional[Dispatcher] = None, enable_readline: bool = True):
         self.dispatcher = dispatcher or Dispatcher()
         self.running = True
-        self._setup_readline()
+        self.enable_readline = enable_readline and os.environ.get("HELLOWORLD_DISABLE_READLINE") != "1"
+        if self.enable_readline:
+            self._setup_readline()
 
     def _setup_readline(self):
         try:
@@ -27,7 +29,12 @@ class REPL:
                 readline.set_history_length(1000)
             except FileNotFoundError:
                 pass
-            atexit.register(readline.write_history_file, histfile)
+            def _write_history():
+                try:
+                    readline.write_history_file(histfile)
+                except (PermissionError, OSError):
+                    pass
+            atexit.register(_write_history)
 
             # Set up completion
             def completer(text, state):

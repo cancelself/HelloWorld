@@ -84,7 +84,7 @@ class Dispatcher:
         """Initialize default receivers with inheritance support."""
         # The parent receiver '@' carries the global grounding
         defaults = {
-            "@": ["#sunyata", "#love", "#superposition"],
+            "@": ["#sunyata", "#love", "#superposition", "#"],
             "@awakener": ["#stillness", "#entropy", "#intention", "#sleep", "#insight"],
             "@guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
             "@gemini": ["#parse", "#dispatch", "#state", "#collision", "#entropy", "#meta", "#search", "#sync", "#act", "#env", "#love", "#sunyata", "#superposition", "#eval", "#config"],

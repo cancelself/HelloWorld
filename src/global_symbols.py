@@ -155,6 +155,14 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         wikidata_id=None,  # We are too new for Wikidata
         wikipedia_url=None
     ),
+    
+    "#": GlobalSymbol(
+        name="#",
+        definition="The meta-symbol for identity inquiry; used to query a receiver's full vocabulary",
+        domain="HelloWorld meta",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
 }
 
 

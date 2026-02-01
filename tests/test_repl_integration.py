@@ -14,7 +14,7 @@ from repl import REPL
 
 def test_repl_pipeline():
     with tempfile.TemporaryDirectory() as tmpdir:
-        repl = REPL(dispatcher=Dispatcher(vocab_dir=tmpdir))
+        repl = REPL(dispatcher=Dispatcher(vocab_dir=tmpdir), enable_readline=False)
     
         command = "@guardian"
         
@@ -28,7 +28,7 @@ def test_repl_pipeline():
 
 def test_repl_message_evolution():
     with tempfile.TemporaryDirectory() as tmpdir:
-        repl = REPL(dispatcher=Dispatcher(vocab_dir=tmpdir))
+        repl = REPL(dispatcher=Dispatcher(vocab_dir=tmpdir), enable_readline=False)
         
         f1 = StringIO()
         with redirect_stdout(f1):
