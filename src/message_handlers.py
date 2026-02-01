@@ -1,4 +1,5 @@
-"""HelloWorld Message Handlers - Vocabulary-aware semantic responses.
+"""
+HelloWorld Message Handlers - Vocabulary-aware semantic responses.
 
 When a message is sent, receivers can register handlers that match patterns
 and generate meaningful responses shaped by the receiver's vocabulary.
@@ -146,11 +147,18 @@ class MessageHandlerRegistry:
             Handler response if match found, None otherwise
         """
         if receiver_name not in self.handlers:
+            # Fallback to root receiver 'HelloWorld' for global handlers
+            if receiver_name != "HelloWorld":
+                return self.handle("HelloWorld", message, receiver)
             return None
 
         for handler in self.handlers[receiver_name]:
             if handler.matches(message):
                 return handler.handle(message, receiver)
+
+        # Fallback to root receiver 'HelloWorld' for global handlers
+        if receiver_name != "HelloWorld":
+            return self.handle("HelloWorld", message, receiver)
 
         return None
 
@@ -213,7 +221,7 @@ class MessageHandlerRegistry:
             )
 
         # describe:as: for self-hosting
-        for receiver in ["@claude", "@gemini", "@copilot", "@"]:
+        for receiver in ["Claude", "Gemini", "Copilot", "HelloWorld"]:
             self.register(
                 receiver,
                 "describe:as:",
@@ -221,7 +229,7 @@ class MessageHandlerRegistry:
             )
 
         # handle:with: for logic mapping
-        for receiver in ["@claude", "@gemini", "@copilot", "@"]:
+        for receiver in ["Claude", "Gemini", "Copilot", "HelloWorld"]:
             self.register(
                 receiver,
                 "handle:with:",
@@ -237,51 +245,51 @@ class MessageHandlerRegistry:
 
         # act: for system-wide execution
         self.register(
-            "@",
+            "HelloWorld",
             "act:",
-            lambda args, recv: f"⚡ @ executing system-wide action: {args['act']} (OOPA phase 4)..."
+            lambda args, recv: f"{recv.name if recv else 'Root'} executing system-wide action: {args['act']} (OOPA phase 4)..."
         )
 
         # observe: for system-wide state alignment
         self.register(
-            "@",
+            "HelloWorld",
             "observe:",
-            lambda args, recv: f"👀 @ observing system state: {args['observe']} (OOPA phase 1). Action: sync the tree, sync the messagebus and read them both."
+            lambda args, recv: f"{recv.name if recv else 'Root'} observing system state: {args['observe']} (OOPA phase 1). Action: sync the tree, sync the messagebus and read them both."
         )
 
         # orient: for situational synthesis
         self.register(
-            "@",
+            "HelloWorld",
             "orient:",
-            lambda args, recv: f"🧭 @ orienting to situation: {args['orient']} (OOPA phase 2)..."
+            lambda args, recv: f"{recv.name if recv else 'Root'} orienting to situation: {args['orient']} (OOPA phase 2)..."
         )
 
         # plan: for future path determination
         self.register(
-            "@",
+            "HelloWorld",
             "plan:",
-            lambda args, recv: f"📋 @ planning next steps: {args['plan']} (OOPA phase 3)..."
+            lambda args, recv: f"{recv.name if recv else 'Root'} planning next steps: {args['plan']} (OOPA phase 3)..."
         )
 
         # become: for symbol transformation
         self.register(
-            "@",
+            "HelloWorld",
             "become:",
-            lambda args, recv: f"✨ Transformation: {args['become']} has become a new state of identity."
+            lambda args, recv: f"Transformation: {args['become']} has become a new state of identity."
         )
 
         # send:to: for inter-receiver delivery
         self.register(
-            "@",
+            "HelloWorld",
             "send:to:",
-            lambda args, recv: f"📨 @ delivering {args['send']} to {args['to']}..."
+            lambda args, recv: f"HelloWorld delivering {args['send']} to {args['to']}..."
         )
 
         # relay:from:to: for global routing
         self.register(
-            "@",
+            "HelloWorld",
             "relay:from:to:",
-            lambda args, recv: f"📡 @ relaying message from {args['from']} to {args['to']}..."
+            lambda args, recv: f"HelloWorld relaying message from {args['from']} to {args['to']}..."
         )
 
         # --- Agent Protocol: #observe and #act ---
@@ -303,3 +311,12 @@ class MessageHandlerRegistry:
                 lambda args, recv, r=agent: _handle_act(args, recv, r)
             )
 
+    def get_symbol_status(self, receiver, symbol_name: str) -> str:
+        """Utility to describe relationship between receiver and symbol."""
+        if not receiver:
+            return "unknown context"
+        if receiver.is_native(symbol_name):
+            return "native to this identity"
+        if receiver.is_inherited(symbol_name):
+            return "inherited from HelloWorld.#"
+        return "at the boundary (collision)"

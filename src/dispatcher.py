@@ -28,957 +28,326 @@ from message_handlers import MessageHandlerRegistry
 
 
 class Receiver:
-
-
     def __init__(self, name: str, vocabulary: Set[str] = None):
-
-
         self.name = name
-
-
         self.local_vocabulary = vocabulary if vocabulary is not None else set()
-
-
     
-
-
     @property
-
-
     def vocabulary(self) -> Set[str]:
-
-
         """Returns full vocabulary: local + inherited from @.#"""
-
-
         return self.local_vocabulary | GlobalVocabulary.all_symbols()
-
-
     
-
-
     def has_symbol(self, symbol: str) -> bool:
-
-
         """Check if receiver has symbol (local or inherited)."""
-
-
         return symbol in self.local_vocabulary or is_global_symbol(symbol)
-
-
     
-
-
     def is_native(self, symbol: str) -> bool:
-
-
         """Check if symbol is in receiver's local vocabulary."""
-
-
         return symbol in self.local_vocabulary
-
-
     
-
-
     def is_inherited(self, symbol: str) -> bool:
-
-
         """Check if symbol is inherited from global namespace."""
-
-
         return is_global_symbol(symbol) and symbol not in self.local_vocabulary
 
-
-
-
-
     def add_symbol(self, symbol: str):
-
-
         """Add symbol to local vocabulary."""
-
-
         self.local_vocabulary.add(symbol)
 
-
-
-
-
     def __repr__(self):
-
-
         local = sorted(list(self.local_vocabulary))
-
-
         inherited = sorted(list(GlobalVocabulary.all_symbols()))
-
-
         return f"{self.name}.# → local{local} + inherited{inherited}"
 
 
-
-
-
-
-
-
 class Dispatcher:
-
-
     def __init__(self, vocab_dir: str = "storage/vocab"):
-
-
         self.registry: Dict[str, Receiver] = {}
-
-
         self.vocab_manager = VocabularyManager(vocab_dir)
-
-
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
-
-
         self.message_bus = MessageBus() if self.message_bus_enabled else None
-
-
         self.tool_registry = ToolRegistry()
-
-
         self.env_registry = EnvironmentRegistry()
-
-
         self.message_handler_registry = MessageHandlerRegistry()
-
-
         self.log_file = "collisions.log"
-
-
-        # @ is the root parent
-
-
+        # HelloWorld is the root parent
         self.agents = {"Claude", "Copilot", "Gemini", "Codex"}
-
-
         self._bootstrap()
 
-
-
-
-
     def _log_collision(self, receiver: str, symbol: str, context: Optional[str] = None):
-
-
         timestamp = datetime.now().isoformat()
-
-
         log_entry = f"[{timestamp}] COLLISION: {receiver} reached for {symbol}"
-
-
         if context:
-
-
             log_entry += f" in context of {context}"
-
-
         log_entry += "\n"
-
-
         with open(self.log_file, "a") as f:
-
-
             f.write(log_entry)
 
-
-
-
-
     def _bootstrap(self):
-
-
         """Initialize default receivers with inheritance support."""
-
-
-        # The parent receiver '@' carries the global grounding
-
-
+        # The parent receiver 'HelloWorld' carries the global grounding
+        # Minimal Core: 12 essential symbols from docs/MINIMAL_CORE.md
         defaults = {
-
-
-            "@": ["#Sunyata", "#Love", "#Superposition", "#become", "#", "#observe", "#orient", "#plan", "#act", "#HelloWorld", "#Identity", "#Vocabulary"],
-
-
+            "HelloWorld": [
+                "#HelloWorld", "#", "##", "#Agent", "#observe", "#orient", "#plan", "#act",
+                "#Namespace", "#Vocabulary", "#Identity", "#Sunyata"
+            ],
             "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
-
-
             "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
-
-
-            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Env", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld"],
-
-
+            "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Environment", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld"],
             "Claude": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#design", "#Identity", "#vocabulary", "#interpret", "#reflect", "#spec", "#synthesize", "#boundary"],
-
-
             "Copilot": ["#bash", "#git", "#edit", "#test", "#parse", "#dispatch", "#search", "#MCP", "#Serverless"],
-
-
             "Codex": ["#execute", "#analyze", "#parse", "#runtime", "#Collision"]
-
-
         }
-
-
         
-
-
         for name, initial_vocab in defaults.items():
-
-
             persisted = self.vocab_manager.load(name)
-
-
             if persisted:
-
-
                 self.registry[name] = Receiver(name, persisted)
-
-
             else:
-
-
                 self.registry[name] = Receiver(name, set(initial_vocab))
-
-
                 self.vocab_manager.save(name, self.registry[name].local_vocabulary)
 
-
-
-
-
     def dispatch(self, nodes: List[Node]) -> List[str]:
-
-
         results = []
-
-
         for node in nodes:
-
-
             result = self._execute(node)
-
-
             if result:
-
-
                 results.append(result)
-
-
         return results
 
-
-
-
-
     def dispatch_source(self, source: str) -> List[str]:
-
-
         # Support both new and old parser APIs
-
-
         if hasattr(Parser, 'from_source'):
-
-
             nodes = Parser.from_source(source).parse()
-
-
         else:
-
-
             from lexer import Lexer
-
-
             nodes = Parser(Lexer(source).tokenize()).parse()
-
-
         return self.dispatch(nodes)
 
-
-
-
-
     def list_receivers(self) -> List[str]:
-
-
         return sorted(self.registry.keys())
 
-
-
-
-
     def vocabulary(self, receiver: str) -> List[str]:
-
-
         return sorted(self._get_or_create_receiver(receiver).vocabulary)
 
-
-
-
-
     def save(self, receiver: Optional[str] = None):
-
-
         """Persist vocabularies for one receiver or all receivers."""
-
-
         if receiver:
-
-
             rec = self._get_or_create_receiver(receiver)
-
-
             self.vocab_manager.save(receiver, rec.local_vocabulary)
-
-
             return
-
-
         for name, rec in self.registry.items():
-
-
             self.vocab_manager.save(name, rec.local_vocabulary)
 
-
-
-
-
     def _execute(self, node: Node) -> Optional[str]:
-
-
         if isinstance(node, VocabularyQueryNode):
-
-
             return self._handle_query(node)
-
-
         if isinstance(node, ScopedLookupNode):
-
-
             return self._handle_scoped_lookup(node)
-
-
         if isinstance(node, VocabularyDefinitionNode):
-
-
             return self._handle_definition(node)
-
-
         if isinstance(node, MessageNode):
-
-
             return self._handle_message(node)
-
-
         return None
 
-
-
-
-
     def _handle_query(self, node: VocabularyQueryNode) -> str:
-
-
         receiver = self._get_or_create_receiver(node.receiver.name)
-
-
         return str(receiver)
 
-
-
-
-
     def _handle_scoped_lookup(self, node: ScopedLookupNode) -> str:
-
-
         receiver_name = node.receiver.name
-
-
         symbol_name = node.symbol.name
-
-
         
-
-
-        # Special case: @.#symbol queries global definition
-
-
-        if receiver_name == "@":
-
-
+        # Special case: HelloWorld.#symbol queries global definition
+        if receiver_name == "HelloWorld":
             if symbol_name == "#observe":
-
-
-                print("🤝 Handshake Protocol (@.#observe) initiated. Synchronizing system state...")
-
-
+                print("🤝 Handshake Protocol (HelloWorld.#observe) initiated. Synchronizing system state...")
                 self.save() # Sync local state to disk
-
-
-                return "@.#observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
-
-
-
-
+                return "HelloWorld.#observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
 
             if symbol_name == "#HelloWorld":
-
-
-                return "@.#HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
-
-
-
-
+                return "HelloWorld.#HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
 
             global_def = GlobalVocabulary.definition(symbol_name)
-
-
             wikidata = GlobalVocabulary.wikidata_url(symbol_name)
-
-
-            result = f"@.{symbol_name} → {global_def}"
-
-
+            result = f"HelloWorld.{symbol_name} → {global_def}"
             if wikidata:
-
-
                 result += f"\n  Wikidata: {wikidata}"
-
-
             return result
-
-
         
-
-
         receiver = self._get_or_create_receiver(receiver_name)
-
-
         is_native = receiver.is_native(symbol_name)
-
-
         is_inherited = receiver.is_inherited(symbol_name)
-
-
         
-
-
         # If meta-receiver, try interpretive voice
-
-
         if (
-
-
             (is_native or is_inherited)
-
-
             and receiver_name in self.agents
-
-
             and self.message_bus_enabled
-
-
             and self.message_bus
-
-
         ):
-
-
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
-
-
             # Mode 3: Inherited-Interpretive — include local vocabulary as context
-
-
             local_vocab = sorted(list(receiver.local_vocabulary))
-
-
             context = f"Local Vocabulary: {local_vocab}" if is_inherited else None
-
-
             prompt = f"{receiver_name}.{symbol_name}?"
-
-
-            response = self.message_bus_send_and_wait("@", receiver_name, prompt, context=context)
-
-
+            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
             if response:
-
-
                 return response
-
-
         
-
-
         if is_native:
-
-
             return f"{receiver_name}.{symbol_name} is native to this identity."
-
-
         elif is_inherited:
-
-
             global_def = GlobalVocabulary.definition(symbol_name)
-
-
             local_ctx = sorted(receiver.local_vocabulary)
-
-
-            return f"{receiver_name}.{symbol_name} inherited from @.# → {global_def}\n  [{receiver_name}.# = {local_ctx}]"
-
-
+            return f"{receiver_name}.{symbol_name} inherited from HelloWorld.# → {global_def}\n  [{receiver_name}.# = {local_ctx}]"
         else:
-
-
             self._log_collision(receiver_name, symbol_name)
-
-
             
-
-
             # If the receiver is an LLM agent, ask them to interpret the collision
-
-
             if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
-
-
                 print(f"📡 Asking {receiver_name} to interpret collision with {symbol_name}...")
-
-
                 local_vocab = sorted(list(receiver.local_vocabulary))
-
-
                 context = f"Local Vocabulary: {local_vocab}"
-
-
                 prompt = f"handle collision: {symbol_name}"
-
-
-                response = self.message_bus_send_and_wait("@", receiver_name, prompt, context=context)
-
-
+                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
                 if response:
-
-
                     return response
-
-
             
-
-
             return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
 
-
-
-
-
     def _handle_cross_receiver_send(self, sender_name: str, sender, node: MessageNode) -> str:
-
-
         """Handle send:to: — deliver a symbol from one receiver to another.
 
-
-
-
-
         This is where 'dialogue is namespace collision' becomes real.
-
-
         The sent symbol is checked against the target's vocabulary:
-
-
         - native: target already owns it
-
-
         - inherited: target inherits it from @.#
-
-
         - collision: symbol is foreign — boundary event, target learns it
-
-
         """
-
-
         symbol_val = node.arguments.get("send")
-
-
         target_val = node.arguments.get("to")
 
-
-
-
-
         symbol_name = symbol_val.name if hasattr(symbol_val, 'name') else str(symbol_val)
-
-
         # Handle ReceiverNode or string
-
-
         if hasattr(target_val, 'name'):
-
-
             target_name = target_val.name
-
-
         else:
-
-
             target_name = str(target_val)
-
-
-
-
 
         target = self._get_or_create_receiver(target_name)
 
-
-
-
-
         lines = [f"{sender_name} sends {symbol_name} to {target_name}"]
 
-
-
-
-
         if target.is_native(symbol_name):
-
-
             lines.append(f"  {target_name} already holds {symbol_name} (native)")
-
-
         elif target.is_inherited(symbol_name):
-
-
-            lines.append(f"  {target_name} inherits {symbol_name} from @.# (shared ground)")
-
-
+            lines.append(f"  {target_name} inherits {symbol_name} from HelloWorld.# (shared ground)")
         else:
-
-
             # Collision — the symbol is foreign to the target
-
-
             self._log_collision(target_name, symbol_name)
-
-
             target.add_symbol(symbol_name)
-
-
             self.vocab_manager.save(target_name, target.local_vocabulary)
-
-
             lines.append(f"  {symbol_name} is foreign to {target_name} — boundary collision")
-
-
             lines.append(f"  {target_name} learns {symbol_name} (vocabulary drift)")
-
-
             lines.append(f"  [{target_name}.# = {sorted(target.local_vocabulary)}]")
 
-
-
-
-
         if node.annotation:
-
-
             lines.append(f"  '{node.annotation}'")
-
-
-
-
 
         return "\n".join(lines)
 
-
-
-
-
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
-
-
         receiver = self._get_or_create_receiver(node.receiver.name)
-
-
         for sym in node.symbols:
-
-
             receiver.add_symbol(sym.name)
-
-
         self.vocab_manager.save(receiver.name, receiver.local_vocabulary)
-
-
         return f"Updated {receiver.name} vocabulary."
 
-
-
-
-
     def _learn_symbols_from_message(self, receiver_name: str, receiver, node: MessageNode):
-
-
         """Learn unknown symbols from message arguments (vocabulary drift).
 
-
-
-
-
         Called before handler dispatch so vocabulary grows through dialogue
-
-
         regardless of whether a semantic handler matches.
-
-
         """
-
-
         learned = False
-
-
         for val in node.arguments.values():
-
-
             if isinstance(val, SymbolNode):
-
-
                 if not receiver.has_symbol(val.name):
-
-
                     receiver.add_symbol(val.name)
-
-
                     self._log_collision(receiver_name, val.name, context="message_args")
-
-
                     learned = True
-
-
         if learned:
-
-
             self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
 
-
-
-
-
     def _handle_message(self, node: MessageNode) -> str:
-
-
         receiver_name = node.receiver.name
-
-
         receiver = self._get_or_create_receiver(receiver_name)
-
-
-        parent = self._get_or_create_receiver("@")
-
-
-
-
+        parent = self._get_or_create_receiver("HelloWorld")
 
         # Build message string
-
-
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
 
-
-
-
-
         # Always learn symbols first — vocabularies grow through dialogue
-
-
         self._learn_symbols_from_message(receiver_name, receiver, node)
 
-
-
-
-
         # Cross-receiver delivery: send:to: triggers collision on target
-
-
         keywords = list(node.arguments.keys())
-
-
         if keywords == ["send", "to"]:
-
-
             # First execute the root handler for the side effect/logging
-
-
-            root_response = self.message_handler_registry.handle("@", node, parent)
-
-
+            root_response = self.message_handler_registry.handle("HelloWorld", node, parent)
             if root_response:
-
-
                 print(root_response)
-
-
             return self._handle_cross_receiver_send(receiver_name, receiver, node)
 
-
-
-
-
         # SEMANTIC LAYER: Try registered message handlers first for ALL receivers
-
-
         handler_response = self.message_handler_registry.handle(receiver_name, node, receiver)
-
-
         if handler_response:
-
-
             return handler_response
-
-
         
-
-
         # Check for Environment interaction: @receiver action: #env with: "scienceworld"
-
-
         if "#env" in args_str:
-
-
             env_name = node.arguments.get("with", LiteralNode("scienceworld")).value
-
-
             env = self.env_registry.get_env(str(env_name))
-
-
             if env:
-
-
-                # Map @ action to env step
-
-
+                # Map HelloWorld action to env step
                 # e.g., @gemini action: #step args: "look"
-
-
                 action_node = node.arguments.get("action", SymbolNode("#look"))
-
-
                 action = self._node_val(action_node)
-
-
                 observation = env.step(action)
-
-
                 return f"[{receiver_name} @ {env_name}] {observation}"
 
-
-
-
-
         # Check for Tool symbols in the message
-
-
         tool_results = []
-
-
         for key, val in node.arguments.items():
-
-
             if isinstance(val, SymbolNode):
-
-
-                # Tools can be inherited from '@' or be native
-
-
+                # Tools can be inherited from "HelloWorld" or be native
                 tool = self.tool_registry.get_tool(val.name)
-
-
                 if tool and (val.name in receiver.vocabulary or val.name in parent.vocabulary):
-
-
                     tool_input = args_str 
-
-
                     tool_results.append(tool.execute(query=tool_input))
 
-
-
-
-
         # External dispatch if receiver is a known agent daemon
-
-
         if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
-
-
             message_content = f"{receiver_name} {args_str}"
-
-
             if node.annotation:
-
-
                 message_content += f" '{node.annotation}'"
-
-
             
-
-
             print(f"📡 Dispatching to {receiver_name} for interpretive response...")
-
-
             local_vocab = sorted(list(receiver.local_vocabulary))
-
-
             context = f"Local Vocabulary: {local_vocab}"
-
-
-            response = self.message_bus_send_and_wait("@", receiver_name, message_content, context=context)
-
-
+            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
             if response:
-
-
                 return response
-
-
             else:
-
-
                 return f"[{receiver_name}] (no response - daemon may not be running)"
 
-
-
-
-
         response_text = f"[{receiver_name}] Received message: {args_str}"
-
-
         if tool_results:
-
-
             response_text += "\n" + "\n".join(tool_results)
-
-
         if node.annotation:
-
-
             response_text += f" '{node.annotation}'"
-
-
         return response_text
-
-
-
 
     def message_bus_send_and_wait(self, sender: str, receiver: str, content: str, context: Optional[str] = None) -> Optional[str]:
         if not self.message_bus_enabled or not self.message_bus:

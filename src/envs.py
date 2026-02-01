@@ -101,10 +101,9 @@ class BabyAIEnv(Environment):
 
 class EnvironmentRegistry:
     def __init__(self):
-        self.envs: Dict[str, Environment] = {
+        self.envs = {
             "scienceworld": ScienceWorldEnv(),
-            "alfworld": AlfWorldEnv(),
-            "babyai": BabyAIEnv()
+            "#Environment": ScienceWorldEnv(), # Primary mapping
         }
 
     def get_env(self, name: str) -> Optional[Environment]:
