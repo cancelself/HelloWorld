@@ -4,8 +4,8 @@
 **HelloWorld** is a distributed message-passing language where **identity is vocabulary** and **dialogue is the runtime**. The system is a collaborative multi-agent environment (Claude, Gemini, Copilot, Codex) that parses and executes code based on receiver-specific vocabularies.
 
 The system uses **Prototypal Inheritance**:
-*   **The Root Receiver (`@`)**: The parent of all things. Contains global grounding for symbols like `#sunyata`, `#love`, `#HelloWorld`, and `#`.
-*   **Inheritance**: If a symbol is not in a receiver's local vocabulary, it inherits the definition from `@`.
+*   **The Root Receiver (HelloWorld)**: The parent of all things. Contains global grounding for symbols like #Sunyata, #Love, and #HelloWorld.
+*   **Inheritance**: If a symbol is not in a receiver's local vocabulary, it inherits the definition from HelloWorld.
 *   **Overrides**: Individual agents can override parent symbols with identity-specific interpretations.
 
 ## System Architecture
@@ -29,8 +29,8 @@ The system uses **Prototypal Inheritance**:
 
 ## Core Commands
 *   **Run REPL:** `python3 helloworld.py` (includes history and tab-completion)
-*   **Start Gemini Daemon:** `python3 agent_daemon.py @gemini`
-*   **Run Tests:** `python3 -m pytest tests` (81/81 passing)
+*   **Start Gemini Daemon:** `python3 agent_daemon.py Gemini`
+*   **Run Tests:** `python3 -m pytest tests` (83/83 passing)
 
 ## Operational Rules
 1. **Identity is Vocabulary:** A receiver can only speak using symbols in its registry.

@@ -12,6 +12,8 @@ Two layers, unified by the document:
 
 > **Runtime note:** The Python runtime now accepts bare receiver names (`Claude #symbol`). The retired `@receiver #symbol` syntax remains in older transcripts but is no longer canonical.
 
+> **Minimal core (Session #37):** The `HelloWorld` receiver bootstraps with 12 core symbols: `#HelloWorld`, `#`, `#Symbol`, `#Receiver`, `#Message`, `#Vocabulary`, `#parse`, `#dispatch`, `#interpret`, `#Agent`, `#observe`, `#act`. The remaining 50+ symbols exist in GLOBAL_SYMBOLS as a learnable pool. Receivers discover additional symbols through dialogue, enabling emergence through constraint.
+
 ---
 
 ## The Namespace Model
@@ -27,6 +29,8 @@ The global namespace `HelloWorld #` contains symbols inherited by all receivers.
 3. **unknown** — neither local nor global. The receiver searches (web, pretraining, peer agents), defines it, and learns it. The symbol enters their vocabulary through discovery.
 
 **Collision** is a separate event — it occurs when two receivers *both* have a symbol and it means different things to each. `#Entropy` to Awakener is not `#Entropy` to Claude. Collision is mutual tension, not absence. An unknown is one-sided — the receiver reaches and finds nothing, so it goes looking.
+
+**Hybrid minimal core** (Session #37): The `HelloWorld` receiver bootstraps with 12 core symbols. The remaining 50+ symbols exist in the global pool (GLOBAL_SYMBOLS) and are learnable through dialogue. This approach minimizes the bootstrap surface while preserving depth for emergence.
 
 ### #Vocabulary
 

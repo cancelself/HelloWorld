@@ -815,3 +815,75 @@
 [2026-02-01T00:31:32.887168] COLLISION: Awakener reached for #fire in context of message_args
 [2026-02-01T00:31:33.229146] COLLISION: Guardian reached for #stillness
 [2026-02-01T00:31:33.229231] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:33:39.011510] COLLISION: Awakener reached for #fire
+[2026-02-01T00:33:39.013739] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:33:39.014889] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:33:54.241395] COLLISION: Awakener reached for #fire
+[2026-02-01T00:33:54.244877] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:33:54.246112] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:33:54.247302] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:33:54.589189] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:33:54.589270] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:33:56.113172] COLLISION: Awakener reached for #fire
+[2026-02-01T00:33:56.115255] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:33:56.116357] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:34:11.327646] COLLISION: Awakener reached for #fire
+[2026-02-01T00:34:11.330766] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:34:11.331888] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:34:11.332966] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:34:11.670762] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:34:11.670837] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:36:44.194176] COLLISION: Awakener reached for #fire
+[2026-02-01T00:36:44.196388] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:36:44.197670] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:36:59.350750] COLLISION: Awakener reached for #fire
+[2026-02-01T00:36:59.354852] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:36:59.356275] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:36:59.357567] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:36:59.695388] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:36:59.695470] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:37:01.563807] COLLISION: Awakener reached for #fire
+[2026-02-01T00:37:01.566570] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:37:01.567779] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:37:16.702742] COLLISION: Awakener reached for #fire
+[2026-02-01T00:37:16.707024] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:37:16.708753] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:37:16.710552] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:37:17.047279] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:37:17.047359] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:40:34.027364] COLLISION: Awakener reached for #fire
+[2026-02-01T00:40:34.029614] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:40:34.030754] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:40:49.269277] COLLISION: Awakener reached for #fire
+[2026-02-01T00:40:49.273685] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:40:49.275245] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:40:49.276719] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:40:49.719170] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:40:49.719251] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:42:04.325979] COLLISION: Awakener reached for #fire
+[2026-02-01T00:42:04.328053] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:42:04.329321] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:42:19.466337] COLLISION: Awakener reached for #fire
+[2026-02-01T00:42:19.469777] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:42:19.471100] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:42:19.472512] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:42:19.917987] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:42:19.918068] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:42:49.993535] COLLISION: Awakener reached for #fire
+[2026-02-01T00:42:49.995800] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:42:49.997096] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:43:05.097967] COLLISION: Awakener reached for #fire
+[2026-02-01T00:43:05.102023] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:43:05.103470] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:43:05.104624] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:43:05.544755] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:43:05.544833] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:43:15.174006] COLLISION: Awakener reached for #fire
+[2026-02-01T00:43:15.176250] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:43:15.177370] COLLISION: Guardian reached for #stillness in context of message_args
+[2026-02-01T00:43:30.392927] COLLISION: Awakener reached for #fire
+[2026-02-01T00:43:30.396885] COLLISION: Guardian reached for #customsymbol in context of message_args
+[2026-02-01T00:43:30.398228] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:43:30.399522] COLLISION: Awakener reached for #fire in context of message_args
+[2026-02-01T00:43:30.837918] COLLISION: Guardian reached for #stillness
+[2026-02-01T00:43:30.837998] COLLISION: Guardian reached for #stillness in context of message_args

@@ -174,7 +174,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
 
     "#HelloWorld": GlobalSymbol(
         name="#HelloWorld",
-        definition="Message-passing language where identity is vocabulary and dialogue is namespace collision",
+        definition="Human-AI language inspired by Markdown and Smalltalk where identity is vocabulary and dialogue is learning",
         domain="programming languages",
         wikidata_id=None,  # We are too new for Wikidata
         wikipedia_url=None

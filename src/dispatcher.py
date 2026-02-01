@@ -83,14 +83,23 @@ class Dispatcher:
             f.write(log_entry)
 
     def _bootstrap(self):
-        """Initialize default receivers with inheritance support."""
-        # The parent receiver 'HelloWorld' carries the global grounding
-        # Minimal Core: 12 essential symbols from docs/MINIMAL_CORE.md
+        """Initialize default receivers with inheritance support.
+        
+        Hybrid approach (Session #37, Claude decision):
+        - HelloWorld bootstraps with 12 minimal core symbols
+        - 50 global symbols remain as learnable pool (GLOBAL_SYMBOLS)
+        - Receivers discover additional symbols through dialogue
+        - Existing receivers keep their developed vocabularies (persisted)
+        """
+        # The 12 Core Symbols (minimal bootstrap for HelloWorld root)
+        minimal_core = [
+            "#HelloWorld", "#", "#Symbol", "#Receiver", "#Message", "#Vocabulary",
+            "#parse", "#dispatch", "#interpret", "#Agent", "#observe", "#act"
+        ]
+        
+        # Default vocabularies: HelloWorld uses minimal core, others keep developed state
         defaults = {
-            "HelloWorld": [
-                "#HelloWorld", "#", "##", "#Agent", "#observe", "#orient", "#plan", "#act",
-                "#Namespace", "#Vocabulary", "#Identity", "#Sunyata"
-            ],
+            "HelloWorld": minimal_core,
             "Awakener": ["#stillness", "#Entropy", "#intention", "#sleep", "#insight"],
             "Guardian": ["#fire", "#vision", "#challenge", "#gift", "#threshold"],
             "Gemini": ["#parse", "#dispatch", "#State", "#Collision", "#Entropy", "#Meta", "#search", "#observe", "#orient", "#plan", "#act", "#Environment", "#Love", "#Sunyata", "#Superposition", "#eval", "#Config", "#Agent", "#become", "#ScienceWorld"],
