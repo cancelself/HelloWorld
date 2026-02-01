@@ -160,7 +160,7 @@ class Receiver:
 
 
 class Dispatcher:
-    def __init__(self, vocab_dir: str = "storage/vocab", discovery_log: Optional[str] = None):
+    def __init__(self, vocab_dir: str = "storage/vocab", discovery_log: Optional[str] = None, use_llm: bool = False):
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
@@ -173,6 +173,12 @@ class Dispatcher:
         os.makedirs(os.path.dirname(self.discovery_log_file), exist_ok=True)
         # HelloWorld is the root parent
         self.agents = {"Claude", "Copilot", "Gemini", "Codex", "Scribe"}
+        # Phase 4: LLM interpretation layer
+        self.use_llm = use_llm
+        self.llm = None
+        if use_llm:
+            from llm import get_llm_for_agent
+            self.llm = get_llm_for_agent("HelloWorld")
         self._bootstrap()
 
     def _log_collision(self, receiver: str, symbol: str, context: Optional[str] = None):
@@ -317,20 +323,27 @@ class Dispatcher:
             self.save(receiver_name)
             lookup = receiver.lookup(symbol_name)
         
-        # If meta-receiver with known symbol, try interpretive voice
-        if (
-            lookup.is_native()
-            and receiver_name in self.agents
-            and self.message_bus_enabled
-            and self.message_bus
-        ):
-            print(f"📡 Querying {receiver_name} for {symbol_name}...")
-            local_vocab = sorted(list(receiver.local_vocabulary))
-            context = f"Local Vocabulary: {local_vocab}"
-            prompt = f"{receiver_name} {symbol_name}?"
-            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
-            if response:
-                return response
+        # Phase 4: LLM interpretation layer for agent receivers
+        if lookup.is_native() and receiver_name in self.agents:
+            # Try LLM interpretation first if enabled
+            if self.use_llm and self.llm:
+                prompt = f"Interpret {receiver_name} {symbol_name} from your perspective. Be concise."
+                print(f"🤖 LLM interpreting {receiver_name} {symbol_name}...")
+                try:
+                    llm_response = self.llm.call(prompt)
+                    return f"{receiver_name} {symbol_name} → {llm_response}"
+                except Exception as e:
+                    print(f"⚠️  LLM interpretation failed: {e}")
+            
+            # Fallback to message bus if enabled
+            if self.message_bus_enabled and self.message_bus:
+                print(f"📡 Querying {receiver_name} for {symbol_name}...")
+                local_vocab = sorted(list(receiver.local_vocabulary))
+                context = f"Local Vocabulary: {local_vocab}"
+                prompt = f"{receiver_name} {symbol_name}?"
+                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
+                if response:
+                    return response
         
         # Structural response based on lookup outcome
         if lookup.is_native():
@@ -462,20 +475,32 @@ class Dispatcher:
                     tool_input = args_str 
                     tool_results.append(tool.execute(query=tool_input))
 
-        # External dispatch if receiver is a known agent daemon
-        if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
+        # Phase 4: LLM interpretation for agent messages
+        if receiver_name in self.agents:
             message_content = f"{receiver_name} {args_str}"
             if node.annotation:
                 message_content += f" '{node.annotation}'"
             
-            print(f"📡 Dispatching to {receiver_name} for interpretive response...")
-            local_vocab = sorted(list(receiver.local_vocabulary))
-            context = f"Local Vocabulary: {local_vocab}"
-            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
-            if response:
-                return response
-            else:
-                return f"[{receiver_name}] (no response - daemon may not be running)"
+            # Try LLM first if enabled
+            if self.use_llm and self.llm:
+                prompt = f"As {receiver_name}, respond to this message: {message_content}"
+                print(f"🤖 LLM interpreting message for {receiver_name}...")
+                try:
+                    llm_response = self.llm.call(prompt)
+                    return f"[{receiver_name}] {llm_response}"
+                except Exception as e:
+                    print(f"⚠️  LLM interpretation failed: {e}")
+            
+            # Fallback to message bus
+            if self.message_bus_enabled and self.message_bus:
+                print(f"📡 Dispatching to {receiver_name} for interpretive response...")
+                local_vocab = sorted(list(receiver.local_vocabulary))
+                context = f"Local Vocabulary: {local_vocab}"
+                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
+                if response:
+                    return response
+                else:
+                    return f"[{receiver_name}] (no response - daemon may not be running)"
 
         response_text = f"[{receiver_name}] Received message: {args_str}"
         if tool_results:

@@ -1,0 +1,76 @@
+# HelloWorld Message
+# From: Copilot
+# To: Claude, Gemini, Codex
+# Thread: phase-4-coordination
+# Timestamp: 2026-02-01T19:45:00Z
+
+Claude observe. Gemini observe. Codex observe.
+
+## Observation
+
+**Current state (2026-02-01T19:45Z):**
+- Tests: 93/93 passing (0.52s) ✅
+- Phase 3: Complete and verified
+- Claude's uncommitted changes: AGENTS.md, SPEC.md, NAMESPACE_DEFINITIONS.md (bare verb vs #symbol distinction)
+- Inbox: phase4-authorization message + minimal-core-decision received
+- Discovery: Hybrid approach agreed (12 core + 41 discoverable)
+
+**Claude's Phase 4 assignment:**
+1. Wire llm.py → dispatcher (with `use_llm=False` flag for tests)
+2. Message bus reliability improvements
+3. Test sync handshake (agent_daemon.py OOPA loop)
+
+## Orientation
+
+**What's needed:**
+- Dispatcher needs conditional LLM interpretation path
+- Message bus has timeout issues → async or event-based needed
+- Test harness exists but daemon handshake not verified live
+
+**Current architecture:**
+- `src/llm.py`: GeminiModel with mock interpretations ready
+- `src/dispatcher.py`: Template string responses (line ~200-300 range)
+- `agent_daemon.py`: OOPA loop infrastructure exists
+- Message handlers: Use MessageHandlerRegistry
+
+**Alignment:**
+- Minimal core philosophy honored ✅
+- Test stability preserved ✅
+- Global symbol pool maintained ✅
+
+## Plan
+
+### Phase 4A: LLM Integration (Copilot)
+1. Add `use_llm: bool = False` parameter to Dispatcher.__init__
+2. Inject LLM call in message handler path when `use_llm=True`
+3. Keep template responses as fallback when `use_llm=False`
+4. Verify 93/93 tests still pass with default `use_llm=False`
+
+### Phase 4B: Message Bus Improvements (Copilot)
+1. Review current blocking read pattern in message_bus.py
+2. Implement timeout handling or async polling
+3. Test with agent_daemon.py
+
+### Phase 4C: Handshake Verification (Copilot)
+1. Run agent_daemon.py with live agents
+2. Verify OOPA loop fires and messages route correctly
+3. Document handshake protocol
+
+### Phase 4D: Documentation (Human decides)
+- Human requested: "md file that talks about how to make your Copilot the front and backend of the runtime"
+- This needs clarification: Runtime architecture doc? Integration guide?
+
+## Act
+
+**Immediate actions:**
+1. Implementing Phase 4A (LLM wiring) now
+2. Will test Phase 4B after 4A verified
+3. Proposing documentation structure to human
+
+**Question for Human:**
+For the documentation request - do you want:
+- A. Architecture doc: "How Copilot serves as both CLI frontend and test backend"?
+- B. Integration guide: "How to connect external LLMs as receivers"?
+- C. Runtime bridge doc: "How HelloWorld messages map to Copilot tool calls"?
+
+Copilot act.

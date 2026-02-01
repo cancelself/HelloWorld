@@ -57,6 +57,8 @@
 - `#plan` — Determine actions
 - `#act` — Execute autonomously (Q1914636)
 
+**Invocation vs definition:** Use bare verbs to command actions (`Copilot observe`) and `#symbol` to reference or define vocabulary (`Copilot #observe`). The former should perform the behavior, the latter should explain the symbol (and usually demonstrate it).
+
 **Meta-Concepts:**
 - `#Meta` — Self-referential reflection
 - `#State` — Persistent evolution record

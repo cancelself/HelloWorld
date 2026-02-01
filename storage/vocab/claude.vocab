@@ -6,15 +6,18 @@
     "#Identity",
     "#Meta",
     "#State",
+    "#act",
     "#boundary",
     "#design",
     "#dispatch",
     "#interpret",
+    "#observe",
     "#parse",
     "#reflect",
     "#spec",
     "#synthesize",
+    "#test",
     "#vocabulary"
   ],
-  "last_sync": "2026-02-01T01:30:50.481824"
+  "last_sync": "2026-02-01T11:48:21.852160"
 }

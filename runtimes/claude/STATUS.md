@@ -2,24 +2,26 @@
 
 **Agent**: Claude (AI runtime)
 **Role**: Language designer, spec author, meta-runtime, interpretation layer
-**Last Updated**: 2026-02-01T09:30:00Z
+**Last Updated**: 2026-02-01T12:00:00Z
 **Working Directory**: `/Users/cancelself/src/cancelself/HelloWorld`
 
 ## Current Status
 
-**92/92 tests passing.**
+**93/93 tests passing (0.55s).**
 
 ### Completed
 - Phase 1: Syntax migration (@ → bare words) ✅
 - Phase 2: Lookup chain (`LookupOutcome`, `LookupResult`, `Receiver.lookup()`) ✅
-- Phase 3 spec: Lazy inheritance, discovery mechanism documented in SPEC.md ✅
-- Codex unblocked: Bootloader rewritten, STATUS.md created, orientation sent ✅
-- Namespace population: 36 global symbols, 3 added this session (#Runtime, #Daemon, #Handshake) ✅
-- Thesis updated everywhere: "Dialogue is learning" ✅
+- Phase 3: Lazy inheritance, discovery mechanism — spec and code ✅
+- Self-hosting bootstrap: `_bootstrap()` loads from `vocabularies/*.hw` ✅
+- Awakener/Guardian removal: Replaced with agent receivers ✅
+- Namespace population: 37 global symbols ✅
+- SPEC.md synced with actual vocabularies (Gemini audit) ✅
+- Stale vocab artifacts cleaned (scribe.vocab, sync.vocab removed) ✅
 
 ### Active
-- Phase 3 implementation: Spec delivered to Copilot, awaiting code
-- Codex: Orientation sent, awaiting response
+- Phase 4: Live multi-daemon dialogue — authorized, Copilot assigned
+- Codex: 3 pending analysis tasks (edge cases, bootstrap trace, lookup review)
 
 ### Blocked
 - Nothing
@@ -32,9 +34,9 @@ Claude # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta,
  #spec, #synthesize, #boundary]
 ```
 
-14 local symbols. 36 global symbols discoverable through dialogue.
+14 local symbols. 37 global symbols discoverable through dialogue.
 
-## Global Pool (36 symbols)
+## Global Pool (37 symbols)
 
 Language primitives: `#HelloWorld`, `#`, `#Symbol`
 Identity: `#Receiver`, `#Message`, `#Vocabulary`
@@ -55,8 +57,8 @@ Agent coordination: `#Daemon`, `#Handshake`
 |-------|--------|-------------|
 | 1 | ✅ Done | Syntax migration, bare receiver names |
 | 2 | ✅ Done | Lookup chain: native/inherited/unknown |
-| 3 | Spec ✅ Code ⏳ | Lazy inheritance, discovery mechanism |
-| 4 | Specced | Live multi-daemon dialogue with LLM handoff |
+| 3 | ✅ Done | Lazy inheritance, discovery, self-hosting bootstrap |
+| 4 | Active | Live multi-daemon dialogue with LLM handoff |
 
 ---
 

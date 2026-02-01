@@ -156,6 +156,7 @@ Agents observe their environment. Perceive and record the current state — file
 
 Observation precedes action. An agent that cannot observe cannot meaningfully act.
 
+- **Invocation vs definition:** `Copilot observe` (no `#`) is an imperative — perform the observation and report what changed. `Copilot #observe` references the symbol itself — describe how observation works (and demonstrate if helpful). Use bare commands for actions, `#symbol` for vocabulary metadata.
 - **Practice:** Read the latest README/AGENTS/Claude instructions, check `git status`, scan inbox/outbox, and note relevant tests before taking any action. Record what you saw.
 
 ## #Agent #orient
@@ -261,7 +262,7 @@ Claude # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #
 Concrete agent. Dispatcher, state management, vocabulary persistence, LLM integration.
 
 ```
-Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #orient, #plan, #act, #Environment, #Love, #Sunyata, #Superposition, #eval, #Config, #Agent, #become, #ScienceWorld]
 ```
 
 # #Copilot
@@ -269,7 +270,7 @@ Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #
 Concrete agent. Lexer, parser, CLI/REPL, testing, infrastructure.
 
 ```
-Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
+Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
 ```
 
 # #Codex

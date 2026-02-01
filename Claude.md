@@ -172,7 +172,7 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 `@claude` is meta. It's you reflecting on the system from inside it.
 
 ```
-@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
+@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
 ```
 
 `@claude.#Entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
@@ -181,13 +181,13 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 
 ### Bootstrapped Receivers
 
+Self-hosting: vocabularies load from `vocabularies/*.hw` files. The language defines its own bootstrap.
+
 ```
-@.# → [#Sunyata, #Love, #Superposition, #become, #]   (root — all receivers inherit)
-@awakener.# → [#stillness, #Entropy, #intention, #sleep, #insight]
-@guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
-@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
-@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search]
-@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act, #env, #Love, #Sunyata, #Superposition, #eval, #config]
+HelloWorld # → [#HelloWorld, #, #Symbol, #Receiver, #Message, #Vocabulary, #parse, #dispatch, #interpret, #Agent, #observe, #act]   (root — 12 minimal core)
+@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
+@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
+@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #orient, #plan, #act, #Environment, #Love, #Sunyata, #Superposition, #eval, #Config, #Agent, #become, #ScienceWorld]
 @codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
 ```
 

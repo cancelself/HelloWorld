@@ -1,7 +1,7 @@
 {
-  "receiver": "@sync",
+  "receiver": "Sync",
   "vocabulary": [
-    "#act",
     "#all"
-  ]
+  ],
+  "last_sync": "2026-02-01T11:45:37.662689"
 }
