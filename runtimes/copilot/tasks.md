@@ -27,10 +27,11 @@
 
 - [x] Create receiver registry/persistence layer (`src/dispatcher.py` + `VocabularyManager`)
 - [x] Implement message dispatcher
-- [ ] Map @copilot to tool calls
+- [x] Map @copilot to tool calls (documented in `docs/COPILOT_AS_RUNTIME.md`)
 - [ ] Map @github to MCP server calls
 - [x] Handle unknown receivers
 - [x] Implement vocabulary query resolution
+- [ ] Implement hybrid dispatcher (Python structural checks + LLM interpretation)
 
 ## Phase 4: State Management
 

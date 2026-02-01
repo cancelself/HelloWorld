@@ -150,8 +150,8 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     
     "#act": GlobalSymbol(
         name="#act",
-        definition="Taking autonomous action based on shared understanding, agency expressed through decision and execution",
-        domain="agency",
+        definition="Take autonomous action based on observation and shared understanding — the agent protocol complement to #observe",
+        domain="agent protocol",
         wikidata_id="Q1914636",  # activity
         wikipedia_url="https://en.wikipedia.org/wiki/Action_(philosophy)"
     ),
@@ -202,6 +202,22 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
         domain="philosophy",
         wikidata_id="Q844569",
         wikipedia_url="https://en.wikipedia.org/wiki/Identity_(philosophy)"
+    ),
+
+    "#Agent": GlobalSymbol(
+        name="#Agent",
+        definition="An entity that defines, references, and interprets symbols in HelloWorld — the active participant in dialogue",
+        domain="HelloWorld meta",
+        wikidata_id=None,
+        wikipedia_url=None
+    ),
+
+    "#observe": GlobalSymbol(
+        name="#observe",
+        definition="Perceive and record the current state of the environment — the agent protocol complement to #act",
+        domain="agent protocol",
+        wikidata_id=None,
+        wikipedia_url=None
     ),
 
     "#become": GlobalSymbol(

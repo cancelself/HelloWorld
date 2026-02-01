@@ -88,6 +88,26 @@ Four agents operate in this repo concurrently. Files can change between reads. C
 - **Registry:** `dispatcher.registry` is a `Dict[str, Receiver]`. Receiver has `.vocabulary` (set) and `.add_symbol()`.
 - **Test isolation:** Always use `_fresh_dispatcher()` or `tempfile.mkdtemp()` for vocab_dir in tests. The default `storage/vocab/` directory has persisted state from previous runs.
 
+## Namespace Model
+
+HelloWorld has two layers, unified by the document:
+
+- **`#` = Markdown = spec layer.** Headings in `SPEC.md` define the namespace. `# #Agent #observe` defines the symbol `observe` scoped to `Agent`. The document IS the bootloader.
+- **Bare words = Smalltalk = runtime layer.** The design target: `Claude observe. act.` sends messages without prefixes — the receiver's identity scopes the lookup.
+
+The canonical namespace definition lives in **`SPEC.md`** at the repo root. Key symbols defined there:
+
+| Symbol | Meaning |
+|--------|---------|
+| `#HelloWorld` | The language itself |
+| `#` | A symbol — the primitive |
+| `##` | Nested symbols (spec-layer only, not yet in parser) |
+| `#Agent` | Entity that defines, references, and interprets symbols |
+| `#Agent #observe` | Perceive the environment |
+| `#Agent #act` | Take autonomous action |
+
+**Current runtime:** The Python lexer/parser uses `@receiver #symbol` syntax with `@` prefixes. This works and has 73 passing tests. The bare-word Smalltalk syntax is the design target — migrating from `@receiver` to bare words would touch 150+ references across 17 files, so it's deferred.
+
 ## Parsing (Front-End)
 
 When you see HelloWorld syntax, decompose it. These rules mirror the token types in `src/lexer.py`:

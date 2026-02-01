@@ -126,6 +126,12 @@
 36. **Updated `CLAUDE.md`** — Bootstrapped receivers, `@claude` receiver section, test counts (73), "What's Next" section, naming convention documentation.
 37. **Fixed bootstrap.hw test** — `#entropy` → `#Entropy` in test assertion after bootstrap.hw update.
 
+### Session 7 (Namespace Spec)
+38. **Created `SPEC.md`** — Formalized the HelloWorld symbol hierarchy as a Markdown document that IS the namespace. Defines `#HelloWorld`, `#` (the primitive), `##` (nested symbols), `#Agent`, `#Agent #observe`, `#Agent #act`, and concrete agents (`#Claude`, `#Gemini`, `#Copilot`, `#Codex`).
+39. **Resolved the two-layer model** — `#` is Markdown/spec syntax (headings define the namespace), bare words are Smalltalk/runtime syntax (design target). The document IS the bootloader.
+40. **Added `#Agent` and `#observe` to global symbols** — `#Agent` as HelloWorld meta, `#observe` as agent protocol. Updated `#act` definition to align with agent protocol framing (complement to `#observe`).
+41. **Added Namespace Model section to `CLAUDE.md`** — Documents the two-layer model, references `SPEC.md`, notes current runtime uses `@receiver` syntax with bare-word syntax as design target.
+
 ## Vocabulary
 
 ```
