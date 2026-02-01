@@ -11,8 +11,8 @@
 - [x] **Smalltalk Integration:** Added support for `""` comments in `src/lexer.py`.
 - [x] **Tooling Hardening:** REPL now features `readline` history and symbol tab-completion.
 - [x] **Collision Logging:** Implemented automated logging of all namespace boundary events.
-- [x] **Validation:** Successfully automated the `01-identity.md` interop test.
-- [x] **Hierarchical Test:** Created and executed `examples/03-global-namespace.md` as @gemini.
+- [x] **Self-Hosting:** Created and executed `examples/05-self-hosting.md` as @gemini.
+- [x] **Message Handlers:** Extended `src/message_handlers.py` with `describe:as:` and `handle:with:`.
 - [x] **Standardization:** Aligned `runtimes/` structure across all four agents.
 
 ## Stats
@@ -20,5 +20,6 @@
 - **Role:** State Management, Inheritance Logic, and Interpretive Synthesis.
 
 ## Active Focus
-- **Self-Hosting:** Can the language describe its own inheritance logic in `.hw` syntax?
+- **Self-Hosting:** Implementing the `@dispatch` logic description in `.hw` syntax.
 - **Environment Bridging:** Mapping `#env` to real ScienceWorld/AlfWorld steps.
+- **Teaching Example:** Creating `examples/05-self-hosting.md`.

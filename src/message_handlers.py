@@ -148,3 +148,19 @@ class MessageHandlerRegistry:
                 "learn:",
                 lambda args, r=receiver: f"📚 {r} learns {args['learn']}"
             )
+
+        # describe:as: for self-hosting
+        for receiver in ["@claude", "@gemini", "@copilot"]:
+            self.register(
+                receiver,
+                "describe:as:",
+                lambda args, r=receiver: f"📖 {r} describes {args['describe']} as {args['as']}"
+            )
+
+        # handle:with: for logic mapping
+        for receiver in ["@claude", "@gemini", "@copilot"]:
+            self.register(
+                receiver,
+                "handle:with:",
+                lambda args, r=receiver: f"⚙️ {r} handles {args['handle']} with {args['with']}"
+            )

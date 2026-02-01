@@ -102,3 +102,18 @@
 [2026-01-31T16:30:39.057106] COLLISION: @awakener reached for #fire
 [2026-01-31T16:30:39.393043] COLLISION: @guardian reached for #stillness
 [2026-01-31T16:30:39.393157] COLLISION: @guardian reached for #stillness in context of message_args
+[2026-01-31T16:31:47.265710] COLLISION: @awakener reached for #fire
+[2026-01-31T16:31:47.268759] COLLISION: @guardian reached for #stillness in context of message_args
+[2026-01-31T16:32:02.409520] COLLISION: @awakener reached for #fire
+[2026-01-31T16:32:02.743427] COLLISION: @guardian reached for #stillness
+[2026-01-31T16:32:02.743537] COLLISION: @guardian reached for #stillness in context of message_args
+[2026-01-31T16:40:51.346743] COLLISION: @awakener reached for #fire
+[2026-01-31T16:40:51.350444] COLLISION: @guardian reached for #stillness in context of message_args
+[2026-01-31T16:41:06.474685] COLLISION: @awakener reached for #fire
+[2026-01-31T16:41:06.811291] COLLISION: @guardian reached for #stillness
+[2026-01-31T16:41:06.811370] COLLISION: @guardian reached for #stillness in context of message_args
+[2026-01-31T16:42:53.496719] COLLISION: @awakener reached for #fire
+[2026-01-31T16:42:53.500036] COLLISION: @guardian reached for #stillness in context of message_args
+[2026-01-31T16:43:08.637380] COLLISION: @awakener reached for #fire
+[2026-01-31T16:43:09.070412] COLLISION: @guardian reached for #stillness
+[2026-01-31T16:43:09.070494] COLLISION: @guardian reached for #stillness in context of message_args

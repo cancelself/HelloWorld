@@ -158,7 +158,7 @@ GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
     
     "#": GlobalSymbol(
         name="#",
-        definition="The meta-symbol for identity inquiry; used to query a receiver's full vocabulary",
+        definition="The symbol of Inquiry; the fundamental protocol by which one identity recognizes the boundaries of another",
         domain="HelloWorld meta",
         wikidata_id=None,
         wikipedia_url=None

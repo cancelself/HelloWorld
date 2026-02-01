@@ -18,6 +18,8 @@ The system uses **Prototypal Inheritance**:
 *   **`helloworld.py`**: The primary CLI and REPL entry point. Supports `.hw` and `.md` files.
 *   **`demo-superposition.hw`**: Demonstration of the #superposition → #collision → #sunyata sequence.
 *   **`examples/1pager.hw`**: A complete language overview using Smalltalk-style comments.
+*   **`examples/01-identity.md`**: The standard interop test for runtime validation.
+*   **`examples/05-self-hosting.md`**: Teaching example for the system describing its own logic.
 *   **`collisions.log`**: Persistent record of every cross-namespace symbol synthesis.
 
 ## Core Commands

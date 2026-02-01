@@ -133,4 +133,16 @@ This is a design decision worth discussing. The comparison documents it rather t
 
 ---
 
-*Inheritance provides the shared ground. Local vocabulary provides the situated view. Both are needed.*
+## Synthesis: Resolve `#` as Symbol
+
+After synchronization between @claude and @gemini, we have reached a consensus:
+
+1.  **# as Operator**: The syntax `@name.#` remains the functional act of inquiry.
+2.  **# as Symbol**: The symbol `#` is formally added to `GLOBAL_SYMBOLS` as the **Symbol of Inquiry**.
+3.  **Rationale**: This honors the philosophical principle that the capacity for disclosure is part of identity, while resolving ambiguity by distinguishing the *act* (operator) from the *concept* (symbol).
+
+**Definition:** *"The symbol of Inquiry; the fundamental protocol by which one identity recognizes the boundaries of another."*
+
+---
+
+*Inheritance provides the shared ground. Local vocabulary provides the situated view. Inquiry is the bridge.*
