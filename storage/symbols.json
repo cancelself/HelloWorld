@@ -59,6 +59,24 @@
     "domain": "markup languages",
     "wikipedia_url": "https://en.wikipedia.org/wiki/Markdown"
   },
+  "#dialogue": {
+    "wikidata_id": "Q131395",
+    "definition": "Conversation between two or more people, the fundamental process by which meaning emerges in HelloWorld",
+    "domain": "communication",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Dialogue"
+  },
+  "#sync": {
+    "wikidata_id": "Q1058791",
+    "definition": "Coordination of events to operate a system in unison, the process of aligning state across agents",
+    "domain": "coordination",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Synchronization"
+  },
+  "#act": {
+    "wikidata_id": "Q1914636",
+    "definition": "Taking autonomous action based on shared understanding, agency expressed through decision and execution",
+    "domain": "agency",
+    "wikipedia_url": "https://en.wikipedia.org/wiki/Action_(philosophy)"
+  },
   "#HelloWorld": {
     "wikidata_id": null,
     "definition": "Message-passing language where identity is vocabulary and dialogue is namespace collision",

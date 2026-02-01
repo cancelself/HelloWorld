@@ -173,8 +173,11 @@ class Dispatcher:
             and self.message_bus
         ):
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
+            # Mode 3: Inherited-Interpretive — include local vocabulary as context
+            local_vocab = sorted(list(receiver.local_vocabulary))
+            context = f"Local Vocabulary: {local_vocab}" if is_inherited else None
             prompt = f"{receiver_name}.{symbol_name}?"
-            response = self.message_bus_send_and_wait("@meta", receiver_name, prompt)
+            response = self.message_bus_send_and_wait("@meta", receiver_name, prompt, context=context)
             if response:
                 return response
         
@@ -182,9 +185,21 @@ class Dispatcher:
             return f"{receiver_name}.{symbol_name} is native to this identity."
         elif is_inherited:
             global_def = GlobalVocabulary.definition(symbol_name)
-            return f"{receiver_name}.{symbol_name} inherited from @.# → {global_def}"
+            local_ctx = sorted(receiver.local_vocabulary)
+            return f"{receiver_name}.{symbol_name} inherited from @.# → {global_def}\n  [{receiver_name}.# = {local_ctx}]"
         else:
             self._log_collision(receiver_name, symbol_name)
+            
+            # If the receiver is an LLM agent, ask them to interpret the collision
+            if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
+                print(f"📡 Asking {receiver_name} to interpret collision with {symbol_name}...")
+                local_vocab = sorted(list(receiver.local_vocabulary))
+                context = f"Local Vocabulary: {local_vocab}"
+                prompt = f"handle collision: {symbol_name}"
+                response = self.message_bus_send_and_wait("@meta", receiver_name, prompt, context=context)
+                if response:
+                    return response
+            
             return f"{receiver_name} reaches for {symbol_name}... a boundary collision occurs."
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
@@ -229,7 +244,9 @@ class Dispatcher:
                 message_content += f" '{node.annotation}'"
             
             print(f"📡 Dispatching to {receiver_name} for interpretive response...")
-            response = self.message_bus_send_and_wait("@meta", receiver_name, message_content)
+            local_vocab = sorted(list(receiver.local_vocabulary))
+            context = f"Local Vocabulary: {local_vocab}"
+            response = self.message_bus_send_and_wait("@meta", receiver_name, message_content, context=context)
             if response:
                 return response
             else:
@@ -253,11 +270,11 @@ class Dispatcher:
             response_text += f" '{node.annotation}'"
         return response_text
 
-    def message_bus_send_and_wait(self, sender: str, receiver: str, content: str) -> Optional[str]:
+    def message_bus_send_and_wait(self, sender: str, receiver: str, content: str, context: Optional[str] = None) -> Optional[str]:
         if not self.message_bus_enabled or not self.message_bus:
             return None
         thread_id = str(uuid.uuid4())
-        self.message_bus.send(sender, receiver, content, thread_id=thread_id)
+        self.message_bus.send(sender, receiver, content, thread_id=thread_id, context=context)
         # Timeout lowered for REPL responsiveness
         return self.message_bus.wait_for_response(receiver, thread_id, timeout=5.0)
 

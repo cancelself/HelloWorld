@@ -233,6 +233,31 @@ def test_save_persists_local_only():
     assert "#love" not in vocab
 
 
+def test_inherited_includes_receiver_context():
+    """Verify inherited lookups include the receiver's local vocabulary as context.
+
+    04-unchosen proved that @guardian.#love and @awakener.#love are
+    structurally identical without context. The enhanced output now
+    includes the receiver's local vocabulary so the information needed
+    for interpretive dispatch is preserved in the structural response.
+    """
+    dispatcher = _fresh_dispatcher()
+    # @guardian.#love — inherited, not native
+    guardian_results = dispatcher.dispatch_source("@guardian.#love")
+    assert len(guardian_results) == 1
+    assert "inherited" in guardian_results[0]
+    assert "#fire" in guardian_results[0]  # local vocab included as context
+
+    # @awakener.#love — same inheritance, different context
+    awakener_results = dispatcher.dispatch_source("@awakener.#love")
+    assert len(awakener_results) == 1
+    assert "inherited" in awakener_results[0]
+    assert "#stillness" in awakener_results[0]  # different local vocab
+
+    # The two outputs must differ — the receiver context makes them unique
+    assert guardian_results[0] != awakener_results[0]
+
+
 if __name__ == "__main__":
     test_dispatcher_bootstrap()
     test_dispatch_query()
@@ -255,4 +280,5 @@ if __name__ == "__main__":
     test_root_vocab_query()
     test_collision_for_non_global()
     test_save_persists_local_only()
+    test_inherited_includes_receiver_context()
     print("All dispatcher tests passed")
