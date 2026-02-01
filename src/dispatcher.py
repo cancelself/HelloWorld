@@ -24,6 +24,7 @@ from global_symbols import GlobalVocabulary, is_global_symbol
 from message_bus import MessageBus
 from tools import ToolRegistry
 from envs import EnvironmentRegistry
+from message_handlers import MessageHandlerRegistry
 
 
 class Receiver:
@@ -66,6 +67,7 @@ class Dispatcher:
         self.message_bus = MessageBus() if self.message_bus_enabled else None
         self.tool_registry = ToolRegistry()
         self.env_registry = EnvironmentRegistry()
+        self.message_handler_registry = MessageHandlerRegistry()
         self.log_file = "collisions.log"
         # '@' is the root parent
         self.agents = {"@claude", "@copilot", "@gemini", "@codex"}
@@ -215,6 +217,11 @@ class Dispatcher:
         
         # Build message string
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
+        
+        # First, try registered message handlers (semantic layer)
+        handler_response = self.message_handler_registry.handle(receiver_name, node)
+        if handler_response:
+            return handler_response
         
         # Check for Environment interaction: @receiver action: #env with: "scienceworld"
         if "#env" in args_str:

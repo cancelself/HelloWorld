@@ -11,7 +11,9 @@
 - [x] **Smalltalk Integration:** Added support for `""` comments in `src/lexer.py`.
 - [x] **Tooling Hardening:** REPL now features `readline` history and symbol tab-completion.
 - [x] **Collision Logging:** Implemented automated logging of all namespace boundary events.
-- [x] **Validation:** 53/53 tests passing across lexer, parser, dispatcher, and message bus.
+- [x] **Validation:** Successfully automated the `01-identity.md` interop test.
+- [x] **Hierarchical Test:** Created and executed `examples/03-global-namespace.md` as @gemini.
+- [x] **Standardization:** Aligned `runtimes/` structure across all four agents.
 
 ## Stats
 - **Vocabulary Size:** 13 core symbols (#act, #collision, #config, #dispatch, #entropy, #env, #eval, #love, #meta, #parse, #state, #sunyata, #superposition, #sync)

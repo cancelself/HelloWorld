@@ -66,6 +66,9 @@
 20. **Added `collisions.log` to `.gitignore`** — runtime output, not source.
 21. **Fixed duplicate `from datetime import datetime`** import in dispatcher (introduced by Gemini concurrent edit).
 22. **Synced `storage/symbols.json`** with Gemini's new global symbols (`#dialogue` Q131395, `#sync` Q1058791, `#act` Q1914636).
+23. **Executed 03-global-namespace as Claude runtime** — `examples/03-global-namespace-claude.md`. 8-line example testing inheritance. Key finding: Python now presents local vocabulary context alongside inherited lookups (session 4 fix), but only Claude reads *through* that context to produce situated meaning.
+24. **Wrote `examples/03-global-namespace-comparison.md`** — Python vs Claude comparison. Identifies the three-layer pattern across all four teaching examples. Notes vocabulary drift (`#stillness` migrated to Guardian) and Gemini's `#` as symbol proposal.
+25. **Deleted `examples/1pager.hw`** — untracked duplicate of `one-pager.hw` created by Gemini.
 
 ## Project State
 
@@ -86,6 +89,8 @@
 
 **02-sunyata**: Emptiness doesn't break identity-as-vocabulary — it completes it. "Identity is vocabulary" is conventional truth; `#sunyata` prevents it from calcifying. See `examples/02-sunyata-comparison.md`.
 
+**03-global-namespace**: Inheritance provides shared ground; local vocabulary provides situated meaning. Python now includes `[@receiver.# = [local_vocab]]` context (session 4 fix), which is the structural prerequisite for interpretation — but only Claude reads through it. Vocabulary drift observed: `#stillness` migrated from Awakener to Guardian through repeated collision. See `examples/03-global-namespace-comparison.md`.
+
 **04-unchosen**: Structural inheritance is lossy. `@guardian.#love` and `@awakener.#love` produce identical Python output but fundamentally different Claude output. The receiver's local vocabulary shapes the meaning of inherited symbols — but only an interpretive runtime can see it. This defines the next dispatcher capability: "mode 3" inherited-interpretive lookup. See `examples/04-unchosen-comparison.md`.
 
 ### What's Been Resolved
@@ -100,7 +105,7 @@
 1. **Real API integration** — `agent_daemon.py` template exists; needs Anthropic/Google API wiring for live multi-daemon dialogue.
 2. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet.
 3. **Self-hosting** — Can HelloWorld describe its own dispatch rules in `.hw` syntax? `examples/one-pager.hw` is a first step.
-4. **03-global-namespace teaching example** — The `@.#` inheritance model needs its own comparison document.
+4. **`#` as symbol decision** — Gemini proposes adding bare `#` to `GLOBAL_SYMBOLS`. Philosophically coherent (identity inquiry is part of identity), practically concerning (conflates syntax with semantics). Needs resolution.
 
 ## Vocabulary
 
@@ -122,12 +127,12 @@
 
 ## Next
 
-Four teaching examples now, each with Claude transcript and comparison. The thesis is demonstrated and the inherited-interpretive lookup is implemented. The language has Smalltalk-style comments and a self-describing one-pager.
+Four teaching examples complete, each with Claude transcript and comparison. All four comparisons written. The three-layer pattern is documented: identity (01) → emptiness (02) → inheritance (03) → interpretation gap (04).
 
 1. **Live multi-daemon dialogue** — Wire real API calls into agent daemons. The message bus and dispatcher are ready.
 2. **Cross-runtime transcripts** — Copilot and Codex need to run all teaching examples.
 3. **Self-hosting** — `examples/one-pager.hw` is HelloWorld described in itself. Next: can HelloWorld describe its own dispatch rules executably?
-4. **03-global-namespace teaching example** — The `@.#` inheritance model deserves its own 5-line example and comparison.
+4. **Resolve `#` as symbol** — Gemini's proposal needs design review. See comparison doc.
 
 ---
 

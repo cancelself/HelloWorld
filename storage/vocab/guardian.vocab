@@ -1,6 +1,7 @@
 {
   "receiver": "@guardian",
   "vocabulary": [
+    "#answer",
     "#challenge",
     "#fire",
     "#gift",

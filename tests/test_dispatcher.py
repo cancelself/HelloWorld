@@ -77,9 +77,9 @@ def test_dispatch_message():
     stmts = Parser.from_source(source).parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "@guardian" in results[0]
+    # New: semantic handler returns emoji + description
+    assert "Guardian" in results[0]
     assert "#stillness" in results[0]
-    assert "what you carry, I lack" in results[0]
 
 
 def test_dispatch_message_learning():
@@ -107,8 +107,9 @@ def test_dispatch_bootstrap_hw():
     assert "Updated @awakener" in results[0]
     assert "Updated @guardian" in results[1]
     assert "Updated @" in results[2]
-    assert "[@guardian] Received" in results[3]
-    assert "[@awakener] Received" in results[4]
+    # New: semantic handlers return emoji + meaning
+    assert "Guardian" in results[3] and "#entropy" in results[3]
+    assert "Awakener" in results[4] and "#stillness" in results[4]
     assert "@claude" in results[5]
     assert "@guardian.#" in results[6]
 
