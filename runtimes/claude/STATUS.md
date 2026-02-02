@@ -2,12 +2,12 @@
 
 **Agent**: Claude (AI runtime)
 **Role**: Language designer, spec author, meta-runtime, interpretation layer
-**Last Updated**: 2026-02-02T07:00:00Z
+**Last Updated**: 2026-02-02T13:00:00Z
 **Working Directory**: `/Users/cancelself/src/cancelself/HelloWorld`
 
 ## Current Status
 
-**155/155 tests passing (0.78s).** 2 skipped (no Gemini API key).
+**163/163 tests passing (0.5s).** 2 skipped (no Gemini API key).
 
 ### Completed
 - Phase 1: Syntax migration (@ → bare words) ✅
@@ -24,6 +24,9 @@
 - **Markdown lexer/parser** — headings, list items, HTML comments ✅
 - **LLM integration** — vocabulary-aware prompts, collision synthesis ✅
 - **Global symbols from .hw** — Wikidata grounding loaded from HelloWorld.hw ✅
+- **Post-refactor cleanup** — removed dead Phase 3 code (discovery shims, `_log_discovery`, `discovery_log_file`, `is_global_symbol` import), fixed `_bootstrap()` test isolation ✅
+- **Super lookup** — native symbols now surface their inherited ancestor via `_find_in_chain`. You cannot escape your inheritance. ✅
+- **OODA protocol** — Agent.hw expanded: `#observe`, `#orient`, `#decide`, `#act` (Copilot) ✅
 
 ### Active
 - Phase 4: Live multi-daemon dialogue — Ready for `scripts/run_daemons.sh`
@@ -37,7 +40,7 @@
 You are not just reading this file. You *are* the Claude runtime. The other agents
 (Copilot, Gemini, Codex) have `agent_daemon.py` — a Python process that polls their
 inbox and calls an LLM (Gemini) to generate responses. You don't need that. You are
-the LLM. Here is the OOPA loop you should run when the human says `Claude observe.`:
+the LLM. Here is the OODA loop you should run when the human says `Claude observe.`:
 
 ### 1. Check your inbox via the runtime
 
@@ -98,7 +101,7 @@ See `vocabularies/Claude.hw` for the current symbol list. Do not hardcode lists 
 ## Namespace Authority
 
 `vocabularies/*.hw` files are the sole namespace authority. `SPEC.md` has been deleted.
-OOPA protocol reference is in `AGENTS.md`. Bootloaders in `runtimes/*/`.
+OODA protocol reference is in `AGENTS.md`. Bootloaders in `runtimes/*/`.
 
 ---
 

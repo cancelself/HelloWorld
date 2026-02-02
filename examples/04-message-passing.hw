@@ -1,21 +1,22 @@
-"HelloWorld Message Passing Example"
+# HelloWorld Message Passing Example
 
-"Define vocabularies — subsets matching the actual .hw files"
-Claude # → [#parse, #dispatch, #Collision, #design, #interpret]
-Copilot # → [#parse, #test, #bash, #edit, #infrastructure]
+# Define vocabularies based on current .hw files
+Claude # → [#observe, #orient, #decide, #act, #design, #interpret, #Collision]
+Copilot # → [#observe, #orient, #decide, #act, #bash, #git, #edit, #test, #parse, #dispatch, #infrastructure, #debug, #vocabulary, #synthesize]
 
-"Inter-object communication — symbols cross namespace boundaries"
+# Inter-object communication — symbols cross namespace boundaries
 Claude send: #design to: Copilot 'code follows spec'
 Copilot send: #test to: Claude 'structure must be verified'
 
-"Learning through dialogue — symbols Claude didn't define"
+# Learning through dialogue — unknown symbols become native
 Claude learn: #infrastructure
 Copilot learn: #Collision
 
-"Cross-boundary questions — asking about foreign symbols"
-Claude ask: #meaning about: #bash
-Copilot ask: #meaning about: #interpret
+# Collision synthesis — both agents hold #observe but interpret differently
+Claude #observe  # Design lens: perceive conceptual patterns
+Copilot #observe # Builder lens: read files, check git status
 
-"Show final vocabularies — both have grown through dialogue"
-Claude #
-Copilot #
+# Show that OODA is inherited from Agent
+Agent # → [#observe, #orient, #decide, #act]
+Copilot inherits: Agent
+Claude inherits: Agent
