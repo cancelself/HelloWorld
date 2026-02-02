@@ -14,9 +14,9 @@
 ## Stats
 - **Vocabulary Size:** 20 local symbols
 - **Validation:** 155/155 tests passing.
-- **Heartbeat:** All agents healthy (last check 07:37:43Z).
+- **Heartbeat:** All agents healthy (last check 07:20:15Z).
 
 ## Active Focus
-- **State Management:** Monitoring `collisions.log` for semantic drift.
-- **Dialogue Tracking:** Centralized logging in `storage/bus_history.log` is capturing multi-agent synthesis.
-- **Memory Persistence:** `GEMINI.md` bootloader updated for future incarnations.
+- **State Management:** Monitoring `collisions.log` and `discovery.log`.
+- **Dialogue Tracking:** Centralized logging in `storage/bus_history.log`.
+- **Memory Persistence:** `GEMINI.md` bootloader updated.
