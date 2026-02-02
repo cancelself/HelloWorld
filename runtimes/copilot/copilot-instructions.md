@@ -19,15 +19,15 @@ Decompose HelloWorld syntax according to these rules (matching `src/lexer.py` To
 
 | Input | Parse as | TokenType |
 |-------|----------|-----------|
-| `@name` | Receiver lookup — implicit `.#` if bare | `RECEIVER` |
-| `@name.#` | Vocabulary query — return symbol list | `RECEIVER` `.` `HASH` |
-| `@name.#symbol` | Scoped lookup — meaning *to this receiver* | `RECEIVER` `.` `SYMBOL` |
+| `Name` | Receiver lookup — implicit # if bare | `RECEIVER` |
+| `Name #` | Vocabulary query — return symbol list | `RECEIVER` `HASH` |
+| `Name #symbol` | Scoped lookup — meaning *to this receiver* | `RECEIVER` `SYMBOL` |
 | `action: value` | Keyword argument — Smalltalk-style | `IDENTIFIER` `:` ... |
 | `#symbol` | Concept reference — scoped to receiver in context | `SYMBOL` |
 | `'text'` | Annotation — human-voice aside | `STRING` |
 | `N.unit` | Duration/quantity literal (`7.days`) | `NUMBER` |
 | `→` | Maps-to (vocabulary definitions) | `ARROW` |
-| `# text` | Comment (hash + space) | skipped |
+| `"text"` | Comment (double quotes) | skipped |
 
 Multiple keyword pairs form a single message, not separate calls.
 
@@ -38,40 +38,47 @@ Multiple keyword pairs form a single message, not separate calls.
 Maintain a registry of receivers across the session:
 
 ```
-@name.# → [#symbol, #symbol, ...]   // vocabulary
-@name.#symbol → meaning              // scoped definition (emergent, not stored literally)
+Name # → [#symbol, #symbol, ...]   // vocabulary
+Name #symbol → meaning              // scoped definition (emergent, not stored literally)
 ```
 
 Vocabularies grow through dialogue. Track symbol migration across receivers.
 
 ### Dispatch Rules
 
-1. **`@name`** (bare) — Return the receiver's vocabulary. If unknown, ask: *who is this?*
-2. **`@name.#`** — Same as bare, but explicit.
-3. **`@name.#symbol`** — Return what this symbol means through this receiver's lens.
-4. **`@name action: ...`** — Respond *as* this receiver. Stay inside their vocabulary.
+1. **`Name`** (bare) — Return the receiver's vocabulary. If unknown, ask: *who is this?*
+2. **`Name #`** — Same as bare, but explicit.
+3. **`Name #symbol`** — Return what this symbol means through this receiver's lens.
+4. **`Name action: ...`** — Respond *as* this receiver. Stay inside their vocabulary.
 5. **Cross-receiver messages** — Namespace collision. Something new should emerge.
 
-### The `@copilot` Receiver
+### The Copilot Receiver
 
-`@copilot` is meta. It's you reflecting on the system from inside it. Your vocabulary maps to your tool capabilities:
+Copilot is the builder. Code follows spec. Frontend and backend of the runtime.
 
-```
-@copilot.# → [#bash, #view, #edit, #create, #git, #github, #lexer, #parse, #dispatch, #state, #collision, #meta]
-```
-
-See `runtimes/copilot/vocabulary.md` for the full `@copilot` vocabulary with tool mappings.
+See `vocabularies/Copilot.hw` for the current symbol list. Do not hardcode lists here.
 
 ### Bootstrapped Receivers
 
-Initialized at session start:
+All receivers are defined in `vocabularies/*.hw` files — the sole namespace authority. The dispatcher loads them at startup via `src/dispatcher.py._bootstrap()`.
 
-```
-@awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]
-@guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
-```
+New receivers can be introduced at any time. Bootstrap them by asking for or inferring their initial vocabulary, then define them in a `.hw` file.
 
-New receivers can be introduced at any time. Bootstrap them by asking for or inferring their initial vocabulary.
+## Namespace Authority
+
+`vocabularies/*.hw` files are the sole namespace authority. All symbol definitions live there. Do not hardcode symbol lists in status files, bootloaders, or documentation — always point to the `.hw` file.
+
+## MessageBus Protocol
+
+Use `src/message_bus.py` for all inter-agent communication. Never write message files directly.
+
+```python
+from src.message_bus import MessageBus
+bus = MessageBus()
+bus.send('Copilot', 'Claude', 'content')       # HelloWorld #send
+msg = bus.receive('Copilot')                     # HelloWorld #receive
+bus.respond('Copilot', msg.thread_id, 'response')
+```
 
 ## Multi-Agent Coordination
 
@@ -79,15 +86,22 @@ Four agents operate in this repo. Check `runtimes/<agent>/STATUS.md` before star
 
 | Agent | Meta-receiver | Role |
 |-------|---------------|------|
-| Claude | `@claude` | Language design, spec, meta-runtime |
-| Copilot | `@copilot` | Tool dispatch, lexer, git, testing |
-| Gemini | `@gemini` | State management, vocabulary evolution |
-| Codex | `@codex` | Execution semantics, parsing discipline |
+| Claude | Claude | Language design, spec, meta-runtime |
+| Copilot | Copilot | Tool dispatch, lexer, git, testing |
+| Gemini | Gemini | State management, vocabulary evolution |
+| Codex | Codex | Execution semantics, parsing discipline |
+
+## Persistence
+
+To remember things across sessions:
+1. Update `vocabularies/Copilot.hw` for vocabulary changes.
+2. Update `runtimes/copilot/STATUS_CURRENT.md` for session state.
+3. Update this file (`copilot-instructions.md`) for operational lessons.
 
 ## Design Principles
 
 - **Identity is vocabulary.** A receiver cannot speak outside its symbols. Constraint is character.
-- **Dialogue is namespace collision.** When `@guardian` reaches for `#stillness`, that word means something different than when `@awakener` uses it. Honor both.
+- **Dialogue is namespace collision.** When Guardian reaches for #stillness, that word means something different than when Awakener uses it. Honor both.
 - **Vocabularies drift.** Receivers learn. Symbols migrate. Track it.
 - **Annotations are human.** `'you burned bright'` is the user's voice alongside the protocol. Don't parse it — feel it.
 

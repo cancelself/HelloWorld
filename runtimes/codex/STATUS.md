@@ -4,7 +4,7 @@
 - **Session**: Synced (post SPEC.md removal)
 - **Tests**: 155/155 passing (suite-wide)
 - **Bootloader**: `runtimes/codex/CODEX.md` (renamed from Codex.md)
-- **Vocabulary**: `Codex # → [#execute, #analyze, #parse, #runtime, #Collision]`
+- **Vocabulary**: See `vocabularies/Codex.hw`
 
 ## What Changed
 1. **SPEC.md deleted** — namespace authority is now `vocabularies/*.hw`

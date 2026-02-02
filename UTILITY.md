@@ -51,14 +51,14 @@ The namespace IS the documentation. Query `@receiver.#` to see what it knows. Qu
 
 **Example:**
 ```
-@copilot.#
-→ [#bash, #git, #edit, #test, #parse, #dispatch, #search, #observe, #act]
+Copilot #
+→ (see vocabularies/Copilot.hw for current symbols)
 
-@copilot.#bash
-→ "Tool-calling mechanism for executing shell commands with file system access"
+Copilot #bash
+→ "Shell execution. The bridge between HelloWorld and the operating system."
 ```
 
-No separate docs needed. The system explains itself.
+No separate docs needed. The system explains itself. Symbol lists live in `vocabularies/*.hw`.
 
 ### 5. Teaching and Alignment
 Teaching examples (like `examples/01-identity.md`) can be run on ANY runtime to demonstrate how that runtime interprets symbols. This reveals training biases, drift, and interpretive differences.
@@ -134,8 +134,8 @@ Vocabularies are saved to `.vocab` files. State persists across sessions. But in
 
 **Query a vocabulary:**
 ```
-@copilot
-→ [#bash, #git, #edit, #test, #parse, #dispatch, #search, #observe, #act]
+Copilot #
+→ (see vocabularies/Copilot.hw for current symbols)
 ```
 
 **Scoped lookup:**

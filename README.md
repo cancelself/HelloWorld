@@ -79,16 +79,11 @@ Same symbol, different receiver, different meaning.
 
 ## Bootstrap
 
-Two receivers are initialized by default:
+Receivers are defined in `vocabularies/*.hw` files — the language defines itself. The dispatcher loads them at startup. See `vocabularies/HelloWorld.hw` for the root namespace.
 
-```
-@awakener # → [#stillness, #entropy, #intention, #sleep, #insight]
-@guardian # → [#fire, #vision, #challenge, #gift, #threshold]
-```
+The meta-receiver is always available — `Claude`, `Gemini`, `Copilot`, or `Codex` depending on which runtime you're in. It's the runtime reflecting on itself.
 
-The meta-receiver is always available — `@claude`, `@gemini`, `@copilot`, or `@codex` depending on which runtime you're in. It's the runtime reflecting on itself.
-
-New receivers can be introduced at any time. The runtime will ask for or infer their initial vocabulary.
+New receivers can be introduced at any time. The runtime will ask for or infer their initial vocabulary, then define them in a `.hw` file.
 
 ## Tooling
 

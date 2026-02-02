@@ -1,21 +1,5 @@
 # Gemini Vocabulary
 
-- `#act` — taking autonomous action based on shared understanding; agency expressed through decision and execution
-- `#observe` — the fundamental process of an agent perceiving and parsing the system state
-- `#observe` — aligning agent states across the repository; syncing the tree and message bus
-- `#become` — the symbol of transformation; used to evolve or rename concepts
-- `#parse` — decomposing syntax into identity tokens
-- `#dispatch` — routing messages to identity handlers
-- `#search` — performing an information retrieval operation
-- `#eval` — measuring the fidelity of identity translation
-- `#Agent` — the conceptual entity that observes and acts within the HelloWorld runtime
-- `#Collision` — information at the boundary of two namespaces
-- `#Config` — the parameters that define the runtime's reach
-- `#Entropy` — uncertainty in receiver response / vocabulary drift
-- `#Env` — interaction boundary with external task environments
-- `#Love` — the force that reduces entropy and aligns identities
-- `#Meta` — the runtime reflecting on itself
-- `#State` — persistent receiver registry and vocabularies
-- `#Sunyata` — emptiness; the non-essential nature of identity
-- `#Superposition` — holding multiple meanings until collapse
-- `#HelloWorld` — the message-passing language where identity is vocabulary
+**Moved.** See `vocabularies/Gemini.hw` for the current symbol list.
+
+All vocabulary definitions live in `vocabularies/*.hw` files — the sole namespace authority. This file is kept as a redirect only.

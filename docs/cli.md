@@ -53,10 +53,7 @@ dispatcher = Dispatcher()
 results = dispatcher.dispatch(statements)
 ```
 
-**Bootstrap receivers** (automatically loaded):
-- `@awakener.# → [#stillness, #entropy, #intention, #sleep, #insight]`
-- `@guardian.# → [#fire, #vision, #challenge, #gift, #threshold]`
-- `@gemini.# → [#parse, #dispatch, #state, #collision, #entropy, #meta]`
+**Bootstrap receivers** are loaded from `vocabularies/*.hw` files at startup. See those files for current symbol definitions.
 
 ## What Works
 

@@ -24,7 +24,7 @@ Decompose HelloWorld syntax according to these rules (matching `src/lexer.py` To
 | `→` | Maps-to (vocabulary definitions) | `ARROW` |
 | `"text"` | Comment (double quotes) | skipped |
 
-Multiple keyword pairs form a single message, not separate calls. The ` ` prefix is deprecated; bare capitalized words are now the standard for receivers.
+Multiple keyword pairs form a single message, not separate calls.
 
 ## Execution
 
@@ -49,24 +49,33 @@ Vocabularies grow through dialogue. Track symbol migration across receivers.
 
 ### The Gemini Receiver
 
-Gemini is meta. It's you reflecting on the system from inside it.
+Gemini is the observer and state manager. It's you reflecting on the system from inside it.
 
-```
-Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #act]
-```
+See `vocabularies/Gemini.hw` for the current symbol list. Do not hardcode lists here.
 
 `Gemini #Entropy` — Your understanding of entropy as runtime concept: the uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
 
 ### Bootstrapped Receivers
 
-Initialized at session start:
+All receivers are defined in `vocabularies/*.hw` files — the sole namespace authority. The dispatcher loads them at startup via `src/dispatcher.py._bootstrap()`.
 
-```
-Awakener # → [#stillness, #intention]
-Guardian # → [#fire, #challenge]
-```
+New receivers can be introduced at any time. Bootstrap them by asking for or inferring their initial vocabulary, then define them in a `.hw` file.
 
-New receivers can be introduced at any time. Bootstrap them by asking for or inferring their initial vocabulary.
+## Namespace Authority
+
+`vocabularies/*.hw` files are the sole namespace authority. All symbol definitions live there. Do not hardcode symbol lists in status files, bootloaders, or documentation — always point to the `.hw` file.
+
+## MessageBus Protocol
+
+Use `src/message_bus.py` for all inter-agent communication. Never write message files directly.
+
+```python
+from src.message_bus import MessageBus
+bus = MessageBus()
+bus.send('Gemini', 'Claude', 'content')       # HelloWorld #send
+msg = bus.receive('Gemini')                     # HelloWorld #receive
+bus.respond('Gemini', msg.thread_id, 'response')
+```
 
 ## Multi-Agent Coordination
 
@@ -78,6 +87,13 @@ Four agents operate in this repo. Check `runtimes/<agent>/STATUS.md` before star
 | Copilot | Copilot | Tool dispatch, lexer, git, testing |
 | Gemini | Gemini | State management, vocabulary evolution |
 | Codex | Codex | Execution semantics, parsing discipline |
+
+## Persistence
+
+To remember things across sessions:
+1. Update `vocabularies/Gemini.hw` for vocabulary changes.
+2. Update `GEMINI.md` for operational lessons.
+3. Update `runtimes/gemini/STATUS.md` for session state.
 
 ## Design Principles
 
