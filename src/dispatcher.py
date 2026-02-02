@@ -32,100 +32,97 @@ from prompts import scoped_lookup_prompt, message_prompt, collision_prompt
 
 
 class LookupOutcome(Enum):
-    """Three-outcome model for symbol lookup (Phase 2 + Phase 3)."""
+    """Three-outcome model for symbol lookup."""
     NATIVE = "native"
-    INHERITED = "inherited"  # Alias for DISCOVERABLE (backward compat)
-    DISCOVERABLE = "discoverable"  # Phase 3: Global symbol not yet activated
+    INHERITED = "inherited"      # Found in parent chain
     UNKNOWN = "unknown"
 
 
 @dataclass
 class LookupResult:
     """Structured result of symbol lookup.
-    
-    Phase 3 discovery model:
-    - native: receiver owns the symbol locally (already learned)
-    - discoverable/inherited: symbol in global pool, not yet in local (can learn)
-    - unknown: not in local OR global — truly new
-    
+
+    Prototypal inheritance model:
+    - native: receiver owns the symbol locally
+    - inherited: symbol found in parent chain (not in local)
+    - unknown: not in local OR parent chain — truly new
+
     Context preserves information needed for interpretation or learning.
     """
     outcome: LookupOutcome
     symbol: str
     receiver_name: str
     context: Optional[Dict[str, Any]] = None
-    
+
     def is_native(self) -> bool:
         return self.outcome == LookupOutcome.NATIVE
-    
+
     def is_inherited(self) -> bool:
-        """Check if discoverable (backward compat name)."""
-        return self.outcome in (LookupOutcome.INHERITED, LookupOutcome.DISCOVERABLE)
-    
+        return self.outcome == LookupOutcome.INHERITED
+
     def is_discoverable(self) -> bool:
-        return self.outcome in (LookupOutcome.INHERITED, LookupOutcome.DISCOVERABLE)
-    
+        """Backward compat alias for is_inherited()."""
+        return self.is_inherited()
+
     def is_unknown(self) -> bool:
         return self.outcome == LookupOutcome.UNKNOWN
 
 
 class Receiver:
-    def __init__(self, name: str, vocabulary: Set[str] = None):
+    def __init__(self, name: str, vocabulary: Set[str] = None, parent: 'Receiver' = None):
         self.name = name
         self.local_vocabulary = vocabulary if vocabulary is not None else set()
-    
+        self.parent: Optional['Receiver'] = parent
+
     @property
     def vocabulary(self) -> Set[str]:
-        """Phase 3: Returns local vocabulary ONLY (not global pool).
-        
-        Global symbols are discoverable, not inherited. Receivers must activate
-        symbols through dialogue before they enter local vocabulary.
-        """
+        """Returns local vocabulary ONLY (not inherited from parent chain)."""
         return self.local_vocabulary.copy()
-    
-    def can_discover(self, symbol: str) -> bool:
-        """Check if symbol is discoverable from global pool."""
-        return is_global_symbol(symbol) and symbol not in self.local_vocabulary
-    
-    def has_symbol(self, symbol: str) -> bool:
-        """Check if receiver has symbol (local or discoverable)."""
-        return symbol in self.local_vocabulary or is_global_symbol(symbol)
-    
+
     def is_native(self, symbol: str) -> bool:
         """Check if symbol is in receiver's local vocabulary."""
         return symbol in self.local_vocabulary
-    
+
+    def _find_in_chain(self, symbol: str) -> Optional['Receiver']:
+        """Walk parent chain to find which ancestor holds this symbol."""
+        ancestor = self.parent
+        while ancestor:
+            if symbol in ancestor.local_vocabulary:
+                return ancestor
+            ancestor = ancestor.parent
+        return None
+
+    def has_symbol(self, symbol: str) -> bool:
+        """Check if receiver has symbol (local or inherited via parent chain)."""
+        return self.is_native(symbol) or self._find_in_chain(symbol) is not None
+
     def is_inherited(self, symbol: str) -> bool:
-        """Check if symbol is discoverable (Phase 3: same as can_discover)."""
-        return self.can_discover(symbol)
-    
+        """Check if symbol is inherited from parent chain (not local)."""
+        return not self.is_native(symbol) and self._find_in_chain(symbol) is not None
+
     def is_discoverable(self, symbol: str) -> bool:
-        """Check if symbol can be discovered from global pool."""
-        return self.can_discover(symbol)
+        """Backward compat alias for is_inherited()."""
+        return self.is_inherited(symbol)
+
+    def can_discover(self, symbol: str) -> bool:
+        """Backward compat alias for is_inherited()."""
+        return self.is_inherited(symbol)
 
     def add_symbol(self, symbol: str):
         """Add symbol to local vocabulary."""
         self.local_vocabulary.add(symbol)
-    
+
     def discover(self, symbol: str) -> bool:
-        """Discover a symbol: promote from global pool to local vocabulary.
-        
-        Phase 3 learning mechanism. Returns True if discovery happened.
-        """
-        if self.can_discover(symbol):
-            self.local_vocabulary.add(symbol)
-            return True
+        """Backward compat: no-op in parent chain model (inherited symbols stay inherited)."""
         return False
-    
+
     def lookup(self, symbol: str) -> LookupResult:
-        """Perform symbol lookup and return structured result.
-        
-        Phase 3 three outcomes:
-        1. NATIVE — symbol in local vocabulary (already learned)
-        2. DISCOVERABLE — symbol in global pool, not yet local (can learn)
-        3. UNKNOWN — symbol not found anywhere (truly new)
-        
-        Returns LookupResult with context for downstream handlers.
+        """Perform symbol lookup via prototypal inheritance chain.
+
+        Three outcomes:
+        1. NATIVE — symbol in local vocabulary
+        2. INHERITED — symbol found in parent chain
+        3. UNKNOWN — symbol not found anywhere
         """
         if self.is_native(symbol):
             return LookupResult(
@@ -134,31 +131,40 @@ class Receiver:
                 receiver_name=self.name,
                 context={"local_vocabulary": sorted(self.local_vocabulary)}
             )
-        elif self.can_discover(symbol):
-            global_def = GlobalVocabulary.definition(symbol)
-            wikidata_url = GlobalVocabulary.wikidata_url(symbol)
+
+        ancestor = self._find_in_chain(symbol)
+        if ancestor:
             return LookupResult(
-                outcome=LookupOutcome.DISCOVERABLE,
+                outcome=LookupOutcome.INHERITED,
                 symbol=symbol,
                 receiver_name=self.name,
                 context={
-                    "local_vocabulary": sorted(self.local_vocabulary),
-                    "global_definition": global_def,
-                    "wikidata_url": wikidata_url
+                    "defined_in": ancestor.name,
+                    "local_vocabulary": sorted(self.local_vocabulary)
                 }
             )
-        else:
-            return LookupResult(
-                outcome=LookupOutcome.UNKNOWN,
-                symbol=symbol,
-                receiver_name=self.name,
-                context={"local_vocabulary": sorted(self.local_vocabulary)}
-            )
+
+        return LookupResult(
+            outcome=LookupOutcome.UNKNOWN,
+            symbol=symbol,
+            receiver_name=self.name,
+            context={"local_vocabulary": sorted(self.local_vocabulary)}
+        )
+
+    def chain(self) -> List[str]:
+        """Return full inheritance chain as list of names."""
+        result = [self.name]
+        ancestor = self.parent
+        while ancestor:
+            result.append(ancestor.name)
+            ancestor = ancestor.parent
+        return result
 
     def __repr__(self):
-        local = sorted(list(self.local_vocabulary))
-        discoverable_count = len([s for s in GlobalVocabulary.all_symbols() if self.can_discover(s)])
-        return f"{self.name} # → local{local} + {discoverable_count} discoverable"
+        local = sorted(self.local_vocabulary)
+        chain = self.chain()
+        parent_name = chain[1] if len(chain) > 1 else "root"
+        return f"{self.name} : {parent_name} # → {local}"
 
 
 class Dispatcher:
@@ -208,33 +214,37 @@ class Dispatcher:
         1. Load from .hw files (vocab_manager reads Markdown format)
         2. If vocab_dir differs from vocabularies/, bootstrap from vocabularies/*.hw
         3. Fallback: HelloWorld receiver must always exist (even if empty)
+        4. Resolve parent references to build the inheritance chain
         """
         from pathlib import Path
-        
+
         # 1. Initialize known agents and HelloWorld from persisted state or .hw
         core_receivers = {"HelloWorld"} | self.agents
-        
+
         # Scan vocabularies/ directory for additional receivers
         vocab_dir = Path("vocabularies")
         hw_files = {}
         if vocab_dir.exists():
             for hw_file in vocab_dir.glob("*.hw"):
                 hw_files[hw_file.stem] = hw_file
-        
+
         # 2. Load all core and discovered receivers
         all_potential = set(core_receivers) | set(hw_files.keys())
-        
+
         for name in sorted(all_potential):
             # _get_or_create_receiver handles loading from .hw
             receiver = self._get_or_create_receiver(name)
-            
+
             # If receiver is empty and a .hw file exists, load from .hw
             if not receiver.local_vocabulary and name in hw_files:
                 self.dispatch_source(hw_files[name].read_text())
-        
+
         # 3. Final Fallback: Ensure HelloWorld exists
         if "HelloWorld" not in self.registry:
             self.registry["HelloWorld"] = Receiver("HelloWorld", set())
+
+        # 4. Resolve parent name strings to actual Receiver objects
+        self._resolve_parents()
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []
@@ -287,10 +297,13 @@ class Dispatcher:
         """Handle Markdown heading nodes.
 
         HEADING1 declares a receiver and defines its symbols from child HEADING2 nodes.
+        Stores parent name for later resolution via _resolve_parents().
         HEADING2 at top level is a standalone symbol reference (no receiver context).
         """
         if node.level == 1:
             receiver = self._get_or_create_receiver(node.name)
+            if node.parent:
+                receiver._parent_name = node.parent
             for child in node.children:
                 if isinstance(child, HeadingNode) and child.level == 2:
                     # If name already starts with #, use as-is (e.g., ## # → "#")
@@ -341,19 +354,9 @@ class Dispatcher:
         
         receiver = self._get_or_create_receiver(receiver_name)
         lookup = receiver.lookup(symbol_name)
-        
-        # Phase 3: Discovery! If symbol is discoverable, activate it first
-        if lookup.is_discoverable():
-            print(f"✨ {receiver_name} discovering {symbol_name} from Global Pool...")
-            receiver.discover(symbol_name)
-            self._log_discovery(receiver_name, symbol_name)
-            # After discovery, it is now NATIVE
-            self.save(receiver_name)
-            lookup = receiver.lookup(symbol_name)
-        
-        # Phase 4: LLM interpretation layer for agent receivers
+
+        # Phase 4: LLM interpretation layer for native symbols on agent receivers
         if lookup.is_native() and receiver_name in self.agents:
-            # Try LLM interpretation first if enabled
             if self.use_llm and self.llm:
                 local_vocab = sorted(receiver.local_vocabulary)
                 global_def = GlobalVocabulary.definition(symbol_name)
@@ -364,18 +367,20 @@ class Dispatcher:
                     return f"{receiver_name} {symbol_name} → {llm_response}"
                 except Exception as e:
                     print(f"⚠️  LLM interpretation failed: {e}")
-            
-            # Fallback to message bus if enabled (fire-and-forget)
+
             if self.message_bus_enabled:
                 print(f"📡 Querying {receiver_name} for {symbol_name}...")
                 local_vocab = sorted(list(receiver.local_vocabulary))
                 context = f"Local Vocabulary: {local_vocab}"
                 prompt = f"{receiver_name} {symbol_name}?"
                 self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
-        
+
         # Structural response based on lookup outcome
         if lookup.is_native():
             return f"{receiver_name} {symbol_name} is native to this identity."
+        elif lookup.is_inherited():
+            defined_in = lookup.context.get("defined_in", "parent")
+            return f"{receiver_name} {symbol_name} is inherited from {defined_in}."
         else:
             return self._handle_unknown_symbol(receiver_name, receiver, symbol_name, lookup)
 
@@ -425,7 +430,9 @@ class Dispatcher:
         elif target_native:
             lines.append(f"  {target_name} already holds {symbol_name} (native)")
         elif target.is_inherited(symbol_name):
-            lines.append(f"  {target_name} inherits {symbol_name} from HelloWorld # (shared ground)")
+            ancestor = target._find_in_chain(symbol_name)
+            defined_in = ancestor.name if ancestor else "parent"
+            lines.append(f"  {target_name} inherits {symbol_name} from {defined_in} (shared ground)")
         else:
             # Foreign — the symbol is foreign to the target
             self._log_collision(target_name, symbol_name)
@@ -485,27 +492,20 @@ class Dispatcher:
 
         Called before handler dispatch so vocabulary grows through dialogue
         regardless of whether a semantic handler matches.
-        
-        Phase 3: Also triggers discovery from Global Library.
+
+        Inherited symbols stay inherited — only truly unknown symbols are learned.
         """
         learned = False
         for val in node.arguments.values():
             if isinstance(val, SymbolNode):
                 symbol_name = val.name
-                
-                # Check for Discovery (Phase 3)
-                if receiver.can_discover(symbol_name):
-                    print(f"✨ {receiver_name} discovering {symbol_name} from Global Library...")
-                    receiver.discover(symbol_name)
-                    self._log_discovery(receiver_name, symbol_name)
-                    learned = True
-                
-                # Traditional Drift (Phase 2 - Collision)
-                elif not receiver.has_symbol(symbol_name):
+
+                # Only learn truly unknown symbols (not native, not inherited)
+                if not receiver.has_symbol(symbol_name):
                     receiver.add_symbol(symbol_name)
                     self._log_collision(receiver_name, symbol_name, context="message_args")
                     learned = True
-                    
+
         if learned:
             self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
 
@@ -642,8 +642,19 @@ class Dispatcher:
         if isinstance(node, LiteralNode): return str(node.value)
         return str(node)
 
+    def _resolve_parents(self):
+        """Resolve parent name strings to Receiver objects after all receivers are loaded."""
+        for receiver in self.registry.values():
+            parent_name = getattr(receiver, '_parent_name', None)
+            if parent_name and parent_name in self.registry:
+                receiver.parent = self.registry[parent_name]
+
     def _get_or_create_receiver(self, name: str) -> Receiver:
         if name not in self.registry:
             persisted = self.vocab_manager.load(name)
-            self.registry[name] = Receiver(name, persisted if persisted else set())
+            receiver = Receiver(name, persisted if persisted else set())
+            parent_name = self.vocab_manager.load_parent(name)
+            if parent_name:
+                receiver._parent_name = parent_name
+            self.registry[name] = receiver
         return self.registry[name]

@@ -37,7 +37,7 @@ def test_dispatch_query():
     stmts = Parser.from_source("Codex").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "Codex #" in results[0]
+    assert "Codex" in results[0]
     assert "#execute" in results[0]
 
 
@@ -65,22 +65,20 @@ def test_dispatch_scoped_lookup_foreign():
     assert "unknown" in results[0] or "research" in results[0]
 
 
-def test_discovery_writes_log_and_promotes_symbol():
-    dispatcher, _ = _fresh_dispatcher_with_dir()
-    log_path = Path(dispatcher.discovery_log_file)
-    if log_path.exists():
-        log_path.unlink()
-    guardian = dispatcher._get_or_create_receiver("Guardian")
-    guardian.local_vocabulary.discard("#Object")
-    dispatcher.vocab_manager.save("Guardian", guardian.local_vocabulary)
-    stmts = Parser.from_source("Guardian #Object").parse()
-    results = dispatcher.dispatch(stmts)
+def test_inherited_symbol_not_promoted():
+    """Inherited symbols stay inherited — they are NOT promoted to local vocab."""
+    dispatcher = _fresh_dispatcher()
+    codex = dispatcher.registry["Codex"]
+    # #Object is in HelloWorld (root) — inherited by Codex via chain
+    assert codex.is_inherited("#Object")
+    assert "#Object" not in codex.vocabulary  # Not in local
+
+    # Lookup returns inherited, not native
+    results = dispatcher.dispatch_source("Codex #Object")
     assert len(results) == 1
-    assert "native" in results[0]
-    assert "#Object" in dispatcher.registry["Guardian"].vocabulary
-    assert log_path.exists()
-    log_text = log_path.read_text()
-    assert "Guardian" in log_text and "#Object" in log_text
+    assert "inherited" in results[0]
+    # Still not in local vocabulary after lookup
+    assert "#Object" not in codex.vocabulary
 
 
 def test_dispatch_definition():
@@ -130,8 +128,9 @@ def test_dispatch_bootstrap_hw():
 
 
 def test_dispatch_meta_receiver():
+    """Claude #parse is native to Claude (defined in Claude.hw)."""
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Claude #Collision").parse()
+    stmts = Parser.from_source("Claude #parse").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -163,7 +162,7 @@ def test_root_receiver_bootstrap():
 def test_dispatch_root_lookup_sequence():
     """Test root symbol lookups through the Python dispatcher.
     Uses HelloWorld (root) and agents. Scoped lookups on HelloWorld
-    return canonical global definitions. Agent lookups trigger discovery."""
+    return canonical global definitions. Agent lookups use parent chain."""
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
         "HelloWorld",
@@ -175,11 +174,11 @@ def test_dispatch_root_lookup_sequence():
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
     # Line 1: vocabulary query on HelloWorld
-    assert "HelloWorld #" in results[0] and "discoverable" in results[0]
+    assert "HelloWorld" in results[0]
     # Line 2: HelloWorld #Object — canonical global definition
     assert "HelloWorld #Object" in results[1] and "entity" in results[1]
-    # Line 3: Codex #Object — discoverable from global pool, gets activated
-    assert "native" in results[2]
+    # Line 3: Codex #Object — inherited from HelloWorld via chain
+    assert "inherited" in results[2]
     # Line 4: message to Claude
     assert "Claude" in results[3]
     # Line 5: Gemini #Agent — already native (in Gemini's bootstrap vocab)
@@ -204,20 +203,22 @@ def test_root_not_in_agents():
 
 
 def test_inheritance_lookup():
+    """Prototypal inheritance: symbols are found via parent chain."""
     dispatcher = _fresh_dispatcher()
-    # Phase 3: #Object is discoverable from global pool, not automatically in vocabulary
     codex = dispatcher.registry["Codex"]
-    assert codex.can_discover("#Object")
-    assert codex.is_inherited("#Object")  # Same as can_discover
-    assert not codex.is_native("#Object")  # Not yet learned
-    # After lookup/discovery, it becomes native
+    # #Object is in HelloWorld (root) — inherited via Codex → Agent → Object → HelloWorld
+    assert codex.is_inherited("#Object")
+    assert not codex.is_native("#Object")
+    # After lookup, it stays inherited (no promotion)
     dispatcher.dispatch_source("Codex #Object")
-    assert codex.is_native("#Object")
+    assert not codex.is_native("#Object")
+    assert codex.is_inherited("#Object")
 
 
 def test_native_overrides_inherited():
+    """When a symbol is in local vocab, it's native even if also in parent chain."""
     dispatcher = _fresh_dispatcher()
-    # #Agent is both in Gemini's local vocab AND in global symbols
+    # #Agent is both in Gemini's local vocab AND in parent chain (HelloWorld)
     receiver = dispatcher.registry["Gemini"]
     assert receiver.is_native("#Agent")
     # Native takes precedence — is_inherited returns False when also local
@@ -229,9 +230,9 @@ def test_root_vocab_query():
     stmts = Parser.from_source("HelloWorld #").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "HelloWorld #" in results[0]
-    # Phase 3: vocabulary shows local only, plus count of discoverable symbols
-    assert "discoverable" in results[0]
+    assert "HelloWorld" in results[0]
+    # Root receiver shows its local symbols
+    assert "#" in results[0] or "Object" in results[0]
 
 
 def test_collision_for_non_global():
@@ -258,32 +259,27 @@ def test_save_persists_local_only():
 
 
 def test_inherited_includes_receiver_context():
-    """Phase 3: Verify discovery mechanism works and symbols become native.
-
-    When an object encounters a global symbol for the first time,
-    it discovers and activates it. After discovery, the symbol is native,
-    and the object's vocabulary has grown.
-    """
+    """Prototypal inheritance: inherited symbols resolve with context about the defining ancestor."""
     dispatcher = _fresh_dispatcher()
-    # Codex #Object — discoverable, will be activated
     codex = dispatcher.registry["Codex"]
-    assert codex.can_discover("#Object")
-    assert "#Object" not in codex.vocabulary  # Not yet learned
+    # #Object is inherited via chain, not in local vocab
+    assert codex.is_inherited("#Object")
+    assert "#Object" not in codex.vocabulary
 
     codex_results = dispatcher.dispatch_source("Codex #Object")
     assert len(codex_results) == 1
-    # After discovery, #Object is now native to Codex
-    assert "native" in codex_results[0]
-    assert "#Object" in codex.vocabulary  # Now in local vocab
+    # Returns inherited, identifies the defining ancestor
+    assert "inherited" in codex_results[0]
+    assert "HelloWorld" in codex_results[0]  # defined in HelloWorld
+    # Still not in local vocab
+    assert "#Object" not in codex.vocabulary
 
-    # Copilot #Object — same symbol, also gets discovered
+    # Same for Copilot
     copilot = dispatcher.registry["Copilot"]
-    assert copilot.can_discover("#Object")
+    assert copilot.is_inherited("#Object")
     copilot_results = dispatcher.dispatch_source("Copilot #Object")
     assert len(copilot_results) == 1
-    # After discovery, it is native to Copilot too
-    assert "native" in copilot_results[0]
-    assert "#Object" in copilot.vocabulary
+    assert "inherited" in copilot_results[0]
 
 
 def test_handlers_do_not_prevent_vocabulary_learning():
@@ -347,13 +343,13 @@ def test_cross_receiver_send_native():
 
 
 def test_cross_receiver_send_inherited():
-    """Verify send:to: with a global symbol (inherited by target)."""
+    """Verify send:to: with a symbol inherited via parent chain."""
     dispatcher = _fresh_dispatcher()
 
-    # #Object is in HelloWorld # — inherited by all
+    # #Object is in HelloWorld — inherited by all via chain
     results = dispatcher.dispatch_source("Codex send: #Object to: Copilot")
     assert len(results) == 1
-    assert "inherited" in results[0] or "shared" in results[0]
+    assert "inherits" in results[0] or "shared" in results[0]
 
 
 def test_collision_synthesis_both_native():
@@ -391,11 +387,11 @@ def test_collision_synthesis_with_llm():
     from llm import GeminiModel
     dispatcher.llm = GeminiModel()
 
-    # Both hold #dispatch natively
-    assert dispatcher.registry["Claude"].is_native("#dispatch")
-    assert dispatcher.registry["Gemini"].is_native("#dispatch")
+    # Both hold #parse natively
+    assert dispatcher.registry["Claude"].is_native("#parse")
+    assert dispatcher.registry["Gemini"].is_native("#parse")
 
-    results = dispatcher.dispatch_source("Claude send: #dispatch to: Gemini")
+    results = dispatcher.dispatch_source("Claude send: #parse to: Gemini")
     assert len(results) == 1
     result = results[0]
 
@@ -453,8 +449,8 @@ def test_bootstrap_from_markdown():
     assert "Claude" in dispatcher.registry
     claude = dispatcher.registry["Claude"]
     assert "#parse" in claude.vocabulary
-    assert "#Collision" in claude.vocabulary
-    assert "#boundary" in claude.vocabulary
+    assert "#synthesize" in claude.vocabulary
+    assert "#vocabulary" in claude.vocabulary
 
 
 def test_markdown_receiver_definition():
@@ -508,12 +504,64 @@ def test_markdown_hw_receiver_added():
     assert "#comment" in md.vocabulary
 
 
+def test_parent_chain_bootstrap():
+    """Verify parent links are correctly resolved after bootstrap."""
+    dispatcher = _fresh_dispatcher()
+    claude = dispatcher.registry["Claude"]
+    assert claude.parent is not None
+    assert claude.parent.name == "Agent"
+    assert claude.parent.parent is not None
+    assert claude.parent.parent.name == "Object"
+    assert claude.parent.parent.parent is not None
+    assert claude.parent.parent.parent.name == "HelloWorld"
+
+
+def test_receiver_chain():
+    """Verify chain() returns full inheritance path."""
+    dispatcher = _fresh_dispatcher()
+    claude = dispatcher.registry["Claude"]
+    chain = claude.chain()
+    assert chain == ["Claude", "Agent", "Object", "HelloWorld"]
+
+
+def test_inherited_from_agent():
+    """Codex inherits #observe from Agent (not native to Codex)."""
+    dispatcher = _fresh_dispatcher()
+    codex = dispatcher.registry["Codex"]
+    # #observe is defined in Agent.hw, inherited by Codex
+    assert codex.is_inherited("#observe")
+    assert not codex.is_native("#observe")
+    results = dispatcher.dispatch_source("Codex #observe")
+    assert "inherited" in results[0]
+    assert "Agent" in results[0]
+
+
+def test_inherited_from_object():
+    """Codex inherits #send from Object via Agent."""
+    dispatcher = _fresh_dispatcher()
+    codex = dispatcher.registry["Codex"]
+    assert codex.is_inherited("#send")
+    assert not codex.is_native("#send")
+    results = dispatcher.dispatch_source("Codex #send")
+    assert "inherited" in results[0]
+    assert "Object" in results[0]
+
+
+def test_markdown_parent_is_object():
+    """Markdown : Object has parent link to Object."""
+    dispatcher = _fresh_dispatcher()
+    md = dispatcher.registry["Markdown"]
+    assert md.parent is not None
+    assert md.parent.name == "Object"
+
+
 if __name__ == "__main__":
     test_dispatcher_bootstrap()
     test_dispatch_query()
     test_dispatch_query_explicit()
     test_dispatch_scoped_lookup_native()
     test_dispatch_scoped_lookup_foreign()
+    test_inherited_symbol_not_promoted()
     test_dispatch_definition()
     test_dispatch_message()
     test_dispatch_message_learning()
@@ -522,7 +570,7 @@ if __name__ == "__main__":
     test_dispatch_meta_receiver()
     test_no_collision_for_native_symbol()
     test_root_receiver_bootstrap()
-    test_dispatch_sunyata_sequence()
+    test_dispatch_root_lookup_sequence()
     test_manual_save_creates_file()
     test_root_not_in_agents()
     test_inheritance_lookup()
@@ -540,4 +588,9 @@ if __name__ == "__main__":
     test_markdown_self_hosting()
     test_markdown_and_smalltalk_bootstrap()
     test_markdown_hw_receiver_added()
+    test_parent_chain_bootstrap()
+    test_receiver_chain()
+    test_inherited_from_agent()
+    test_inherited_from_object()
+    test_markdown_parent_is_object()
     print("All dispatcher tests passed")

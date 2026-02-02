@@ -82,8 +82,15 @@ class Parser:
 
     def _parse_heading(self, level: int) -> HeadingNode:
         """Parse a Markdown heading and its children (list items, sub-headings)."""
-        name = self._previous().value
-        node = HeadingNode(level=level, name=name)
+        raw = self._previous().value
+        parent = None
+        if level == 1 and ' : ' in raw:
+            parts = raw.split(' : ', 1)
+            name = parts[0].strip()
+            parent = parts[1].strip()
+        else:
+            name = raw
+        node = HeadingNode(level=level, name=name, parent=parent)
 
         # Collect children: list items and (for level 1) sub-headings
         while not self._is_at_end():

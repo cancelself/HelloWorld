@@ -25,7 +25,9 @@ def _symbol_status(receiver, symbol_name: str) -> str:
     if receiver.is_native(symbol_name):
         return "native"
     elif receiver.is_inherited(symbol_name):
-        return "inherited from HelloWorld #"
+        ancestor = receiver._find_in_chain(symbol_name)
+        defined_in = ancestor.name if ancestor else "parent"
+        return f"inherited from {defined_in}"
     else:
         return "boundary collision"
 
@@ -63,9 +65,9 @@ def _handle_act(args, recv, receiver_name: str) -> str:
         status = _symbol_status(recv, symbol)
         if status == "native":
             lines.append(f"  {symbol} is native — {receiver_name} acts with authority")
-        elif status == "inherited from HelloWorld #":
+        elif status.startswith("inherited"):
             local = sorted(recv.local_vocabulary)
-            lines.append(f"  {symbol} is inherited — {receiver_name} acts through local lens {local}")
+            lines.append(f"  {symbol} is {status} — {receiver_name} acts through local lens {local}")
         else:
             lines.append(f"  {symbol} is foreign — {receiver_name} acts at the boundary (collision)")
     else:
@@ -301,5 +303,7 @@ class MessageHandlerRegistry:
         if receiver.is_native(symbol_name):
             return "native to this identity"
         if receiver.is_inherited(symbol_name):
-            return "inherited from HelloWorld #"
+            ancestor = receiver._find_in_chain(symbol_name)
+            defined_in = ancestor.name if ancestor else "parent"
+            return f"inherited from {defined_in}"
         return "at the boundary (collision)"

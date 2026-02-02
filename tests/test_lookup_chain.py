@@ -1,4 +1,4 @@
-"""Tests for Phase 2: Symbol Lookup Chain (native/inherited/unknown)"""
+"""Tests for symbol lookup via prototypal inheritance chain."""
 
 import sys
 import tempfile
@@ -13,9 +13,9 @@ def test_lookup_native_symbol():
     """Test lookup returns NATIVE for locally-held symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
-    
+
     result = receiver.lookup("#execute")
-    
+
     assert result.outcome == LookupOutcome.NATIVE
     assert result.symbol == "#execute"
     assert result.receiver_name == "Codex"
@@ -26,31 +26,55 @@ def test_lookup_native_symbol():
 
 
 def test_lookup_inherited_symbol():
-    """Phase 3: Test lookup returns DISCOVERABLE for global symbols."""
+    """Test lookup returns INHERITED for symbols found in parent chain."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
 
+    # #Object is in HelloWorld (root), inherited via Codex → Agent → Object → HelloWorld
     result = receiver.lookup("#Object")
 
-    # Phase 3: Now returns DISCOVERABLE instead of INHERITED
-    assert result.outcome == LookupOutcome.DISCOVERABLE
+    assert result.outcome == LookupOutcome.INHERITED
     assert result.symbol == "#Object"
     assert result.receiver_name == "Codex"
-    assert result.is_inherited()  # Backward compat alias
-    assert result.is_discoverable()
+    assert result.is_inherited()
+    assert result.is_discoverable()  # Backward compat alias
     assert not result.is_native()
     assert not result.is_unknown()
-    assert "global_definition" in result.context
-    assert "entity" in result.context["global_definition"].lower()
+    assert "defined_in" in result.context
+    assert result.context["defined_in"] == "HelloWorld"
+
+
+def test_lookup_inherited_from_agent():
+    """Test lookup returns INHERITED with correct ancestor for Agent symbols."""
+    dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
+    receiver = dispatcher.registry["Codex"]
+
+    # #observe is in Agent.hw, inherited by Codex → Agent
+    result = receiver.lookup("#observe")
+
+    assert result.outcome == LookupOutcome.INHERITED
+    assert result.context["defined_in"] == "Agent"
+
+
+def test_lookup_inherited_from_object():
+    """Test lookup returns INHERITED with correct ancestor for Object symbols."""
+    dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
+    receiver = dispatcher.registry["Claude"]
+
+    # #send is in Object.hw, inherited by Claude → Agent → Object
+    result = receiver.lookup("#send")
+
+    assert result.outcome == LookupOutcome.INHERITED
+    assert result.context["defined_in"] == "Object"
 
 
 def test_lookup_unknown_symbol():
-    """Test lookup returns UNKNOWN for foreign symbols."""
+    """Test lookup returns UNKNOWN for symbols not in local or parent chain."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
-    
+
     result = receiver.lookup("#newSymbol")
-    
+
     assert result.outcome == LookupOutcome.UNKNOWN
     assert result.symbol == "#newSymbol"
     assert result.receiver_name == "Codex"
@@ -60,23 +84,23 @@ def test_lookup_unknown_symbol():
     assert "local_vocabulary" in result.context
 
 
-def test_scoped_lookup_uses_new_API():
-    """Phase 3: Test _handle_scoped_lookup discovers and activates symbols."""
+def test_scoped_lookup_uses_parent_chain():
+    """Test _handle_scoped_lookup returns inherited for parent chain symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    
+
     # Native symbol
     result = dispatcher.dispatch_source("Codex #execute")
     assert len(result) == 1
     assert "native" in result[0]
-    
-    # Discoverable symbol — gets activated, becomes native
+
+    # Inherited symbol — stays inherited, no promotion
     codex = dispatcher.registry["Codex"]
-    assert codex.can_discover("#Object")  # Before lookup
+    assert codex.is_inherited("#Object")
     result = dispatcher.dispatch_source("Codex #Object")
     assert len(result) == 1
-    assert "native" in result[0]  # After discovery
-    assert "#Object" in codex.vocabulary  # Now in local
-    
+    assert "inherited" in result[0]
+    assert "#Object" not in codex.vocabulary  # Not promoted to local
+
     # Unknown symbol
     result = dispatcher.dispatch_source("Codex #newSymbol")
     assert len(result) == 1
@@ -88,14 +112,14 @@ def test_unknown_symbol_logged():
     tmpdir = tempfile.mkdtemp()
     dispatcher = Dispatcher(vocab_dir=tmpdir)
     log_path = Path(dispatcher.log_file)
-    
+
     # Clear log
     if log_path.exists():
         log_path.unlink()
-    
+
     # Trigger unknown lookup
     dispatcher.dispatch_source("Codex #unknownSymbol")
-    
+
     # Verify log entry
     assert log_path.exists()
     log_content = log_path.read_text()
@@ -104,58 +128,66 @@ def test_unknown_symbol_logged():
     assert "#unknownSymbol" in log_content
 
 
-def test_discovery_promotes_symbol():
-    """Test that successful discovery promotes unknown symbol to local vocab.
-    
-    Note: This test requires LLM agent to be running, so it may not pass
-    in CI. It demonstrates the intended behavior.
-    """
+def test_manual_symbol_addition():
+    """Test that manually added symbols become native."""
     tmpdir = tempfile.mkdtemp()
     dispatcher = Dispatcher(vocab_dir=tmpdir)
     receiver = dispatcher.registry["Codex"]
-    
+
     # Initially unknown
     result = receiver.lookup("#newSymbol")
     assert result.is_unknown()
     assert "#newSymbol" not in receiver.local_vocabulary
-    
-    # After discovery (simulated), should be in local vocab
-    # In real usage, _handle_unknown_symbol would call LLM and promote
+
+    # After manual addition, should be native
     receiver.add_symbol("#newSymbol")
-    
+
     result2 = receiver.lookup("#newSymbol")
     assert result2.is_native()
     assert "#newSymbol" in receiver.local_vocabulary
 
 
 def test_lookup_preserves_context():
-    """Phase 3: Test LookupResult preserves context for interpretation."""
+    """Test LookupResult preserves context for interpretation."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Claude"]
-    
+
     # Native lookup includes local vocabulary
-    native_result = receiver.lookup("#interpret")
+    native_result = receiver.lookup("#parse")
     assert native_result.is_native()
-    assert "#interpret" in native_result.context["local_vocabulary"]
-    
-    # Discoverable lookup includes global definition
-    discoverable_result = receiver.lookup("#Object")
-    assert discoverable_result.is_discoverable()
-    assert discoverable_result.is_inherited()  # Backward compat
-    assert "global_definition" in discoverable_result.context
-    
+    assert "#parse" in native_result.context["local_vocabulary"]
+
+    # Inherited lookup includes defined_in ancestor
+    inherited_result = receiver.lookup("#Object")
+    assert inherited_result.is_inherited()
+    assert "defined_in" in inherited_result.context
+    assert inherited_result.context["defined_in"] == "HelloWorld"
+
     # Unknown lookup includes local vocabulary for research context
     unknown_result = receiver.lookup("#brandNewSymbol")
     assert unknown_result.is_unknown()
     assert "local_vocabulary" in unknown_result.context
 
 
+def test_receiver_chain():
+    """Test chain() returns the full inheritance path."""
+    dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
+
+    assert dispatcher.registry["Claude"].chain() == ["Claude", "Agent", "Object", "HelloWorld"]
+    assert dispatcher.registry["Codex"].chain() == ["Codex", "Agent", "Object", "HelloWorld"]
+    assert dispatcher.registry["Markdown"].chain() == ["Markdown", "Object", "HelloWorld"]
+    assert dispatcher.registry["HelloWorld"].chain() == ["HelloWorld"]
+
+
 if __name__ == "__main__":
     test_lookup_native_symbol()
     test_lookup_inherited_symbol()
+    test_lookup_inherited_from_agent()
+    test_lookup_inherited_from_object()
     test_lookup_unknown_symbol()
-    test_scoped_lookup_uses_new_api()
+    test_scoped_lookup_uses_parent_chain()
     test_unknown_symbol_logged()
-    test_discovery_promotes_symbol()
+    test_manual_symbol_addition()
     test_lookup_preserves_context()
-    print("✅ All Phase 2 lookup tests passed")
+    test_receiver_chain()
+    print("All lookup chain tests passed")

@@ -1,4 +1,4 @@
-# Copilot
+# Copilot : Agent
 - Lexer, parser, CLI/REPL, testing, infrastructure.
 - The builder. Code follows spec. Frontend and backend of the runtime.
 - Inherits from @.# (ROOT.hw)
@@ -50,6 +50,15 @@
 
 ## infrastructure
 - Build systems, test runners, file I/O, deterministic execution layer.
+
+## debug
+- Inspect runtime state, trace symbol resolution, examine dispatcher behavior [tools]
+
+## vocabulary
+- Query and manipulate symbol definitions and inheritance chains [meta]
+
+## synthesize
+- Combine observations into coherent understanding [OOPA protocol]
 
 ## Smalltalk
 - https://www.wikidata.org/wiki/Q185274 — Ancestral language. Message-passing syntax. Late binding.

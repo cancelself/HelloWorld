@@ -14,7 +14,7 @@ class VocabularyManager:
         if not os.path.exists(self.storage_dir):
             os.makedirs(self.storage_dir)
 
-    def save(self, receiver_name: str, vocabulary: Set[str]):
+    def save(self, receiver_name: str, vocabulary: Set[str], parent: str = None):
         """Persist a receiver's vocabulary to its .hw file.
 
         Preserves existing content and descriptions. Appends only
@@ -26,7 +26,8 @@ class VocabularyManager:
 
         if not os.path.exists(path):
             # Create new .hw file
-            lines = [f"# {receiver_name}\n"]
+            header = f"# {receiver_name} : {parent}\n" if parent else f"# {receiver_name}\n"
+            lines = [header]
             for sym in sorted(vocabulary):
                 heading = sym.lstrip("#") if sym != "#" else "#"
                 lines.append(f"## {heading}\n")
@@ -47,6 +48,26 @@ class VocabularyManager:
             return None
         symbols = self._read_symbols(path)
         return symbols if symbols is not None else set()
+
+    def load_parent(self, receiver_name: str) -> Optional[str]:
+        """Read parent name from .hw file's # Name : Parent heading."""
+        path = self._get_path(receiver_name)
+        if not os.path.exists(path):
+            return None
+
+        from parser import Parser
+        from ast_nodes import HeadingNode
+
+        try:
+            text = open(path, "r").read()
+            nodes = Parser.from_source(text).parse()
+        except Exception:
+            return None
+
+        for node in nodes:
+            if isinstance(node, HeadingNode) and node.level == 1:
+                return node.parent
+        return None
 
     def _read_symbols(self, path: str) -> Set[str]:
         """Parse a .hw file and extract symbol names from ## headings."""

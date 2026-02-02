@@ -203,18 +203,21 @@ def test_observe_handler_native():
 
 
 def test_observe_handler_inherited():
-    """Test observe: handler with an inherited global symbol."""
+    """Test observe: handler with an inherited symbol via parent chain."""
     from dispatcher import Receiver
 
+    # Build a mini parent chain: Codex → Agent (holds #observe)
+    agent = Receiver("Agent", {"#observe", "#act"})
+    codex = Receiver("Codex", {"#execute", "#analyze"}, parent=agent)
+
     registry = MessageHandlerRegistry()
-    codex = Receiver("Codex", {"#execute", "#analyze"})
 
     message = MessageNode(
         receiver=ReceiverNode("Codex"),
-        arguments={"observe": SymbolNode("#Object")}
+        arguments={"observe": SymbolNode("#observe")}
     )
     result = registry.handle("Codex", message, receiver=codex)
-    assert "Codex observes #Object" in result
+    assert "Codex observes #observe" in result
     assert "inherited" in result
 
 

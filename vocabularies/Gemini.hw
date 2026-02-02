@@ -1,4 +1,4 @@
-# Gemini
+# Gemini : Agent
 - Dispatcher, state management, vocabulary persistence, LLM integration.
 - The observer. State is truth.
 ## parse

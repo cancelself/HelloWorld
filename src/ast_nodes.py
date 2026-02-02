@@ -43,6 +43,7 @@ class VocabularyDefinitionNode(Node):
 class HeadingNode(Node):
     level: int          # 1 or 2
     name: str           # receiver name or symbol name
+    parent: Optional[str] = None    # e.g., "Agent" from "# Claude : Agent"
     children: List[Node] = field(default_factory=list)
 
 @dataclass

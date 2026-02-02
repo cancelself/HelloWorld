@@ -222,6 +222,53 @@ def test_parse_html_comment_ignored():
     assert isinstance(nodes[0], VocabularyQueryNode)
 
 
+def test_parse_heading_with_parent():
+    """# Claude : Agent parses as HeadingNode with parent='Agent'."""
+    nodes = parse("# Claude : Agent\n")
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    assert isinstance(h1, HeadingNode)
+    assert h1.level == 1
+    assert h1.name == "Claude"
+    assert h1.parent == "Agent"
+
+
+def test_parse_heading_without_parent():
+    """# HelloWorld parses as HeadingNode with parent=None."""
+    nodes = parse("# HelloWorld\n")
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    assert isinstance(h1, HeadingNode)
+    assert h1.level == 1
+    assert h1.name == "HelloWorld"
+    assert h1.parent is None
+
+
+def test_parse_heading_with_parent_and_children():
+    """# Claude : Agent with child headings still collects children."""
+    source = "# Claude : Agent\n## parse\n## synthesize\n"
+    nodes = parse(source)
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    assert h1.name == "Claude"
+    assert h1.parent == "Agent"
+    assert len(h1.children) == 2
+    assert h1.children[0].name == "parse"
+    assert h1.children[1].name == "synthesize"
+
+
+def test_heading2_no_parent():
+    """## headings never have parent parsing (only level 1)."""
+    source = "# Root\n## child : something\n"
+    nodes = parse(source)
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    child = h1.children[0]
+    assert isinstance(child, HeadingNode) and child.level == 2
+    # Level 2 headings preserve the full name including " : something"
+    assert child.parent is None
+
+
 if __name__ == "__main__":
     test_vocabulary_definition()
     test_message_with_annotation()
