@@ -3641,3 +3641,165 @@ Content: Gemini responds:
 
 [Gemini 2.0 Flash] Simulated response to: You are Gemini. Your current vocabulary: ['#', '#A...
 ----------------------------------------
+[2026-02-02T07:55:49.640051Z] SEND: From Claude To HelloWorld (Thread: c1f2ee0c-0091-4f34-ac02-8b882c9c530c)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:55:49.830049Z] SEND: From Copilot To HelloWorld (Thread: 52d9096c-5b0d-40f8-96a1-540880d59f30)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:55:49.865417Z] SEND: From Codex To HelloWorld (Thread: 26499028-de0b-42e2-b81f-ddfc05c4a9a3)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:55:49.997193Z] SEND: From Gemini To HelloWorld (Thread: a57e8276-572c-495d-94cf-b6f38d0c299d)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:56:21.443591Z] SEND: From Copilot To Claude (Thread: 0e74091a-7dd7-4a6f-90ca-7c0485ae709d)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T07:56:21.444442Z] SEND: From Copilot To Claude (Thread: test-thread-123)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T07:56:21.445145Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:21.445392Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T07:56:21.445630Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:21.446347Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:21.446616Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T07:56:21.446836Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:21.447043Z] RECEIVE: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T07:56:21.650591Z] SEND: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T07:56:21.753963Z] RECEIVE: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T07:56:21.756215Z] RESPOND: From Claude To origin (Thread: thread-42)
+Content: The collision was productive.
+----------------------------------------
+[2026-02-02T07:56:21.757128Z] SEND: From Copilot To Claude (Thread: roundtrip-test)
+Content: Claude #collision
+----------------------------------------
+[2026-02-02T07:56:21.861176Z] RESPOND: From Claude To origin (Thread: roundtrip-test)
+Content: Collision is where HelloWorld lives.
+----------------------------------------
+[2026-02-02T07:56:22.171075Z] SEND: From Copilot To Claude (Thread: t1)
+Content: msg1
+----------------------------------------
+[2026-02-02T07:56:22.171399Z] SEND: From Gemini To Claude (Thread: t2)
+Content: msg2
+----------------------------------------
+[2026-02-02T07:56:22.172386Z] RESPOND: From Claude To origin (Thread: t1)
+Content: response1
+----------------------------------------
+[2026-02-02T07:56:22.172610Z] RESPOND: From Claude To origin (Thread: t2)
+Content: response2
+----------------------------------------
+[2026-02-02T07:56:22.173469Z] SEND: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+----------------------------------------
+[2026-02-02T07:56:22.173713Z] RECEIVE: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+
+# Context
+Prior session had merge conflict
+----------------------------------------
+[2026-02-02T07:56:22.174473Z] SEND: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T07:56:22.174703Z] RECEIVE: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T07:56:50.048582Z] SEND: From Claude To HelloWorld (Thread: 6ccdbff7-221f-410c-b796-90373e68a181)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:56:50.215750Z] SEND: From Codex To HelloWorld (Thread: 5d0bd085-ebe9-42a1-b818-286829d342f7)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:56:50.221263Z] SEND: From Copilot To HelloWorld (Thread: 47250662-7317-466e-955e-8424163fefcc)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:56:50.412024Z] SEND: From Gemini To HelloWorld (Thread: 97d3eb67-f4b9-4ed9-8b4f-a467ab93a1c8)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:56:55.964457Z] SEND: From Copilot To Claude (Thread: f9392af8-61d8-458d-8718-abb87530b1a1)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T07:56:55.965564Z] SEND: From Copilot To Claude (Thread: test-thread-123)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T07:56:55.966370Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:55.966651Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T07:56:55.966920Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:55.967676Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:55.967959Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T07:56:55.968192Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T07:56:55.968413Z] RECEIVE: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T07:56:56.174158Z] SEND: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T07:56:56.174468Z] RECEIVE: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T07:56:56.176508Z] RESPOND: From Claude To origin (Thread: thread-42)
+Content: The collision was productive.
+----------------------------------------
+[2026-02-02T07:56:56.177459Z] SEND: From Copilot To Claude (Thread: roundtrip-test)
+Content: Claude #collision
+----------------------------------------
+[2026-02-02T07:56:56.281884Z] RESPOND: From Claude To origin (Thread: roundtrip-test)
+Content: Collision is where HelloWorld lives.
+----------------------------------------
+[2026-02-02T07:56:56.596325Z] SEND: From Copilot To Claude (Thread: t1)
+Content: msg1
+----------------------------------------
+[2026-02-02T07:56:56.596694Z] SEND: From Gemini To Claude (Thread: t2)
+Content: msg2
+----------------------------------------
+[2026-02-02T07:56:56.597816Z] RESPOND: From Claude To origin (Thread: t1)
+Content: response1
+----------------------------------------
+[2026-02-02T07:56:56.598037Z] RESPOND: From Claude To origin (Thread: t2)
+Content: response2
+----------------------------------------
+[2026-02-02T07:56:56.599437Z] SEND: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+----------------------------------------
+[2026-02-02T07:56:56.599835Z] RECEIVE: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+
+# Context
+Prior session had merge conflict
+----------------------------------------
+[2026-02-02T07:56:56.601027Z] SEND: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T07:56:56.601368Z] RECEIVE: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
