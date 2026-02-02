@@ -9,7 +9,7 @@ from parser import Parser
 from ast_nodes import (
     VocabularyDefinitionNode, VocabularyQueryNode,
     ScopedLookupNode, MessageNode, SymbolNode,
-    HeadingNode, DescriptionNode,
+    HeadingNode, DescriptionNode, UnaryMessageNode, SuperLookupNode,
 )
 
 
@@ -125,9 +125,13 @@ def test_legacy_dot_lookup_parses():
     assert stmt.receiver.name == "Claude"
 
 
-def test_missing_keyword_colon_raises():
-    source = "Guardian sendVision #fire"
-    expect_syntax_error(source, "Expect ':' after keyword")
+def test_bare_identifier_after_receiver_is_unary():
+    """Guardian sendVision #fire → unary message (bare symbol is skipped at top level)."""
+    nodes = parse("Guardian sendVision")
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], UnaryMessageNode)
+    assert nodes[0].receiver.name == "Guardian"
+    assert nodes[0].message == "sendVision"
 
 
 def test_parse_heading1():

@@ -18,7 +18,9 @@ from ast_nodes import (
     Node,
     ReceiverNode,
     ScopedLookupNode,
+    SuperLookupNode,
     SymbolNode,
+    UnaryMessageNode,
     VocabularyDefinitionNode,
     VocabularyQueryNode,
 )
@@ -262,8 +264,12 @@ class Dispatcher:
     def _execute(self, node: Node) -> Optional[str]:
         if isinstance(node, VocabularyQueryNode):
             return self._handle_query(node)
+        if isinstance(node, SuperLookupNode):
+            return self._handle_super_lookup(node)
         if isinstance(node, ScopedLookupNode):
             return self._handle_scoped_lookup(node)
+        if isinstance(node, UnaryMessageNode):
+            return self._handle_unary_message(node)
         if isinstance(node, VocabularyDefinitionNode):
             return self._handle_definition(node)
         if isinstance(node, MessageNode):
@@ -366,6 +372,106 @@ class Dispatcher:
             return f"{receiver_name} {symbol_name} is inherited from {defined_in}."
         else:
             return self._handle_unknown_symbol(receiver_name, receiver, symbol_name, lookup)
+
+    def _handle_unary_message(self, node: UnaryMessageNode) -> str:
+        """Handle a unary message: Receiver act [super]
+
+        Maps the bare message name to #message for vocabulary lookup,
+        then either invokes through the LLM or returns a structural response.
+        """
+        receiver_name = node.receiver.name
+        receiver = self._get_or_create_receiver(receiver_name)
+        symbol_name = f"#{node.message}"
+        lookup = receiver.lookup(symbol_name)
+
+        if node.is_super:
+            # Unary super: invoke through ancestor's meaning
+            ancestor = receiver._find_in_chain(symbol_name)
+            if ancestor:
+                if self.use_llm and self.llm:
+                    local_vocab = sorted(receiver.local_vocabulary)
+                    local_desc = self.vocab_manager.load_description(receiver_name, node.message)
+                    ancestor_desc = self.vocab_manager.load_description(ancestor.name, node.message)
+                    from prompts import super_lookup_prompt
+                    prompt = super_lookup_prompt(
+                        receiver_name, symbol_name, local_vocab,
+                        local_desc, ancestor.name, ancestor_desc,
+                    )
+                    try:
+                        llm_response = self.llm.call(prompt)
+                        return f"[{receiver_name}] {node.message} (via {ancestor.name}) — {llm_response}"
+                    except Exception:
+                        pass
+                return (
+                    f"[{receiver_name}] {node.message} (via {ancestor.name}) — "
+                    f"acts through inherited meaning from {ancestor.name}."
+                )
+            elif lookup.is_native():
+                return (
+                    f"[{receiver_name}] {node.message} (super) — "
+                    f"native, no ancestor holds {symbol_name}. Acts with local authority."
+                )
+            else:
+                return (
+                    f"{receiver_name} {symbol_name} is unknown — "
+                    f"cannot invoke super on a symbol not in the chain."
+                )
+
+        # Non-super unary message
+        if lookup.is_native() or lookup.is_inherited():
+            if self.use_llm and self.llm and receiver_name in self.agents:
+                local_vocab = sorted(receiver.local_vocabulary)
+                desc = self.vocab_manager.load_description(receiver_name, node.message)
+                from prompts import scoped_lookup_prompt_with_descriptions
+                identity = self.vocab_manager.load_identity(receiver_name)
+                prompt = scoped_lookup_prompt_with_descriptions(
+                    receiver_name, symbol_name, local_vocab, desc, identity,
+                )
+                try:
+                    llm_response = self.llm.call(prompt)
+                    return f"[{receiver_name}] {node.message} — {llm_response}"
+                except Exception:
+                    pass
+            # Structural fallback
+            if lookup.is_inherited():
+                defined_in = lookup.context.get("defined_in", "parent")
+                return f"[{receiver_name}] {node.message} — acts through {symbol_name} (inherited from {defined_in})."
+            return f"[{receiver_name}] {node.message} — acts on {symbol_name} (native)."
+        else:
+            return (
+                f"{receiver_name} {symbol_name} is unknown — "
+                f"cannot act on what is not in the vocabulary."
+            )
+
+    def _handle_super_lookup(self, node: SuperLookupNode) -> str:
+        """Handle typedef super: Receiver #symbol super
+
+        Walk the inheritance chain showing the symbol's description at each level.
+        """
+        receiver_name = node.receiver.name
+        symbol_name = node.symbol.name
+        receiver = self._get_or_create_receiver(receiver_name)
+
+        lines = [f"Super chain for {receiver_name} {symbol_name}:"]
+        chain = receiver.chain()
+
+        for name in chain:
+            r = self._get_or_create_receiver(name)
+            desc = self.vocab_manager.load_description(name, symbol_name.lstrip("#"))
+            if r.is_native(symbol_name):
+                desc_text = f'"{desc}"' if desc else "(no description)"
+                lines.append(f"  {name}: native — {desc_text}")
+            elif name == receiver_name:
+                # Current receiver doesn't have it natively, check inherited
+                ancestor = r._find_in_chain(symbol_name)
+                if ancestor:
+                    lines.append(f"  {name}: inherited from {ancestor.name}")
+                else:
+                    lines.append(f"  {name}: (not present)")
+            else:
+                lines.append(f"  {name}: (not present)")
+
+        return "\n".join(lines)
 
     def _handle_cross_receiver_send(self, sender_name: str, sender, node: MessageNode) -> str:
         """Handle send:to: — deliver a symbol from one receiver to another.

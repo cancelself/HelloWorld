@@ -18,6 +18,7 @@ class TokenType(Enum):
     COLON = auto()         # :
     STRING = auto()        # 'text'
     IDENTIFIER = auto()    # unquoted text
+    SUPER = auto()         # super (reserved keyword)
     NUMBER = auto()        # 123, 7.days
     NEWLINE = auto()
     HEADING1 = auto()      # # Name  (at column 1)
@@ -234,12 +235,18 @@ class Lexer:
             return True
         return False
     
+    # Reserved keywords that are not identifiers
+    KEYWORDS = {'super': TokenType.SUPER}
+
     def _match_identifier(self) -> bool:
         if self.source[self.pos].isalpha() or self.source[self.pos] == '_':
             col = self.column
             name = self._read_identifier()
+            # Check reserved keywords first
+            if name in self.KEYWORDS:
+                self.tokens.append(Token(self.KEYWORDS[name], name, self.line, col))
             # Capitalized words are receivers (Smalltalk class convention)
-            if name[0].isupper():
+            elif name[0].isupper():
                 self.tokens.append(Token(TokenType.RECEIVER, name, self.line, col))
             else:
                 self.tokens.append(Token(TokenType.IDENTIFIER, name, self.line, col))

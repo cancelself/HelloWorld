@@ -47,5 +47,16 @@ class HeadingNode(Node):
     children: List[Node] = field(default_factory=list)
 
 @dataclass
+class UnaryMessageNode(Node):
+    receiver: ReceiverNode
+    message: str            # e.g., "act"
+    is_super: bool = False  # True when followed by `super`
+
+@dataclass
+class SuperLookupNode(Node):
+    receiver: ReceiverNode
+    symbol: SymbolNode      # e.g., SymbolNode("#act")
+
+@dataclass
 class DescriptionNode(Node):
     text: str           # the content after "- "

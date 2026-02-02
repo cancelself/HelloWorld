@@ -7,7 +7,7 @@ from lexer import Lexer, Token, TokenType
 from ast_nodes import (
     Node, SymbolNode, ReceiverNode, LiteralNode,
     VocabularyQueryNode, ScopedLookupNode, MessageNode, VocabularyDefinitionNode,
-    HeadingNode, DescriptionNode
+    HeadingNode, DescriptionNode, UnaryMessageNode, SuperLookupNode
 )
 
 # Compatibility exports for tests
@@ -69,9 +69,12 @@ class Parser:
                 if suffix_node:
                     return suffix_node
 
-            # Message Passing: Name action: value
+            # Message Passing: Name action: value  OR  Unary: Name action [super]
             if self._check(TokenType.IDENTIFIER):
-                return self._parse_message(receiver)
+                if self._peek_is_keyword_message():
+                    return self._parse_message(receiver)
+                else:
+                    return self._parse_unary_message(receiver)
 
             # Bare receiver: Name
             return VocabularyQueryNode(receiver)
@@ -105,6 +108,33 @@ class Parser:
                 break
 
         return node
+
+    def _peek_is_keyword_message(self) -> bool:
+        """Look ahead to determine if the current IDENTIFIER starts a keyword message.
+
+        A keyword message has the form: identifier COLON value ...
+        A unary message is just: identifier [super]
+        """
+        # Save position
+        saved = self.pos
+        try:
+            # We're currently at an IDENTIFIER token — peek past it
+            if not self._check(TokenType.IDENTIFIER):
+                return False
+            self._advance()  # consume the IDENTIFIER
+            # If a COLON follows, it's a keyword message
+            return self._check(TokenType.COLON)
+        finally:
+            self.pos = saved
+
+    def _parse_unary_message(self, receiver: ReceiverNode) -> UnaryMessageNode:
+        """Parse a unary message: Receiver identifier [super]"""
+        self._advance()  # consume IDENTIFIER
+        message = self._previous().value
+        is_super = False
+        if self._match(TokenType.SUPER):
+            is_super = True
+        return UnaryMessageNode(receiver, message, is_super)
 
     def _parse_vocabulary_definition(self, receiver: ReceiverNode) -> VocabularyDefinitionNode:
         self._consume(TokenType.LBRACKET, "Expect '[' after '→'")
@@ -166,6 +196,9 @@ class Parser:
 
         if self._match(TokenType.SYMBOL):
             symbol_token = self._previous()
+            # If followed by `super`, it's a typedef super lookup
+            if self._match(TokenType.SUPER):
+                return SuperLookupNode(receiver, SymbolNode(symbol_token.value))
             return ScopedLookupNode(receiver, SymbolNode(symbol_token.value))
 
         if consumed_dot:
