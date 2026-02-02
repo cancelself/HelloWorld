@@ -3,6 +3,7 @@ Enables Hybrid Dispatch: Structural facts via Python, Interpretive voice via LLM
 Enables Prototypal Inheritance: HelloWorld is the parent of all receivers.
 """
 
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass
 from enum import Enum
@@ -23,7 +24,7 @@ from ast_nodes import (
 )
 from parser import Parser
 from vocabulary import VocabularyManager
-from global_symbols import GlobalVocabulary, is_global_symbol
+from global_symbols import GlobalVocabulary
 import message_bus
 from tools import ToolRegistry
 from envs import EnvironmentRegistry
@@ -60,10 +61,6 @@ class LookupResult:
     def is_inherited(self) -> bool:
         return self.outcome == LookupOutcome.INHERITED
 
-    def is_discoverable(self) -> bool:
-        """Backward compat alias for is_inherited()."""
-        return self.is_inherited()
-
     def is_unknown(self) -> bool:
         return self.outcome == LookupOutcome.UNKNOWN
 
@@ -73,6 +70,7 @@ class Receiver:
         self.name = name
         self.local_vocabulary = vocabulary if vocabulary is not None else set()
         self.parent: Optional['Receiver'] = parent
+        self._parent_name: Optional[str] = None
 
     @property
     def vocabulary(self) -> Set[str]:
@@ -100,21 +98,9 @@ class Receiver:
         """Check if symbol is inherited from parent chain (not local)."""
         return not self.is_native(symbol) and self._find_in_chain(symbol) is not None
 
-    def is_discoverable(self, symbol: str) -> bool:
-        """Backward compat alias for is_inherited()."""
-        return self.is_inherited(symbol)
-
-    def can_discover(self, symbol: str) -> bool:
-        """Backward compat alias for is_inherited()."""
-        return self.is_inherited(symbol)
-
     def add_symbol(self, symbol: str):
         """Add symbol to local vocabulary."""
         self.local_vocabulary.add(symbol)
-
-    def discover(self, symbol: str) -> bool:
-        """Backward compat: no-op in parent chain model (inherited symbols stay inherited)."""
-        return False
 
     def lookup(self, symbol: str) -> LookupResult:
         """Perform symbol lookup via prototypal inheritance chain.
@@ -168,7 +154,7 @@ class Receiver:
 
 
 class Dispatcher:
-    def __init__(self, vocab_dir: str = "vocabularies", discovery_log: Optional[str] = None, use_llm: bool = False):
+    def __init__(self, vocab_dir: str = "vocabularies", use_llm: bool = False):
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
@@ -176,8 +162,6 @@ class Dispatcher:
         self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
         self.log_file = "collisions.log"
-        self.discovery_log_file = discovery_log or os.path.join("storage", "discovery.log")
-        os.makedirs(os.path.dirname(self.discovery_log_file), exist_ok=True)
         # HelloWorld is the root parent
         self.agents = {"Claude", "Copilot", "Gemini", "Codex", "Scribe"}
         # Phase 4: LLM interpretation layer
@@ -197,14 +181,6 @@ class Dispatcher:
         with open(self.log_file, "a") as f:
             f.write(log_entry)
 
-    def _log_discovery(self, receiver: str, symbol: str):
-        """Record the moment a receiver discovers and activates a global symbol."""
-        timestamp = datetime.now().isoformat()
-        log_entry = f"[{timestamp}] DISCOVERY: {receiver} learned {symbol} from Global Library\n"
-        os.makedirs(os.path.dirname(self.discovery_log_file), exist_ok=True)
-        with open(self.discovery_log_file, "a") as f:
-            f.write(log_entry)
-
     def _bootstrap(self):
         """Initialize default receivers from .hw vocabulary files.
 
@@ -216,17 +192,22 @@ class Dispatcher:
         3. Fallback: HelloWorld receiver must always exist (even if empty)
         4. Resolve parent references to build the inheritance chain
         """
-        from pathlib import Path
-
         # 1. Initialize known agents and HelloWorld from persisted state or .hw
         core_receivers = {"HelloWorld"} | self.agents
 
-        # Scan vocabularies/ directory for additional receivers
-        vocab_dir = Path("vocabularies")
+        # Scan storage dir for .hw files; fall back to canonical vocabularies/
+        vocab_dir = Path(self.vocab_manager.storage_dir)
         hw_files = {}
         if vocab_dir.exists():
             for hw_file in vocab_dir.glob("*.hw"):
                 hw_files[hw_file.stem] = hw_file
+
+        # If storage dir has no .hw files, fall back to canonical vocabularies/
+        if not hw_files:
+            canonical = Path(__file__).parent.parent / "vocabularies"
+            if canonical.exists():
+                for hw_file in canonical.glob("*.hw"):
+                    hw_files[hw_file.stem] = hw_file
 
         # 2. Load all core and discovered receivers
         all_potential = set(core_receivers) | set(hw_files.keys())
@@ -336,12 +317,6 @@ class Dispatcher:
                 lines = ["HelloWorld #State → The current state of the distributed registry:"]
                 for name, rec in sorted(self.registry.items()):
                     lines.append(f"  - {name}: {len(rec.local_vocabulary)} native symbols")
-                
-                # Add discovery metrics if log exists
-                if os.path.exists("storage/discovery.log"):
-                    with open("storage/discovery.log") as f:
-                        count = len(f.readlines())
-                    lines.append(f"\nDiscovery Velocity: {count} symbols activated since session start.")
                 
                 return "\n".join(lines)
 
@@ -594,14 +569,12 @@ class Dispatcher:
         symbol_name: str,
         lookup: Optional[LookupResult] = None
     ) -> str:
-        """Handle UNKNOWN lookup outcome — trigger discovery, not collision.
-        
-        Phase 2: Discovery mechanism
+        """Handle UNKNOWN lookup outcome — trigger learning, not collision.
+
         1. Log unknown event (for tracking vocabulary evolution)
         2. Attempt research via LLM agent (if available)
-        3. Promote symbol to local vocabulary on successful resolution
-        4. Return structured response for downstream handlers
-        
+        3. Return structured response; actual learning happens in _learn_symbols_from_message
+
         Unknown ≠ Collision:
         - Unknown: one receiver lacks the symbol (triggers learning)
         - Collision: both have it with different meanings (triggers dialogue)
@@ -645,7 +618,7 @@ class Dispatcher:
     def _resolve_parents(self):
         """Resolve parent name strings to Receiver objects after all receivers are loaded."""
         for receiver in self.registry.values():
-            parent_name = getattr(receiver, '_parent_name', None)
+            parent_name = receiver._parent_name
             if parent_name and parent_name in self.registry:
                 receiver.parent = self.registry[parent_name]
 

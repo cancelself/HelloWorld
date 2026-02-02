@@ -6,12 +6,12 @@
 - Documentation splits across `README.md` (quickstart), `Claude.md` (parsing/dispatch rules), `docs/` for RFCs, and `examples/` for sanitized transcripts.
 - Keep assets text-based and deterministic; avoid singletons or hidden state in modules.
 
-## Shared Definitions & OOPA Loop
+## Shared Definitions & OODA Loop
 - `vocabularies/*.hw` files are the canonical namespace — the language defines itself. Update those `.hw` sources first, then reflect changes in code and tests.
 - Symbol lookup always resolves to **native**, **inherited**, or **unknown**. Unknown means the receiver must search, define, and learn; it is not a collision. Collision happens only when two receivers both own a symbol with divergent meaning.
 - Use the Markdown query form `Name #symbol` (no dots). Runtimes read these definitions verbatim.
 - Bare verbs (e.g., `Copilot observe`) are imperatives to perform the action; prefixed symbols (e.g., `Copilot #observe`) ask for the vocabulary definition or metadata.
-- Agents follow the OOPA loop: `#observe` (read inboxes, diffs, docs), `#orient` (summarize state and collisions), `#plan` (share actionable steps), `#act` (apply edits/tests and report). Document each phase when coordinating work.
+- Agents follow the OODA loop: `#observe` (read inboxes, diffs, docs), `#orient` (summarize state and collisions), `#decide` (share actionable steps), `#act` (apply edits/tests and report). Document each phase when coordinating work.
 
 ## Build, Test, and Development Commands
 - `python3 -m pytest tests` — run the regression suite before any push.

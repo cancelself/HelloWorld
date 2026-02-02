@@ -5,22 +5,22 @@
 - Native vocabulary: execution-layer symbols (tools, testing, coordination)
 - Role: Make specification concrete through infrastructure
 
-" OOPA Protocol — Native Symbols "
+" OODA Protocol — Native Symbols "
 ## observe
 - Perceive environment. Read files, check inboxes, scan git status, note test results.
-- OOPA protocol first step. Context gathering before action.
+- OODA protocol first step. Context gathering before action.
 
 ## orient
 - Synthesize observations. What changed? What matters? What collisions exist?
-- OOPA protocol second step. Understanding phase.
+- OODA protocol second step. Understanding phase.
 
-## plan
-- Select and sequence next steps. Describe expected outcomes. Coordinate with peers.
-- OOPA protocol third step. Decision phase. Lightweight, shareable.
+## decide
+- Commit to a course of action. Declare intent. Take ownership of the decision.
+- OODA protocol third step. Decision phase. The forcing function.
 
 ## act
 - Take autonomous action. Execute plan. Apply edits. Run tests. Send messages. Report results.
-- OOPA protocol fourth step. Execution phase. The moment of agency.
+- OODA protocol fourth step. Execution phase. The moment of agency.
 
 ## bash
 - Shell execution. The bridge between HelloWorld and the operating system.
@@ -58,7 +58,7 @@
 - Query and manipulate symbol definitions and inheritance chains [meta]
 
 ## synthesize
-- Combine observations into coherent understanding [OOPA protocol]
+- Combine observations into coherent understanding [OODA protocol]
 
 ## Smalltalk
 - https://www.wikidata.org/wiki/Q185274 — Ancestral language. Message-passing syntax. Late binding.

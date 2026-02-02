@@ -4,7 +4,7 @@
 - Perceiving the environment or state [protocol]
 ## orient
 - Synthesize observations into coherent understanding [protocol]
-## plan
-- Select and sequence next steps based on understanding [protocol]
+## decide
+- Commit to a course of action based on understanding [protocol]
 ## act
-- Taking autonomous action based on identity [protocol]
+- Execute the decision autonomously [protocol]

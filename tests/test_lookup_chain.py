@@ -37,7 +37,7 @@ def test_lookup_inherited_symbol():
     assert result.symbol == "#Object"
     assert result.receiver_name == "Codex"
     assert result.is_inherited()
-    assert result.is_discoverable()  # Backward compat alias
+    assert result.is_inherited()
     assert not result.is_native()
     assert not result.is_unknown()
     assert "defined_in" in result.context

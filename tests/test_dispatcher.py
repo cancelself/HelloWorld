@@ -15,7 +15,7 @@ def _fresh_dispatcher_with_dir():
     # Disable message bus for faster tests (agents trigger 5s timeouts)
     os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
     tmp = tempfile.mkdtemp()
-    dispatcher = Dispatcher(vocab_dir=tmp, discovery_log=os.path.join(tmp, "discovery.log"))
+    dispatcher = Dispatcher(vocab_dir=tmp)
     return dispatcher, tmp
 
 
