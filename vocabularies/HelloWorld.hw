@@ -80,3 +80,5 @@
 - Deliver a message to a receiver's inbox via MessageBus [agent protocol]
 ## receive
 - Check inbox for pending messages via MessageBus [agent protocol]
+## hello
+- Periodic agent health signal sent to HelloWorld — presence announcement [agent protocol]

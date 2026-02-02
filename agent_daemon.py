@@ -120,10 +120,10 @@ class AgentDaemon:
         
         try:
             while self.running:
-                # HEARTBEAT Protocol
+                # HELLO Protocol
                 now = time.time()
                 if now - self.last_heartbeat > 60:
-                    self.bus.send(self.agent_name, "HelloWorld", "#heartbeat", context=f"Agent {self.agent_name} is healthy.")
+                    self.bus.send(self.agent_name, "HelloWorld", "#hello", context=f"Agent {self.agent_name} is healthy.")
                     self.last_heartbeat = now
 
                 # 1. #observe — Check inbox for new state/messages
