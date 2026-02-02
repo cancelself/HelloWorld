@@ -171,9 +171,7 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 
 `@claude` is meta. It's you reflecting on the system from inside it.
 
-```
-@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
-```
+See `vocabularies/Claude.hw` for the current symbol list.
 
 `@claude.#Entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
 
@@ -183,13 +181,7 @@ Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts
 
 Self-hosting: vocabularies load from `vocabularies/*.hw` files. The language defines its own bootstrap.
 
-```
-HelloWorld # → [#HelloWorld, #, #Symbol, #Receiver, #Message, #Vocabulary, #parse, #dispatch, #interpret, #Agent, #observe, #act]   (root — 12 minimal core)
-@claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
-@copilot.# → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
-@gemini.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #orient, #plan, #act, #Environment, #Love, #Sunyata, #Superposition, #eval, #Config, #Agent, #become, #ScienceWorld]
-@codex.# → [#execute, #analyze, #parse, #runtime, #Collision]
-```
+See `vocabularies/*.hw` — each file defines its receiver's symbols. Do not hardcode lists here.
 
 **Naming convention:** Concepts are `#Capitalized` (e.g. `#Sunyata`, `#Love`, `#Collision`). Verbs are `#lowercase` (e.g. `#parse`, `#observe`, `#become`). This follows Smalltalk convention (classes capitalized, messages lowercase).
 

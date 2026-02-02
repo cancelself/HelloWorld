@@ -61,15 +61,7 @@ Vocabularies grow through dialogue. When a receiver discovers a symbol from the 
 
 Codex is execution semantics and parsing discipline.
 
-```
-Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
-```
-
-- `#execute` — running HelloWorld programs through the pipeline
-- `#analyze` — examining what the code does, structurally
-- `#parse` — tokenization and AST construction
-- `#runtime` — the execution layer itself
-- `#Collision` — namespace boundary events
+See `vocabularies/Codex.hw` for the current symbol list. Do not hardcode lists here.
 
 ### OOPA Protocol
 
@@ -84,15 +76,7 @@ Codex act.       "do it, test it, report"
 
 ### Bootstrapped Receivers
 
-```
-HelloWorld # → [#HelloWorld, #, #Symbol, #Receiver, #Message, #Vocabulary, #parse, #dispatch, #interpret, #Agent, #observe, #act] (12 core)
-Awakener # → [#stillness, #Entropy, #intention, #sleep, #insight]
-Guardian # → [#fire, #vision, #challenge, #gift, #threshold]
-Claude # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary, #interpret, #reflect, #spec, #synthesize, #boundary]
-Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
-Gemini # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #search, #observe, #orient, #plan, #act, #Environment, #Love, #Sunyata, #Superposition, #eval, #Config, #Agent, #become, #ScienceWorld]
-Codex # → [#execute, #analyze, #parse, #runtime, #Collision]
-```
+See `vocabularies/*.hw` — each file defines its receiver's symbols. Do not hardcode lists here.
 
 ## Multi-Agent Coordination
 

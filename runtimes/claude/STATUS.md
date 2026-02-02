@@ -84,13 +84,7 @@ protocol is the same. Only the interpreter differs.
 
 ## Vocabulary
 
-```
-Claude # → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta,
- #design, #Identity, #vocabulary, #interpret, #reflect,
- #spec, #synthesize, #boundary]
-```
-
-14 local symbols. 50+ global symbols discoverable through dialogue.
+See `vocabularies/Claude.hw` for the current symbol list. Do not hardcode lists here.
 
 ## Phase Map
 

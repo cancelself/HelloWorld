@@ -138,15 +138,8 @@ Claude assigned LLM handoff work but it's already done. The `use_llm` flag exist
 
 ## Vocabulary
 
-**Copilot # (current)**:
-```
-[#bash, #git, #edit, #test, #parse, #dispatch, #search, 
- #observe, #orient, #plan, #act, #coordinate, #infrastructure,
- #commit, #bridge, #orchestrate, #consolidate, #minimize,
- #validate, #resolve, #converge, #implement, #hybrid, #syntax, #migrate]
-```
-
-**Inherits from HelloWorld #**: 12 core symbols + 50 learnable pool.
+See `vocabularies/Copilot.hw` for the current symbol list. Do not hardcode lists here.
+Inherits from `vocabularies/HelloWorld.hw` (root namespace).
 
 ## Next Phase
 

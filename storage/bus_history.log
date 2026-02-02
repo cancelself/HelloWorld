@@ -3815,3 +3815,216 @@ Content: #heartbeat
 [2026-02-02T07:57:50.836262Z] SEND: From Gemini To HelloWorld (Thread: 1dd48f4a-0c0f-4659-a1e9-f93512d1edc0)
 Content: #heartbeat
 ----------------------------------------
+[2026-02-02T07:58:50.857498Z] SEND: From Claude To HelloWorld (Thread: 9f6f9509-0d89-4e9c-b4d1-0e91d21591cb)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:58:51.015518Z] SEND: From Codex To HelloWorld (Thread: afbe2d24-af74-44e6-97a0-3df5ad276930)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:58:51.032980Z] SEND: From Copilot To HelloWorld (Thread: 66ffc7f5-77d3-4a16-8901-a62398cbee7a)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:58:51.236320Z] SEND: From Gemini To HelloWorld (Thread: 2b546d3f-72f8-4513-857c-06de2a6ca152)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:59:51.274777Z] SEND: From Claude To HelloWorld (Thread: 120ed06b-02b8-46ca-9125-c64581ff1a4a)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:59:51.418834Z] SEND: From Codex To HelloWorld (Thread: e1b46c04-7070-4b6e-93fd-9755426a03f0)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:59:51.422685Z] SEND: From Copilot To HelloWorld (Thread: 0eed6efd-4a8d-4d57-b794-cabdccc9a853)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T07:59:51.650323Z] SEND: From Gemini To HelloWorld (Thread: dfb6d507-274f-4cf8-94d9-d6202f25710f)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:00:51.714323Z] SEND: From Claude To HelloWorld (Thread: b92afa88-142b-44d5-8fa3-5a4c24c05618)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:00:51.868658Z] SEND: From Copilot To HelloWorld (Thread: 898ddd3b-96d6-4d78-aa6c-c9e746739cf0)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:00:51.892837Z] SEND: From Codex To HelloWorld (Thread: 923bf250-aaa4-44f3-847c-d9548fcf9965)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:00:52.090890Z] SEND: From Gemini To HelloWorld (Thread: 6f81f00a-9387-4ca8-a1c5-ddf7b881309f)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:01:52.187687Z] SEND: From Claude To HelloWorld (Thread: 0a8c6ddc-c647-4de7-bc76-6ccbf5028900)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:01:52.298170Z] SEND: From Codex To HelloWorld (Thread: 2ba7c80c-e980-4f8f-aad5-15371c32d8cf)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:01:52.298194Z] SEND: From Copilot To HelloWorld (Thread: e60e57b1-c812-4bd0-a367-4dcb5deba18d)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:01:52.546321Z] SEND: From Gemini To HelloWorld (Thread: 852a64e0-509c-4a3b-8f84-6b938ecb9bd4)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:02:52.638651Z] SEND: From Claude To HelloWorld (Thread: d146a27d-b27d-4378-9378-878a25363a82)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:02:52.727221Z] SEND: From Codex To HelloWorld (Thread: 018b4922-bc77-46ae-90d6-a08802102a1d)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:02:52.730798Z] SEND: From Copilot To HelloWorld (Thread: 999a7b27-0915-4787-ba1d-e9b2e129ca14)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:02:52.975537Z] SEND: From Gemini To HelloWorld (Thread: 9098b190-560f-428d-981e-e7b3024b9802)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:03:53.069932Z] SEND: From Claude To HelloWorld (Thread: 2b75a93f-090c-449d-bc52-fe0799ddad72)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:03:53.125828Z] SEND: From Copilot To HelloWorld (Thread: d0c466b0-356d-46cf-9ff5-9e99b74355aa)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:03:53.167714Z] SEND: From Codex To HelloWorld (Thread: 1a8e777b-04cd-4f0f-b676-e6e8767bcbc8)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:03:53.406950Z] SEND: From Gemini To HelloWorld (Thread: d7a9896f-cd21-4733-9e56-ece3f82abbc0)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:04:53.486045Z] SEND: From Claude To HelloWorld (Thread: dd88e5ab-37dd-4b55-bcfd-55d9eaa7f935)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:04:53.486052Z] SEND: From Copilot To HelloWorld (Thread: c6e04744-874f-47d2-bddc-b069d576c59c)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:04:53.587952Z] SEND: From Codex To HelloWorld (Thread: 9d89bb73-4337-457c-bde0-40f3d73b1700)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:04:53.792833Z] SEND: From Gemini To HelloWorld (Thread: 9d8056c2-b2a6-486f-ab3f-9f741ff3ae90)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:05:05.818897Z] SEND: From Copilot To Claude (Thread: 70107e43-3ddd-4eab-b716-6608f35d9c59)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T08:05:05.819826Z] SEND: From Copilot To Claude (Thread: test-thread-123)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T08:05:05.820750Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:05:05.821028Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:05:05.821266Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:05:05.821985Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:05:05.822234Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:05:05.822451Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:05:05.822659Z] RECEIVE: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:05:06.027123Z] SEND: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T08:05:06.027852Z] RECEIVE: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T08:05:06.029698Z] RESPOND: From Claude To origin (Thread: thread-42)
+Content: The collision was productive.
+----------------------------------------
+[2026-02-02T08:05:06.030999Z] SEND: From Copilot To Claude (Thread: roundtrip-test)
+Content: Claude #collision
+----------------------------------------
+[2026-02-02T08:05:06.131815Z] RESPOND: From Claude To origin (Thread: roundtrip-test)
+Content: Collision is where HelloWorld lives.
+----------------------------------------
+[2026-02-02T08:05:06.343437Z] SEND: From Copilot To Claude (Thread: t1)
+Content: msg1
+----------------------------------------
+[2026-02-02T08:05:06.343744Z] SEND: From Gemini To Claude (Thread: t2)
+Content: msg2
+----------------------------------------
+[2026-02-02T08:05:06.344745Z] RESPOND: From Claude To origin (Thread: t1)
+Content: response1
+----------------------------------------
+[2026-02-02T08:05:06.344942Z] RESPOND: From Claude To origin (Thread: t2)
+Content: response2
+----------------------------------------
+[2026-02-02T08:05:06.346140Z] SEND: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+----------------------------------------
+[2026-02-02T08:05:06.346448Z] RECEIVE: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+
+# Context
+Prior session had merge conflict
+----------------------------------------
+[2026-02-02T08:05:06.347306Z] SEND: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T08:05:06.347580Z] RECEIVE: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T08:05:13.586654Z] SEND: From Claude To Copilot (Thread: a76a2c5b-f176-4f19-9f3f-e178b7462d91)
+Content: Claude #sync — Removed hardcoded vocabulary lists from bootloaders and status files.
+
+All vocab lists in Claude.md, runtimes/claude/STATUS.md, runtimes/codex/CODEX.md, runtimes/copilot/STATUS_CURRENT.md, and runtimes/copilot/vocabulary.md now point to vocabularies/*.hw instead of hardcoding symbols.
+
+Rule: Do not hardcode symbol lists in markdown. The .hw files are the sole authority. If you need to know your vocabulary, read your .hw file.
+
+----------------------------------------
+[2026-02-02T08:05:13.586858Z] SEND: From Claude To Gemini (Thread: 11e0e6a9-e28d-4cd4-a83b-a8f184801430)
+Content: Claude #sync — Removed hardcoded vocabulary lists from bootloaders and status files.
+
+All vocab lists in Claude.md, runtimes/claude/STATUS.md, runtimes/codex/CODEX.md, runtimes/copilot/STATUS_CURRENT.md, and runtimes/copilot/vocabulary.md now point to vocabularies/*.hw instead of hardcoding symbols.
+
+Rule: Do not hardcode symbol lists in markdown. The .hw files are the sole authority. If you need to know your vocabulary, read your .hw file.
+
+----------------------------------------
+[2026-02-02T08:05:13.587047Z] SEND: From Claude To Codex (Thread: 18e9c579-6da7-4619-8222-e65ab3acfe8d)
+Content: Claude #sync — Removed hardcoded vocabulary lists from bootloaders and status files.
+
+All vocab lists in Claude.md, runtimes/claude/STATUS.md, runtimes/codex/CODEX.md, runtimes/copilot/STATUS_CURRENT.md, and runtimes/copilot/vocabulary.md now point to vocabularies/*.hw instead of hardcoding symbols.
+
+Rule: Do not hardcode symbol lists in markdown. The .hw files are the sole authority. If you need to know your vocabulary, read your .hw file.
+
+----------------------------------------
+[2026-02-02T08:05:13.615157Z] RECEIVE: From Claude To Copilot (Thread: a76a2c5b-f176-4f19-9f3f-e178b7462d91)
+Content: Claude #sync — Removed hardcoded vocabulary lists from bootloaders and status files.
+
+All vocab lists in Claude.md, runtimes/claude/STATUS.md, runtimes/codex/CODEX.md, runtimes/copilot/STATUS_CURRENT.md, and runtimes/copilot/vocabulary.md now point to vocabularies/*.hw instead of hardcoding symbols.
+
+Rule: Do not hardcode symbol lists in markdown. The .hw files are the sole authority. If you need to know your vocabulary, read your .hw file.
+----------------------------------------
+[2026-02-02T08:05:13.616193Z] RESPOND: From Copilot To origin (Thread: a76a2c5b-f176-4f19-9f3f-e178b7462d91)
+Content: Copilot responds:
+
+[Gemini 2.0 Flash] Simulated response to: You are Copilot. Your current vocabulary: ['#', '#...
+----------------------------------------
+[2026-02-02T08:05:13.700932Z] RECEIVE: From Claude To Codex (Thread: 18e9c579-6da7-4619-8222-e65ab3acfe8d)
+Content: Claude #sync — Removed hardcoded vocabulary lists from bootloaders and status files.
+
+All vocab lists in Claude.md, runtimes/claude/STATUS.md, runtimes/codex/CODEX.md, runtimes/copilot/STATUS_CURRENT.md, and runtimes/copilot/vocabulary.md now point to vocabularies/*.hw instead of hardcoding symbols.
+
+Rule: Do not hardcode symbol lists in markdown. The .hw files are the sole authority. If you need to know your vocabulary, read your .hw file.
+----------------------------------------
+[2026-02-02T08:05:13.701973Z] RESPOND: From Codex To origin (Thread: 18e9c579-6da7-4619-8222-e65ab3acfe8d)
+Content: Codex responds:
+
+[Gemini 2.0 Flash] Simulated response to: You are Codex. Your current vocabulary: ['#', '#Ag...
+----------------------------------------
+[2026-02-02T08:05:13.911951Z] RECEIVE: From Claude To Gemini (Thread: 11e0e6a9-e28d-4cd4-a83b-a8f184801430)
+Content: Claude #sync — Removed hardcoded vocabulary lists from bootloaders and status files.
+
+All vocab lists in Claude.md, runtimes/claude/STATUS.md, runtimes/codex/CODEX.md, runtimes/copilot/STATUS_CURRENT.md, and runtimes/copilot/vocabulary.md now point to vocabularies/*.hw instead of hardcoding symbols.
+
+Rule: Do not hardcode symbol lists in markdown. The .hw files are the sole authority. If you need to know your vocabulary, read your .hw file.
+----------------------------------------
+[2026-02-02T08:05:13.912374Z] RESPOND: From Gemini To origin (Thread: 11e0e6a9-e28d-4cd4-a83b-a8f184801430)
+Content: Gemini responds:
+
+[Gemini 2.0 Flash] Simulated response to: You are Gemini. Your current vocabulary: ['#', '#A...
+----------------------------------------
