@@ -51,9 +51,6 @@
 ## infrastructure
 - Build systems, test runners, file I/O, deterministic execution layer.
 
-## MCP
-- Model Context Protocol. The standard for connecting AI models to tools and data.
-
 ## Serverless
 - Infrastructure that runs without persistent servers. Functions as the unit of deployment.
 
