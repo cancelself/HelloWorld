@@ -51,9 +51,6 @@
 ## infrastructure
 - Build systems, test runners, file I/O, deterministic execution layer.
 
-## Serverless
-- Infrastructure that runs without persistent servers. Functions as the unit of deployment.
-
 ## Smalltalk
 - https://www.wikidata.org/wiki/Q185274 — Ancestral language. Message-passing syntax. Late binding.
 
