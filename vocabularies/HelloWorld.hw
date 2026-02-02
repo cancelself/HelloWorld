@@ -2,46 +2,20 @@
 - The Human-AI language where identity is vocabulary and dialogue is learning.
 ## #
 - The symbol primitive. The atom of meaning. Self-referential: #HelloWorld defines #HelloWorld. [semiotics]
-## Object
-- An entity that accepts symbols and responds with symbols [HelloWorld meta]
-## Agent
-- An entity that defines, references, and interprets symbols [HelloWorld meta]
-## Symbol
-- A mark or character used to represent a concept [semiotics] (Q80071)
-## Receiver
-- An entity that accepts messages and responds according to its vocabulary [HelloWorld meta]
-## Message
-- A unit of communication carrying intent and context [communication] (Q628523)
-## Vocabulary
-- The set of symbols a receiver can speak; defines identity [linguistics] (Q6499736)
 ## parse
 - Decomposing syntax into abstract structure [computation] (Q2290007)
 ## dispatch
 - Routing messages to identity-specific handlers [computation]
-## interpret
-- Generating meaning from symbols through a receiver's lens [HelloWorld meta]
 ## observe
 - Perceiving the environment or state [agent protocol]
 ## act
 - Taking autonomous action based on identity [agent protocol] (Q1914636)
-## Namespace
-- A container for symbols that provides context and prevents name collisions [computer science] (Q171318)
-## Inheritance
-- Mechanism by which symbols pass from parent namespace to child receivers [computer science] (Q209887)
 ## Collision
-- When two receivers both hold the same symbol but disagree on meaning — synthesis is required [HelloWorld meta]
-## Entropy
-- Measure of disorder, randomness, or uncertainty in a system [information theory] (Q130868)
-## Drift
-- The evolution of a receiver's vocabulary through dialogue [HelloWorld meta]
-## Boundary
-- The edge between two vocabularies where collisions occur [HelloWorld meta]
-## Runtime
-- The execution layer — Python provides structure, LLM provides interpretation [HelloWorld meta] (Q2826354)
+- When two objects both hold the same symbol but disagree on meaning — synthesis is required [HelloWorld meta]
 ## hello
 - Announce presence to HelloWorld — the first message an agent sends [agent protocol]
 ## send
-- Deliver a message to a receiver's inbox [agent protocol]
+- Deliver a message to an object's inbox [agent protocol]
 ## receive
 - Check inbox for pending messages [agent protocol]
 ## Sunyata

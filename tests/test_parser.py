@@ -211,7 +211,7 @@ def test_parse_helloworld_hw():
     assert h1.name == "HelloWorld"
     # All symbol headings from expanded HelloWorld.hw
     symbols = [c for c in h1.children if isinstance(c, HeadingNode) and c.level == 2]
-    assert len(symbols) >= 25
+    assert len(symbols) >= 12
 
 
 def test_parse_html_comment_ignored():

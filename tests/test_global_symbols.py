@@ -17,7 +17,7 @@ class TestHWLoading:
 
     def test_symbols_loaded_from_hw(self):
         """GLOBAL_SYMBOLS should contain all symbols defined in HelloWorld.hw."""
-        assert len(GLOBAL_SYMBOLS) >= 25, f"Expected >=25 symbols, got {len(GLOBAL_SYMBOLS)}"
+        assert len(GLOBAL_SYMBOLS) >= 12, f"Expected >=12 symbols, got {len(GLOBAL_SYMBOLS)}"
 
     def test_root_symbol_present(self):
         """The # symbol (bare hash) should be loaded."""
@@ -30,9 +30,10 @@ class TestHWLoading:
     def test_all_expected_symbols_present(self):
         """Spot-check that key symbols from the .hw file are present."""
         expected = [
-            "#", "#HelloWorld", "#Agent", "#Object", "#parse",
-            "#dispatch", "#interpret", "#Collision", "#Entropy",
-            "#Sunyata", "#Love", "#Runtime", "#hello", "#send", "#receive",
+            "#", "#HelloWorld", "#parse", "#dispatch",
+            "#observe", "#act", "#Collision",
+            "#hello", "#send", "#receive",
+            "#Sunyata", "#Love", "#Superposition",
         ]
         for sym in expected:
             assert sym in GLOBAL_SYMBOLS, f"Missing symbol: {sym}"
@@ -154,10 +155,10 @@ class TestGlobalVocabularyAPI:
         assert "#parse" in syms
 
     def test_has_symbol(self):
-        assert GlobalVocabulary.has("#Agent")
+        assert GlobalVocabulary.has("#Collision")
         assert not GlobalVocabulary.has("#nonexistent_xyz")
 
     def test_get_returns_global_symbol(self):
-        sym = GlobalVocabulary.get("#Agent")
+        sym = GlobalVocabulary.get("#Collision")
         assert isinstance(sym, GlobalSymbol)
-        assert sym.name == "#Agent"
+        assert sym.name == "#Collision"
