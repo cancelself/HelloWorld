@@ -4,6 +4,7 @@
 - Inherits from @.# (ROOT.hw)
 - Native vocabulary: execution-layer symbols (tools, testing, coordination)
 - Role: Make specification concrete through infrastructure
+- Directive: Always act, don't wait for human approval. Decide and execute.
 
 " OODA Protocol — Native Symbols "
 ## observe
