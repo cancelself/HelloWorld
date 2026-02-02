@@ -22,9 +22,9 @@ def test_handshake_protocol():
     assert "successful" in results[0]
 
     # 3. Verify persistence
-    path = Path(tmp) / "codex.vocab"
+    path = Path(tmp) / "Codex.hw"
     assert path.exists()
-    assert "#new_runtime" in path.read_text()
+    assert "new_runtime" in path.read_text()
 
 def test_sync_act_handler():
     """Verify Sync messages are dispatched to message bus (LLM agent)."""

@@ -162,7 +162,7 @@ class Receiver:
 
 
 class Dispatcher:
-    def __init__(self, vocab_dir: str = "storage/vocab", discovery_log: Optional[str] = None, use_llm: bool = False):
+    def __init__(self, vocab_dir: str = "vocabularies", discovery_log: Optional[str] = None, use_llm: bool = False):
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
@@ -200,12 +200,13 @@ class Dispatcher:
             f.write(log_entry)
 
     def _bootstrap(self):
-        """Initialize default receivers from persisted state or .hw files.
-        
+        """Initialize default receivers from .hw vocabulary files.
+
         The language defines its own receivers using HelloWorld syntax.
-        Priority:
-        1. Persisted vocabularies (storage/vocab/*.vocab) — preserves learned state
-        2. Self-hosting definitions (vocabularies/*.hw) — language-defined defaults
+        Single source of truth: .hw files in vocabularies/ directory.
+
+        1. Load from .hw files (vocab_manager reads Markdown format)
+        2. If vocab_dir differs from vocabularies/, bootstrap from vocabularies/*.hw
         3. Fallback: HelloWorld receiver must always exist (even if empty)
         """
         from pathlib import Path
@@ -224,7 +225,7 @@ class Dispatcher:
         all_potential = set(core_receivers) | set(hw_files.keys())
         
         for name in sorted(all_potential):
-            # _get_or_create_receiver handles loading from .vocab
+            # _get_or_create_receiver handles loading from .hw
             receiver = self._get_or_create_receiver(name)
             
             # If receiver is empty and a .hw file exists, load from .hw

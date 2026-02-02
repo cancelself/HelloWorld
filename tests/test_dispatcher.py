@@ -193,7 +193,7 @@ def test_manual_save_creates_file():
     target = "Scribe"
     receiver = dispatcher._get_or_create_receiver(target)
     receiver.add_symbol("#witness")
-    path = Path(tmpdir) / "scribe.vocab"
+    path = Path(tmpdir) / "Scribe.hw"
     if path.exists():
         path.unlink()
     dispatcher.save(target)
@@ -250,15 +250,13 @@ def test_save_persists_local_only():
     """Verify that save() only writes local_vocabulary, not inherited globals."""
     dispatcher, tmpdir = _fresh_dispatcher_with_dir()
     dispatcher.save("Codex")
-    path = Path(tmpdir) / "codex.vocab"
-    import json
-    with open(path) as f:
-        data = json.load(f)
-    vocab = set(data["vocabulary"])
-    # #execute is local
-    assert "#execute" in vocab
+    path = Path(tmpdir) / "Codex.hw"
+    assert path.exists()
+    content = path.read_text()
+    # #execute is local — appears as ## heading in .hw file
+    assert "execute" in content
     # #Love is inherited (global), should NOT be persisted
-    assert "#Love" not in vocab
+    assert "Love" not in content
 
 
 def test_inherited_includes_receiver_context():

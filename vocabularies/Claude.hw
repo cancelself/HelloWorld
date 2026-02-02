@@ -29,3 +29,9 @@
 - Combining structural and interpretive layers into a unified system. The thesis: both are needed.
 ## boundary
 - The edge between namespaces where collisions occur. Where Claude lives.
+## act
+- (learned through dialogue)
+## observe
+- (learned through dialogue)
+## test
+- (learned through dialogue)
