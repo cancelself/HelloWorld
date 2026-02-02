@@ -1,10 +1,11 @@
 """Test Phase 4: LLM Integration with Dispatcher.
 
-Verify that the LLM interpretation layer works when use_llm=True.
+Verify that the LLM interpretation layer works with lazy-loaded LLM.
 Tests with @pytest.mark.skipif for real API calls.
 """
 
 import os
+import tempfile
 import pytest
 import sys
 from unittest.mock import MagicMock
@@ -14,25 +15,56 @@ from src.llm import GeminiModel, has_api_key
 from src.prompts import scoped_lookup_prompt, message_prompt, collision_prompt
 
 
-def test_dispatcher_llm_flag():
-    """Verify dispatcher accepts use_llm flag."""
-    dispatcher_no_llm = Dispatcher(use_llm=False)
-    assert dispatcher_no_llm.use_llm is False
-    assert dispatcher_no_llm.llm is None
+def _make_dispatcher(**kw):
+    """Create a dispatcher with message bus disabled and temp vocab dir."""
+    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
+    if "vocab_dir" not in kw:
+        kw["vocab_dir"] = tempfile.mkdtemp()
+    return Dispatcher(**kw)
 
-    dispatcher_with_llm = Dispatcher(use_llm=True)
-    assert dispatcher_with_llm.use_llm is True
-    assert dispatcher_with_llm.llm is not None
+
+def test_dispatcher_no_use_llm_param():
+    """Constructor rejects the old use_llm parameter."""
+    with pytest.raises(TypeError, match="use_llm parameter removed"):
+        Dispatcher(use_llm=True)
+    with pytest.raises(TypeError, match="use_llm parameter removed"):
+        Dispatcher(use_llm=False)
+
+
+def test_llm_lazy_load_without_key():
+    """LLM returns None when no API key is set."""
+    old = os.environ.pop("GEMINI_API_KEY", None)
+    try:
+        d = _make_dispatcher()
+        assert d.llm is None
+        assert d.use_llm is False
+    finally:
+        if old is not None:
+            os.environ["GEMINI_API_KEY"] = old
+
+
+def test_llm_lazy_load_with_key():
+    """LLM is created when API key is present."""
+    old = os.environ.pop("GEMINI_API_KEY", None)
+    try:
+        os.environ["GEMINI_API_KEY"] = "test-key-for-lazy-load"
+        d = _make_dispatcher()
+        assert d.llm is not None
+        assert d.use_llm is True
+    finally:
+        if old is not None:
+            os.environ["GEMINI_API_KEY"] = old
+        else:
+            os.environ.pop("GEMINI_API_KEY", None)
 
 
 def test_llm_interpretation_scoped_lookup():
     """Verify LLM interprets scoped lookups when enabled."""
-    dispatcher = Dispatcher(use_llm=True)
+    dispatcher = _make_dispatcher()
+    dispatcher.use_llm = True  # force LLM via setter
 
-    # Bootstrap creates Claude with minimal core
     dispatcher.dispatch_source("Claude # → [#observe, #act]")
 
-    # Query Claude for #observe — should get LLM interpretation
     result = dispatcher.dispatch_source("Claude #observe")
     assert len(result) > 0
     assert "Claude #observe" in result[0]
@@ -42,24 +74,24 @@ def test_llm_interpretation_scoped_lookup():
 
 def test_llm_interpretation_message():
     """Verify LLM interprets messages when enabled."""
-    dispatcher = Dispatcher(use_llm=True)
+    dispatcher = _make_dispatcher()
+    dispatcher.use_llm = True
 
-    # Bootstrap Gemini
     dispatcher.dispatch_source("Gemini # → [#Love, #Sunyata]")
 
-    # Send message to Gemini
     result = dispatcher.dispatch_source("Gemini reflect: #Love")
     assert len(result) > 0
     assert "Gemini" in result[0]
 
 
 def test_llm_disabled_preserves_structural_behavior():
-    """Verify use_llm=False maintains template responses."""
-    dispatcher = Dispatcher(use_llm=False)
+    """Without LLM, maintain template responses."""
+    dispatcher = _make_dispatcher()
+    # No API key, no mock = structural fallback
+    dispatcher.use_llm = False
 
     dispatcher.dispatch_source("TestReceiver # → [#test]")
 
-    # Scoped lookup should return structural response
     result = dispatcher.dispatch_source("TestReceiver #test")
     assert len(result) > 0
     assert "is native to this identity" in result[0]
@@ -67,20 +99,23 @@ def test_llm_disabled_preserves_structural_behavior():
 
 def test_llm_fallback_on_error():
     """Verify graceful fallback if LLM interpretation fails."""
-    # This test would require mocking LLM failure
-    # For now, verify that message bus fallback exists
-    dispatcher = Dispatcher(use_llm=True)
+    dispatcher = _make_dispatcher()
     dispatcher.dispatch_source("Claude # → [#test]")
 
-    # Even if LLM fails, should get some response (structural or message bus)
+    # Inject a failing mock LLM
+    mock_llm = MagicMock()
+    mock_llm.call.side_effect = RuntimeError("API down")
+    dispatcher.llm = mock_llm
+
     result = dispatcher.dispatch_source("Claude #test")
     assert len(result) > 0
+    # Should have fallen back to structural response
+    assert "native to this identity" in result[0]
 
 
 def test_mock_fallback_when_no_api_key():
     """GeminiModel.call() uses mock when no API key is set."""
     model = GeminiModel(api_key=None)
-    # Force no key even if env var is set
     model.api_key = None
     response = model.call("interpret: #Sunyata")
     assert "Emptiness" in response or "emptiness" in response
@@ -105,13 +140,10 @@ def test_has_api_key_reflects_env():
     reason="GEMINI_API_KEY not set — skipping real API test"
 )
 def test_real_gemini_api_call():
-    """Integration test: call the real Gemini API.
-
-    Only runs when GEMINI_API_KEY is set in the environment.
-    """
+    """Integration test: call the real Gemini API."""
     model = GeminiModel()
     response = model.call("What is 2 + 2? Answer with just the number.")
-    assert response  # Non-empty
+    assert response
     assert "4" in response
 
 
@@ -120,22 +152,16 @@ def test_real_gemini_api_call():
     reason="GEMINI_API_KEY not set — skipping real API test"
 )
 def test_real_gemini_collision_synthesis():
-    """Integration test: real LLM collision synthesis through dispatcher.
+    """Integration test: real LLM collision synthesis through dispatcher."""
+    dispatcher = _make_dispatcher()
+    dispatcher.use_llm = True
 
-    Only runs when GEMINI_API_KEY is set.
-    """
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
-    dispatcher = Dispatcher(use_llm=True)
-
-    # Both Claude and Codex hold #parse natively
     results = dispatcher.dispatch_source("Claude send: #parse to: Codex")
     assert len(results) == 1
     result = results[0]
 
-    # Should detect collision AND produce real LLM synthesis
     assert "COLLISION" in result
     assert "COLLISION SYNTHESIS" in result
-    # Real LLM response should be substantive (not mock)
     assert "[Gemini 2.0 Flash] Simulated" not in result
 
 
@@ -185,11 +211,9 @@ def test_collision_prompt_contains_both_vocabularies():
 
 def test_scoped_lookup_sends_vocabulary_prompt():
     """Dispatcher passes vocabulary-aware prompt to LLM on scoped lookup."""
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
-    dispatcher = Dispatcher(use_llm=True)
+    dispatcher = _make_dispatcher()
     dispatcher.dispatch_source("Claude # → [#observe, #act]")
 
-    # Replace the LLM with a mock that captures the prompt
     mock_llm = MagicMock()
     mock_llm.call.return_value = "mocked interpretation"
     dispatcher.llm = mock_llm
@@ -205,8 +229,7 @@ def test_scoped_lookup_sends_vocabulary_prompt():
 
 def test_message_sends_vocabulary_prompt():
     """Dispatcher passes vocabulary-aware prompt to LLM on message dispatch."""
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
-    dispatcher = Dispatcher(use_llm=True)
+    dispatcher = _make_dispatcher()
     dispatcher.dispatch_source("Gemini # → [#Love, #Sunyata]")
 
     mock_llm = MagicMock()
@@ -223,10 +246,8 @@ def test_message_sends_vocabulary_prompt():
 
 def test_collision_sends_vocabulary_prompt():
     """Dispatcher passes vocabulary-aware prompt to LLM on collision synthesis."""
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
-    dispatcher = Dispatcher(use_llm=True)
+    dispatcher = _make_dispatcher()
 
-    # Both Claude and Codex hold #parse natively (from bootstrap)
     mock_llm = MagicMock()
     mock_llm.call.return_value = "mocked collision synthesis"
     dispatcher.llm = mock_llm

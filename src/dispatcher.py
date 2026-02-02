@@ -31,7 +31,10 @@ import message_bus
 from tools import ToolRegistry
 from envs import EnvironmentRegistry
 from message_handlers import MessageHandlerRegistry
-from prompts import scoped_lookup_prompt, message_prompt, collision_prompt
+from prompts import (
+    scoped_lookup_prompt, scoped_lookup_prompt_with_descriptions,
+    super_lookup_prompt, message_prompt, collision_prompt,
+)
 
 
 class LookupOutcome(Enum):
@@ -156,7 +159,12 @@ class Receiver:
 
 
 class Dispatcher:
-    def __init__(self, vocab_dir: str = "vocabularies", use_llm: bool = False):
+    def __init__(self, vocab_dir: str = "vocabularies", **kwargs):
+        if "use_llm" in kwargs:
+            raise TypeError(
+                "use_llm parameter removed. LLM is now lazy-loaded when an API key is available. "
+                "Set/unset GEMINI_API_KEY to control LLM availability."
+            )
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
@@ -164,15 +172,48 @@ class Dispatcher:
         self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
         self.log_file = "collisions.log"
+        self.trace = False
         # HelloWorld is the root parent
         self.agents = {"Claude", "Copilot", "Gemini", "Codex", "Scribe"}
-        # Phase 4: LLM interpretation layer
-        self.use_llm = use_llm
-        self.llm = None
-        if use_llm:
-            from llm import get_llm_for_agent
-            self.llm = get_llm_for_agent("HelloWorld")
+        # Phase 4: LLM interpretation — lazy-loaded on first use
+        self._llm = None
+        self._llm_checked = False
         self._bootstrap()
+
+    def _get_llm(self):
+        """Lazy-load the LLM on first use. Returns GeminiModel if API key exists, None otherwise."""
+        if not self._llm_checked:
+            self._llm_checked = True
+            from llm import has_api_key, GeminiModel
+            if has_api_key():
+                self._llm = GeminiModel()
+        return self._llm
+
+    @property
+    def use_llm(self) -> bool:
+        """LLM is available when an API key is set."""
+        return self._get_llm() is not None
+
+    @use_llm.setter
+    def use_llm(self, value):
+        """Allow tests to set use_llm for backward compatibility."""
+        if value:
+            from llm import GeminiModel
+            self._llm = GeminiModel()
+            self._llm_checked = True
+        else:
+            self._llm = None
+            self._llm_checked = True
+
+    @property
+    def llm(self):
+        return self._get_llm()
+
+    @llm.setter
+    def llm(self, value):
+        """Allow tests to inject a mock LLM."""
+        self._llm = value
+        self._llm_checked = True
 
     def _log_collision(self, receiver: str, symbol: str, context: Optional[str] = None):
         timestamp = datetime.now().isoformat()
@@ -220,7 +261,10 @@ class Dispatcher:
 
             # If receiver is empty and a .hw file exists, load from .hw
             if not receiver.local_vocabulary and name in hw_files:
-                self.dispatch_source(hw_files[name].read_text())
+                try:
+                    self.dispatch_source(hw_files[name].read_text())
+                except SyntaxError:
+                    pass  # Skip files with unparseable content
 
         # 3. Final Fallback: Ensure HelloWorld exists
         if "HelloWorld" not in self.registry:
@@ -261,20 +305,33 @@ class Dispatcher:
         for name, rec in self.registry.items():
             self.vocab_manager.save(name, rec.local_vocabulary)
 
+    def _trace(self, msg: str):
+        """Emit trace output if tracing is enabled."""
+        if self.trace:
+            print(f"  [TRACE] {msg}")
+
     def _execute(self, node: Node) -> Optional[str]:
         if isinstance(node, VocabularyQueryNode):
+            self._trace(f"VocabularyQueryNode({node.receiver.name})")
             return self._handle_query(node)
         if isinstance(node, SuperLookupNode):
+            self._trace(f"SuperLookupNode({node.receiver.name}, {node.symbol.name})")
             return self._handle_super_lookup(node)
         if isinstance(node, ScopedLookupNode):
-            return self._handle_scoped_lookup(node)
+            self._trace(f"ScopedLookupNode({node.receiver.name}, {node.symbol.name})")
+            result = self._handle_scoped_lookup(node)
+            return result
         if isinstance(node, UnaryMessageNode):
+            self._trace(f"UnaryMessageNode({node.receiver.name}, {node.message}, super={node.is_super})")
             return self._handle_unary_message(node)
         if isinstance(node, VocabularyDefinitionNode):
+            self._trace(f"VocabularyDefinitionNode({node.receiver.name})")
             return self._handle_definition(node)
         if isinstance(node, MessageNode):
+            self._trace(f"MessageNode({node.receiver.name}, {list(node.arguments.keys())})")
             return self._handle_message(node)
         if isinstance(node, HeadingNode):
+            self._trace(f"HeadingNode(level={node.level}, name={node.name})")
             return self._handle_heading(node)
         if isinstance(node, DescriptionNode):
             return None  # standalone descriptions are no-ops
@@ -335,19 +392,35 @@ class Dispatcher:
         
         receiver = self._get_or_create_receiver(receiver_name)
         lookup = receiver.lookup(symbol_name)
+        self._trace(f"lookup({receiver_name}, {symbol_name}) -> {lookup.outcome.value.upper()}")
 
-        # Phase 4: LLM interpretation layer for native symbols on agent receivers
-        if lookup.is_native() and receiver_name in self.agents:
-            if self.use_llm and self.llm:
-                local_vocab = sorted(receiver.local_vocabulary)
-                global_def = GlobalVocabulary.definition(symbol_name)
-                prompt = scoped_lookup_prompt(receiver_name, symbol_name, local_vocab, global_def)
-                print(f"🤖 LLM interpreting {receiver_name} {symbol_name}...")
-                try:
-                    llm_response = self.llm.call(prompt)
-                    return f"{receiver_name} {symbol_name} → {llm_response}"
-                except Exception as e:
-                    print(f"⚠️  LLM interpretation failed: {e}")
+        # Phase 4: LLM interpretation layer for agent receivers
+        if receiver_name in self.agents and self.llm:
+            local_vocab = sorted(receiver.local_vocabulary)
+            bare_sym = symbol_name.lstrip("#") if symbol_name != "#" else "#"
+            desc = self.vocab_manager.load_description(receiver_name, bare_sym)
+            identity = self.vocab_manager.load_identity(receiver_name)
+
+            # Check for super context (symbol native AND in parent chain)
+            ancestor = receiver._find_in_chain(symbol_name) if lookup.is_native() else None
+            if ancestor:
+                ancestor_desc = self.vocab_manager.load_description(ancestor.name, bare_sym)
+                from prompts import super_lookup_prompt
+                prompt = super_lookup_prompt(
+                    receiver_name, symbol_name, local_vocab,
+                    desc, ancestor.name, ancestor_desc,
+                )
+            else:
+                from prompts import scoped_lookup_prompt_with_descriptions
+                prompt = scoped_lookup_prompt_with_descriptions(
+                    receiver_name, symbol_name, local_vocab,
+                    desc, identity, GlobalVocabulary.definition(symbol_name),
+                )
+            try:
+                llm_response = self.llm.call(prompt)
+                return f"{receiver_name} {symbol_name} → {llm_response}"
+            except Exception as e:
+                print(f"⚠️  LLM interpretation failed: {e}")
 
             if self.message_bus_enabled:
                 print(f"📡 Querying {receiver_name} for {symbol_name}...")
@@ -388,7 +461,7 @@ class Dispatcher:
             # Unary super: invoke through ancestor's meaning
             ancestor = receiver._find_in_chain(symbol_name)
             if ancestor:
-                if self.use_llm and self.llm:
+                if self.llm:
                     local_vocab = sorted(receiver.local_vocabulary)
                     local_desc = self.vocab_manager.load_description(receiver_name, node.message)
                     ancestor_desc = self.vocab_manager.load_description(ancestor.name, node.message)
@@ -544,7 +617,7 @@ class Dispatcher:
         neither receiver could produce alone.
         """
         # Try LLM synthesis first
-        if self.use_llm and self.llm:
+        if self.llm:
             sender_vocab = sorted(sender.local_vocabulary)
             target_vocab = sorted(target.local_vocabulary)
             prompt = collision_prompt(sender_name, sender_vocab, target_name, target_vocab, symbol_name)
@@ -652,7 +725,7 @@ class Dispatcher:
                 message_content += f" '{node.annotation}'"
             
             # Try LLM first if enabled
-            if self.use_llm and self.llm:
+            if self.llm:
                 local_vocab = sorted(receiver.local_vocabulary)
                 prompt = message_prompt(receiver_name, local_vocab, message_content)
                 print(f"🤖 LLM interpreting message for {receiver_name}...")

@@ -141,6 +141,98 @@ class REPL:
         else:
             print(f"{self.YELLOW}No receivers registered yet.{self.RESET}")
 
+    def _show_chain(self, receiver_name: str):
+        """Display the full inheritance chain for a receiver with symbol counts."""
+        if receiver_name not in self.dispatcher.registry:
+            print(f"{self.RED}Unknown receiver: {receiver_name}{self.RESET}")
+            return
+
+        receiver = self.dispatcher.registry[receiver_name]
+        chain = receiver.chain()
+        print(f"{self.BOLD}{' -> '.join(chain)}{self.RESET}")
+
+        for name in chain:
+            r = self.dispatcher._get_or_create_receiver(name)
+            native = sorted(r.local_vocabulary)
+            count = len(native)
+            symbols_str = ", ".join(native[:10])
+            if count > 10:
+                symbols_str += f", ... (+{count - 10} more)"
+            label = "root" if name == chain[-1] and name == "HelloWorld" else "native" if name == chain[0] else "inherited"
+            print(f"  {name} ({count} {label}): {symbols_str}")
+
+    def _show_lookup(self, receiver_name: str, symbol_name: str):
+        """Show lookup outcome, chain trace, and description for a symbol."""
+        if receiver_name not in self.dispatcher.registry:
+            print(f"{self.RED}Unknown receiver: {receiver_name}{self.RESET}")
+            return
+
+        receiver = self.dispatcher.registry[receiver_name]
+        lookup = receiver.lookup(symbol_name)
+        chain = receiver.chain()
+
+        print(f"{self.BOLD}Lookup: {receiver_name} {symbol_name}{self.RESET}")
+        print(f"  Outcome: {lookup.outcome.value.upper()}")
+
+        if lookup.is_native():
+            ancestor = receiver._find_in_chain(symbol_name)
+            if ancestor:
+                print(f"  super: {ancestor.name} also holds {symbol_name}")
+        elif lookup.is_inherited():
+            print(f"  Defined in: {lookup.context.get('defined_in', 'parent')}")
+
+        bare = symbol_name.lstrip("#") if symbol_name != "#" else "#"
+        desc = self.dispatcher.vocab_manager.load_description(receiver_name, bare)
+        if desc:
+            print(f"  Description: \"{desc}\"")
+
+        print(f"  Chain: {' -> '.join(chain)}")
+
+    def _show_super(self, receiver_name: str, symbol_name: str):
+        """Walk the inheritance chain showing each ancestor's description."""
+        if receiver_name not in self.dispatcher.registry:
+            print(f"{self.RED}Unknown receiver: {receiver_name}{self.RESET}")
+            return
+
+        receiver = self.dispatcher.registry[receiver_name]
+        chain = receiver.chain()
+        bare = symbol_name.lstrip("#") if symbol_name != "#" else "#"
+
+        print(f"{self.BOLD}Super chain for {receiver_name} {symbol_name}:{self.RESET}")
+        for name in chain:
+            r = self.dispatcher._get_or_create_receiver(name)
+            desc = self.dispatcher.vocab_manager.load_description(name, bare)
+            if r.is_native(symbol_name):
+                desc_text = f'"{desc}"' if desc else "(no description)"
+                print(f"  {name}: native — {desc_text}")
+            else:
+                print(f"  {name}: (not present)")
+
+    def _show_collisions(self, count: int = 10):
+        """Show last N entries from collisions.log."""
+        log_path = Path(self.dispatcher.log_file)
+        if not log_path.exists():
+            print(f"{self.YELLOW}No collisions recorded.{self.RESET}")
+            return
+        lines = log_path.read_text().strip().split("\n")
+        if not lines or lines == [""]:
+            print(f"{self.YELLOW}No collisions recorded.{self.RESET}")
+            return
+        recent = lines[-count:]
+        for line in recent:
+            print(f"  {line}")
+
+    def _toggle_trace(self, mode: str):
+        """Toggle dispatch tracing on or off."""
+        if mode == "on":
+            self.dispatcher.trace = True
+            print(f"{self.YELLOW}Trace enabled.{self.RESET}")
+        elif mode == "off":
+            self.dispatcher.trace = False
+            print(f"{self.YELLOW}Trace disabled.{self.RESET}")
+        else:
+            print(f"{self.RED}Usage: .trace on|off{self.RESET}")
+
     def _show_help(self):
         """Display available commands."""
         print(f"{self.BOLD}Commands:{self.RESET}")
@@ -153,10 +245,20 @@ class REPL:
         print("  .read <id>         Read and consume a message")
         print("  .send <R> <msg>    Send message to receiver R")
         print()
+        print(f"{self.BOLD}Introspection:{self.RESET}")
+        print("  .chain <Receiver>           Show inheritance chain")
+        print("  .lookup <Receiver> #symbol  Lookup outcome + description")
+        print("  .super <Receiver> #symbol   Walk chain with descriptions")
+        print("  .collisions [N]             Last N collision log entries")
+        print("  .trace on|off               Toggle dispatch tracing")
+        print()
         print(f"{self.BOLD}Syntax:{self.RESET}")
         print("  Receiver                      Show vocabulary")
         print("  Receiver #symbol              Lookup scoped meaning")
-        print("  Receiver action: #symbol      Send message")
+        print("  Receiver action               Unary message")
+        print("  Receiver action super          Unary message via ancestor")
+        print("  Receiver #symbol super        Super lookup (typedef)")
+        print("  Receiver action: #symbol      Keyword message")
 
     def start(self):
         print(f"{self.BOLD}HelloWorld v0.1{self.RESET}")
@@ -211,6 +313,27 @@ class REPL:
                     receiver = parts[1]
                     content = ' '.join(parts[2:])
                     self._send_message(receiver, content)
+                    continue
+
+                if text.startswith('.chain ') and len(parts) == 2:
+                    self._show_chain(parts[1])
+                    continue
+
+                if text.startswith('.lookup ') and len(parts) == 3:
+                    self._show_lookup(parts[1], parts[2])
+                    continue
+
+                if text.startswith('.super ') and len(parts) == 3:
+                    self._show_super(parts[1], parts[2])
+                    continue
+
+                if text.startswith('.collisions'):
+                    count = int(parts[1]) if len(parts) > 1 else 10
+                    self._show_collisions(count)
+                    continue
+
+                if text.startswith('.trace ') and len(parts) == 2:
+                    self._toggle_trace(parts[1])
                     continue
 
                 self._process(text)

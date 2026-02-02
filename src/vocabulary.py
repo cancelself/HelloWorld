@@ -69,6 +69,65 @@ class VocabularyManager:
                 return node.parent
         return None
 
+    def load_description(self, receiver_name: str, symbol_name: str) -> Optional[str]:
+        """Read the description text from a .hw file for a given symbol.
+
+        Looks for a ## heading matching symbol_name under the receiver's
+        HEADING1 node, then returns the concatenated description lines.
+        """
+        path = self._get_path(receiver_name)
+        if not os.path.exists(path):
+            return None
+
+        from parser import Parser
+        from ast_nodes import HeadingNode, DescriptionNode
+
+        try:
+            text = open(path, "r").read()
+            nodes = Parser.from_source(text).parse()
+        except Exception:
+            return None
+
+        # Strip leading # from symbol_name for heading comparison
+        bare = symbol_name.lstrip("#") if symbol_name != "#" else "#"
+
+        for node in nodes:
+            if isinstance(node, HeadingNode) and node.level == 1:
+                for child in node.children:
+                    if isinstance(child, HeadingNode) and child.level == 2:
+                        if child.name == bare or child.name == f"#{bare}":
+                            # Collect all description children
+                            descs = [
+                                c.text for c in child.children
+                                if isinstance(c, DescriptionNode)
+                            ]
+                            return " ".join(descs) if descs else None
+        return None
+
+    def load_identity(self, receiver_name: str) -> Optional[str]:
+        """Read the receiver's top-level description (the list items after # Name)."""
+        path = self._get_path(receiver_name)
+        if not os.path.exists(path):
+            return None
+
+        from parser import Parser
+        from ast_nodes import HeadingNode, DescriptionNode
+
+        try:
+            text = open(path, "r").read()
+            nodes = Parser.from_source(text).parse()
+        except Exception:
+            return None
+
+        for node in nodes:
+            if isinstance(node, HeadingNode) and node.level == 1:
+                descs = [
+                    c.text for c in node.children
+                    if isinstance(c, DescriptionNode)
+                ]
+                return " ".join(descs) if descs else None
+        return None
+
     def _read_symbols(self, path: str) -> Set[str]:
         """Parse a .hw file and extract symbol names from ## headings."""
         if not os.path.exists(path):
