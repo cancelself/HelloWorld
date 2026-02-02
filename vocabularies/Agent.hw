@@ -1,0 +1,6 @@
+# Agent
+- An object with vocabulary and the capacity for autonomous action.
+## observe
+- Perceiving the environment or state [protocol]
+## act
+- Taking autonomous action based on identity [protocol]

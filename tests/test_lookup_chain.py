@@ -29,19 +29,19 @@ def test_lookup_inherited_symbol():
     """Phase 3: Test lookup returns DISCOVERABLE for global symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
-    
-    result = receiver.lookup("#Sunyata")
-    
+
+    result = receiver.lookup("#Object")
+
     # Phase 3: Now returns DISCOVERABLE instead of INHERITED
     assert result.outcome == LookupOutcome.DISCOVERABLE
-    assert result.symbol == "#Sunyata"
+    assert result.symbol == "#Object"
     assert result.receiver_name == "Codex"
     assert result.is_inherited()  # Backward compat alias
     assert result.is_discoverable()
     assert not result.is_native()
     assert not result.is_unknown()
     assert "global_definition" in result.context
-    assert "emptiness" in result.context["global_definition"].lower()
+    assert "entity" in result.context["global_definition"].lower()
 
 
 def test_lookup_unknown_symbol():
@@ -71,11 +71,11 @@ def test_scoped_lookup_uses_new_API():
     
     # Discoverable symbol — gets activated, becomes native
     codex = dispatcher.registry["Codex"]
-    assert codex.can_discover("#Sunyata")  # Before lookup
-    result = dispatcher.dispatch_source("Codex #Sunyata")
+    assert codex.can_discover("#Object")  # Before lookup
+    result = dispatcher.dispatch_source("Codex #Object")
     assert len(result) == 1
     assert "native" in result[0]  # After discovery
-    assert "#Sunyata" in codex.vocabulary  # Now in local
+    assert "#Object" in codex.vocabulary  # Now in local
     
     # Unknown symbol
     result = dispatcher.dispatch_source("Codex #newSymbol")
@@ -138,12 +138,11 @@ def test_lookup_preserves_context():
     assert native_result.is_native()
     assert "#interpret" in native_result.context["local_vocabulary"]
     
-    # Discoverable lookup includes global definition + Wikidata
-    discoverable_result = receiver.lookup("#Love")
+    # Discoverable lookup includes global definition
+    discoverable_result = receiver.lookup("#Object")
     assert discoverable_result.is_discoverable()
     assert discoverable_result.is_inherited()  # Backward compat
     assert "global_definition" in discoverable_result.context
-    assert "wikidata_url" in discoverable_result.context
     
     # Unknown lookup includes local vocabulary for research context
     unknown_result = receiver.lookup("#brandNewSymbol")

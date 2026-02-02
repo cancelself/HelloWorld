@@ -17,7 +17,7 @@ class TestHWLoading:
 
     def test_symbols_loaded_from_hw(self):
         """GLOBAL_SYMBOLS should contain all symbols defined in HelloWorld.hw."""
-        assert len(GLOBAL_SYMBOLS) >= 12, f"Expected >=12 symbols, got {len(GLOBAL_SYMBOLS)}"
+        assert len(GLOBAL_SYMBOLS) >= 3, f"Expected >=3 symbols, got {len(GLOBAL_SYMBOLS)}"
 
     def test_root_symbol_present(self):
         """The # symbol (bare hash) should be loaded."""
@@ -28,13 +28,8 @@ class TestHWLoading:
         assert "#HelloWorld" in GLOBAL_SYMBOLS
 
     def test_all_expected_symbols_present(self):
-        """Spot-check that key symbols from the .hw file are present."""
-        expected = [
-            "#", "#HelloWorld", "#parse", "#dispatch",
-            "#observe", "#act", "#Collision",
-            "#hello", "#send", "#receive",
-            "#Sunyata", "#Love", "#Superposition",
-        ]
+        """All root symbols from HelloWorld.hw are present."""
+        expected = ["#", "#HelloWorld", "#Object", "#Agent"]
         for sym in expected:
             assert sym in GLOBAL_SYMBOLS, f"Missing symbol: {sym}"
 
@@ -44,13 +39,13 @@ class TestDefinitions:
 
     def test_definition_text(self):
         """Definition should contain the description without metadata."""
-        defn = GlobalVocabulary.definition("#parse")
-        assert "Decomposing syntax into abstract structure" in defn
+        defn = GlobalVocabulary.definition("#Object")
+        assert "entity" in defn
 
     def test_definition_includes_domain(self):
         """str(GlobalSymbol) includes domain in brackets."""
-        defn = GlobalVocabulary.definition("#parse")
-        assert "[computation]" in defn
+        defn = GlobalVocabulary.definition("#Object")
+        assert "[HelloWorld]" in defn
 
     def test_unknown_symbol_message(self):
         """Unknown symbols return an error message."""
@@ -59,29 +54,30 @@ class TestDefinitions:
 
 
 class TestWikidataMetadata:
-    """Test that Wikidata IDs are parsed from inline (Q-number) convention."""
+    """Test Wikidata ID parsing from inline (Q-number) convention."""
 
-    def test_wikidata_id_parsed(self):
-        """Symbols with (Q-number) in their description should have wikidata_id."""
-        sym = GlobalVocabulary.get("#parse")
-        assert sym is not None
-        assert sym.wikidata_id == "Q2290007"
-
-    def test_wikidata_url(self):
-        """wikidata_url should return a valid URL for symbols with IDs."""
-        url = GlobalVocabulary.wikidata_url("#Sunyata")
-        assert url == "https://www.wikidata.org/wiki/Q546054"
-
-    def test_no_wikidata_for_meta_symbols(self):
-        """Symbols without (Q-number) should have None wikidata_id."""
-        sym = GlobalVocabulary.get("#Collision")
+    def test_no_wikidata_for_root_symbols(self):
+        """Root symbols are HelloWorld concepts, not Wikipedia entries."""
+        sym = GlobalVocabulary.get("#Object")
         assert sym is not None
         assert sym.wikidata_id is None
 
-    def test_wikidata_url_none_for_missing(self):
+    def test_wikidata_url_none_when_no_id(self):
         """wikidata_url returns None for symbols without IDs."""
-        url = GlobalVocabulary.wikidata_url("#Collision")
+        url = GlobalVocabulary.wikidata_url("#Object")
         assert url is None
+
+    def test_wikidata_parsed_from_custom_hw(self):
+        """Wikidata IDs are parsed correctly when present in .hw files."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.hw', delete=False) as f:
+            f.write("# Test\n## Foo\n- A concept (Q12345)\n")
+            tmp_path = f.name
+        try:
+            symbols = _load_from_hw(tmp_path)
+            assert "#Foo" in symbols
+            assert symbols["#Foo"].wikidata_id == "Q12345"
+        finally:
+            os.unlink(tmp_path)
 
 
 class TestParseDescription:
@@ -127,7 +123,6 @@ class TestFallback:
 
     def test_reload_with_custom_hw(self):
         """reload_symbols with a custom .hw path should update GLOBAL_SYMBOLS."""
-        # Write a minimal .hw file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.hw', delete=False) as f:
             f.write("# TestRoot\n")
             f.write("- Test root description [test]\n")
@@ -152,13 +147,13 @@ class TestGlobalVocabularyAPI:
     def test_all_symbols_returns_set(self):
         syms = GlobalVocabulary.all_symbols()
         assert isinstance(syms, set)
-        assert "#parse" in syms
+        assert "#Object" in syms
 
     def test_has_symbol(self):
-        assert GlobalVocabulary.has("#Collision")
+        assert GlobalVocabulary.has("#Agent")
         assert not GlobalVocabulary.has("#nonexistent_xyz")
 
     def test_get_returns_global_symbol(self):
-        sym = GlobalVocabulary.get("#Collision")
+        sym = GlobalVocabulary.get("#Agent")
         assert isinstance(sym, GlobalSymbol)
-        assert sym.name == "#Collision"
+        assert sym.name == "#Agent"

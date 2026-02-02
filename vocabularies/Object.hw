@@ -1,0 +1,6 @@
+# Object
+- An entity that holds symbols and responds to messages. The primitive of HelloWorld.
+## send
+- Deliver a message to another object's inbox [protocol]
+## receive
+- Check inbox for pending messages [protocol]

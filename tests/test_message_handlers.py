@@ -211,10 +211,10 @@ def test_observe_handler_inherited():
 
     message = MessageNode(
         receiver=ReceiverNode("Codex"),
-        arguments={"observe": SymbolNode("#Sunyata")}
+        arguments={"observe": SymbolNode("#Object")}
     )
     result = registry.handle("Codex", message, receiver=codex)
-    assert "Codex observes #Sunyata" in result
+    assert "Codex observes #Object" in result
     assert "inherited" in result
 
 

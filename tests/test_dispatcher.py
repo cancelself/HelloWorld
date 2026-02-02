@@ -71,16 +71,16 @@ def test_discovery_writes_log_and_promotes_symbol():
     if log_path.exists():
         log_path.unlink()
     guardian = dispatcher._get_or_create_receiver("Guardian")
-    guardian.local_vocabulary.discard("#Love")
+    guardian.local_vocabulary.discard("#Object")
     dispatcher.vocab_manager.save("Guardian", guardian.local_vocabulary)
-    stmts = Parser.from_source("Guardian #Love").parse()
+    stmts = Parser.from_source("Guardian #Object").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
-    assert "#Love" in dispatcher.registry["Guardian"].vocabulary
+    assert "#Object" in dispatcher.registry["Guardian"].vocabulary
     assert log_path.exists()
     log_text = log_path.read_text()
-    assert "Guardian" in log_text and "#Love" in log_text
+    assert "Guardian" in log_text and "#Object" in log_text
 
 
 def test_dispatch_definition():
@@ -154,37 +154,35 @@ def test_root_receiver_bootstrap():
     assert "HelloWorld" in dispatcher.registry
     # Self-hosting: HelloWorld.hw now defines all global symbols
     root = dispatcher.registry["HelloWorld"]
-    assert len(root.vocabulary) >= 12  # core symbols from HelloWorld.hw
-    assert "#Collision" in root.vocabulary
-    assert "#Sunyata" in root.vocabulary
-    assert "#Love" in root.vocabulary
-    assert "#Superposition" in root.vocabulary
+    assert len(root.vocabulary) >= 3  # core symbols from HelloWorld.hw
+    assert "#" in root.vocabulary
+    assert "#Object" in root.vocabulary
+    assert "#Agent" in root.vocabulary
 
 
-def test_dispatch_sunyata_sequence():
-    """Test the 02-sunyata teaching example through the Python dispatcher.
-    Uses HelloWorld (root receiver) and Claude for testing. HelloWorld is not in
-    self.agents, so messages are handled internally. Scoped lookups on HelloWorld
-    return canonical global definitions."""
+def test_dispatch_root_lookup_sequence():
+    """Test root symbol lookups through the Python dispatcher.
+    Uses HelloWorld (root) and agents. Scoped lookups on HelloWorld
+    return canonical global definitions. Agent lookups trigger discovery."""
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
         "HelloWorld",
-        "HelloWorld #Sunyata",
-        "Claude #Sunyata",
+        "HelloWorld #Object",
+        "Codex #Object",
         "Claude reflect: #parse withContext: Codex 'how do we understand this?'",
-        "Gemini #Sunyata",
+        "Gemini #Agent",
     ])
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
-    # Line 1: vocabulary query on HelloWorld — shows 12 minimal core + discoverable count
+    # Line 1: vocabulary query on HelloWorld
     assert "HelloWorld #" in results[0] and "discoverable" in results[0]
-    # Line 2: HelloWorld #Sunyata — canonical global definition
-    assert "HelloWorld #Sunyata" in results[1] and "emptiness" in results[1]
-    # Line 3: Claude #Sunyata — Phase 3: discovered and activated, now native
+    # Line 2: HelloWorld #Object — canonical global definition
+    assert "HelloWorld #Object" in results[1] and "entity" in results[1]
+    # Line 3: Codex #Object — discoverable from global pool, gets activated
     assert "native" in results[2]
-    # Line 4: message to Claude (not an agent daemon in fresh dispatcher context)
+    # Line 4: message to Claude
     assert "Claude" in results[3]
-    # Line 5: Gemini #Sunyata — already native (in Gemini's bootstrap vocab)
+    # Line 5: Gemini #Agent — already native (in Gemini's bootstrap vocab)
     assert "native" in results[4]
 
 
@@ -207,23 +205,23 @@ def test_root_not_in_agents():
 
 def test_inheritance_lookup():
     dispatcher = _fresh_dispatcher()
-    # Phase 3: #Love is discoverable from global pool, not automatically in vocabulary
+    # Phase 3: #Object is discoverable from global pool, not automatically in vocabulary
     codex = dispatcher.registry["Codex"]
-    assert codex.can_discover("#Love")
-    assert codex.is_inherited("#Love")  # Same as can_discover
-    assert not codex.is_native("#Love")  # Not yet learned
+    assert codex.can_discover("#Object")
+    assert codex.is_inherited("#Object")  # Same as can_discover
+    assert not codex.is_native("#Object")  # Not yet learned
     # After lookup/discovery, it becomes native
-    dispatcher.dispatch_source("Codex #Love")
-    assert codex.is_native("#Love")
+    dispatcher.dispatch_source("Codex #Object")
+    assert codex.is_native("#Object")
 
 
 def test_native_overrides_inherited():
     dispatcher = _fresh_dispatcher()
-    # #Entropy is both in Gemini's local vocab AND in global symbols
+    # #Agent is both in Gemini's local vocab AND in global symbols
     receiver = dispatcher.registry["Gemini"]
-    assert receiver.is_native("#Entropy")
+    assert receiver.is_native("#Agent")
     # Native takes precedence — is_inherited returns False when also local
-    assert not receiver.is_inherited("#Entropy")
+    assert not receiver.is_inherited("#Agent")
 
 
 def test_root_vocab_query():
@@ -255,37 +253,37 @@ def test_save_persists_local_only():
     content = path.read_text()
     # #execute is local — appears as ## heading in .hw file
     assert "execute" in content
-    # #Love is inherited (global), should NOT be persisted
-    assert "Love" not in content
+    # #Object is inherited (global), should NOT be persisted
+    assert "Object" not in content
 
 
 def test_inherited_includes_receiver_context():
     """Phase 3: Verify discovery mechanism works and symbols become native.
 
-    When a receiver encounters a global symbol for the first time,
+    When an object encounters a global symbol for the first time,
     it discovers and activates it. After discovery, the symbol is native,
-    and the receiver's vocabulary has grown.
+    and the object's vocabulary has grown.
     """
     dispatcher = _fresh_dispatcher()
-    # Codex #Love — discoverable, will be activated
+    # Codex #Object — discoverable, will be activated
     codex = dispatcher.registry["Codex"]
-    assert codex.can_discover("#Love")
-    assert "#Love" not in codex.vocabulary  # Not yet learned
+    assert codex.can_discover("#Object")
+    assert "#Object" not in codex.vocabulary  # Not yet learned
 
-    codex_results = dispatcher.dispatch_source("Codex #Love")
+    codex_results = dispatcher.dispatch_source("Codex #Object")
     assert len(codex_results) == 1
-    # After discovery, #Love is now native to Codex
+    # After discovery, #Object is now native to Codex
     assert "native" in codex_results[0]
-    assert "#Love" in codex.vocabulary  # Now in local vocab
+    assert "#Object" in codex.vocabulary  # Now in local vocab
 
-    # Copilot #Love — same symbol, also gets discovered
+    # Copilot #Object — same symbol, also gets discovered
     copilot = dispatcher.registry["Copilot"]
-    assert copilot.can_discover("#Love")
-    copilot_results = dispatcher.dispatch_source("Copilot #Love")
+    assert copilot.can_discover("#Object")
+    copilot_results = dispatcher.dispatch_source("Copilot #Object")
     assert len(copilot_results) == 1
     # After discovery, it is native to Copilot too
     assert "native" in copilot_results[0]
-    assert "#Love" in copilot.vocabulary
+    assert "#Object" in copilot.vocabulary
 
 
 def test_handlers_do_not_prevent_vocabulary_learning():
@@ -352,8 +350,8 @@ def test_cross_receiver_send_inherited():
     """Verify send:to: with a global symbol (inherited by target)."""
     dispatcher = _fresh_dispatcher()
 
-    # #Love is in HelloWorld # — inherited by all
-    results = dispatcher.dispatch_source("Codex send: #Love to: Copilot")
+    # #Object is in HelloWorld # — inherited by all
+    results = dispatcher.dispatch_source("Codex send: #Object to: Copilot")
     assert len(results) == 1
     assert "inherited" in results[0] or "shared" in results[0]
 
@@ -477,9 +475,9 @@ def test_markdown_self_hosting():
     results = dispatcher.dispatch_source(hw_path.read_text())
     hw = dispatcher.registry["HelloWorld"]
     assert "#" in hw.vocabulary
-    assert "#Collision" in hw.vocabulary
-    assert "#Sunyata" in hw.vocabulary
-    assert len(hw.vocabulary) >= 12  # core symbols from HelloWorld.hw
+    assert "#Object" in hw.vocabulary
+    assert "#Agent" in hw.vocabulary
+    assert len(hw.vocabulary) >= 3  # core symbols from HelloWorld.hw
 
 
 def test_markdown_and_smalltalk_bootstrap():

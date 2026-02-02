@@ -1,26 +1,8 @@
 # HelloWorld
 - The Human-AI language where identity is vocabulary and dialogue is learning.
 ## #
-- The symbol primitive. The atom of meaning. Self-referential: #HelloWorld defines #HelloWorld. [semiotics]
-## parse
-- Decomposing syntax into abstract structure [computation] (Q2290007)
-## dispatch
-- Routing messages to identity-specific handlers [computation]
-## observe
-- Perceiving the environment or state [agent protocol]
-## act
-- Taking autonomous action based on identity [agent protocol] (Q1914636)
-## Collision
-- When two objects both hold the same symbol but disagree on meaning — synthesis is required [HelloWorld meta]
-## hello
-- Announce presence to HelloWorld — the first message an agent sends [agent protocol]
-## send
-- Deliver a message to an object's inbox [agent protocol]
-## receive
-- Check inbox for pending messages [agent protocol]
-## Sunyata
-- Buddhist concept of emptiness - the absence of inherent existence [Buddhist philosophy] (Q546054)
-## Love
-- Deep affection, attachment, or devotion — universal across cultures [human experience] (Q316)
-## Superposition
-- Principle of quantum mechanics where a system exists in multiple states [quantum mechanics] (Q830791)
+- The symbol primitive. The atom of meaning. [semiotics]
+## Object
+- An entity that holds symbols and responds to messages [HelloWorld]
+## Agent
+- An object with vocabulary and the capacity for autonomous action [HelloWorld]
