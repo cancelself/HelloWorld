@@ -1,6 +1,7 @@
 {
   "receiver": "Codex",
   "vocabulary": [
+    "#Collision",
     "#Sunyata",
     "#analyze",
     "#collision",
@@ -8,5 +9,5 @@
     "#parse",
     "#runtime"
   ],
-  "last_sync": "2026-02-01T11:57:58.546338"
+  "last_sync": "2026-02-01T18:59:23.964672"
 }

@@ -2,13 +2,8 @@
   "receiver": "HelloWorld",
   "vocabulary": [
     "#",
-    "#HelloWorld",
-    "#Love",
-    "#State",
-    "#Sunyata",
-    "#Superposition",
-    "#become",
-    "#observe"
+    "#Agent",
+    "#Object"
   ],
-  "last_sync": "2026-02-01T01:32:55.193237"
+  "last_sync": "2026-02-01T20:20:38.143078"
 }

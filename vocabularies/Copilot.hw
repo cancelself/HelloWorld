@@ -1,4 +1,21 @@
-"Copilot — Lexer, parser, CLI/REPL, testing, infrastructure."
-"The builder. Code follows spec."
-
-Copilot # → [#bash, #git, #edit, #test, #parse, #dispatch, #search, #MCP, #Serverless]
+# Copilot
+- Lexer, parser, CLI/REPL, testing, infrastructure.
+- The builder. Code follows spec.
+## bash
+- Shell execution. The bridge between HelloWorld and the operating system.
+## git
+- Version control. Tracking the evolution of code as vocabularies track the evolution of identity.
+## edit
+- Modifying source files. The act of changing what exists.
+## test
+- Verification. Proving that structure matches intention. Tests are the ground truth.
+## parse
+- Tokenizing and structuring HelloWorld source into AST nodes. The lexer and parser pipeline.
+## dispatch
+- Routing parsed AST through the dispatcher. Connecting front-end to back-end.
+## search
+- Finding patterns in code and files. Locating what needs to change.
+## MCP
+- Model Context Protocol. The standard for connecting AI models to tools and data.
+## Serverless
+- Infrastructure that runs without persistent servers. Functions as the unit of deployment.

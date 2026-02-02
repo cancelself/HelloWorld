@@ -152,13 +152,13 @@ def test_no_collision_for_native_symbol():
 def test_root_receiver_bootstrap():
     dispatcher = _fresh_dispatcher()
     assert "HelloWorld" in dispatcher.registry
-    # Phase 3: HelloWorld starts with 12 minimal core, can discover 35+ more
+    # Self-hosting: HelloWorld.hw now defines all global symbols
     root = dispatcher.registry["HelloWorld"]
-    assert len(root.vocabulary) == 12  # minimal core
-    assert "#HelloWorld" in root.vocabulary
-    assert root.can_discover("#Sunyata")
-    assert root.can_discover("#Love")
-    assert root.can_discover("#Superposition")
+    assert len(root.vocabulary) >= 30  # all symbols from HelloWorld.hw
+    assert "#Agent" in root.vocabulary
+    assert "#Sunyata" in root.vocabulary
+    assert "#Love" in root.vocabulary
+    assert "#Superposition" in root.vocabulary
 
 
 def test_dispatch_sunyata_sequence():
@@ -340,13 +340,14 @@ def test_cross_receiver_send_collision():
 
 
 def test_cross_receiver_send_native():
-    """Verify send:to: with a symbol the target already owns."""
+    """Verify send:to: with a symbol both receivers hold natively triggers collision."""
     dispatcher = _fresh_dispatcher()
 
-    # #parse is native to both Claude and Codex
+    # #parse is native to both Claude and Codex — TRUE COLLISION
     results = dispatcher.dispatch_source("Claude send: #parse to: Codex")
     assert len(results) == 1
-    assert "native" in results[0] or "already holds" in results[0]
+    assert "COLLISION" in results[0]
+    assert "Claude" in results[0] and "Codex" in results[0]
 
 
 def test_cross_receiver_send_inherited():
@@ -357,6 +358,158 @@ def test_cross_receiver_send_inherited():
     results = dispatcher.dispatch_source("Codex send: #Love to: Copilot")
     assert len(results) == 1
     assert "inherited" in results[0] or "shared" in results[0]
+
+
+def test_collision_synthesis_both_native():
+    """TRUE COLLISION: both receivers hold the symbol natively.
+
+    Claude send: #parse to: Codex → both native, meanings diverge → synthesis.
+    Without LLM, synthesis falls back to structural detection.
+    """
+    dispatcher = _fresh_dispatcher()
+
+    # Verify both receivers hold #parse natively
+    assert dispatcher.registry["Claude"].is_native("#parse")
+    assert dispatcher.registry["Codex"].is_native("#parse")
+
+    results = dispatcher.dispatch_source("Claude send: #parse to: Codex")
+    assert len(results) == 1
+    result = results[0]
+
+    # Must detect the collision
+    assert "COLLISION" in result
+    assert "Claude" in result and "Codex" in result
+    assert "#parse" in result
+
+    # Must present both vocabularies
+    assert "vocabulary" in result.lower()
+
+    # Without LLM, structural fallback
+    assert "synthesis requires LLM" in result or "COLLISION SYNTHESIS" in result
+
+
+def test_collision_synthesis_with_llm():
+    """TRUE COLLISION with LLM enabled: synthesis should produce interpretive response."""
+    dispatcher, _ = _fresh_dispatcher_with_dir()
+    dispatcher.use_llm = True
+    from llm import GeminiModel
+    dispatcher.llm = GeminiModel()
+
+    # Both hold #dispatch natively
+    assert dispatcher.registry["Claude"].is_native("#dispatch")
+    assert dispatcher.registry["Gemini"].is_native("#dispatch")
+
+    results = dispatcher.dispatch_source("Claude send: #dispatch to: Gemini")
+    assert len(results) == 1
+    result = results[0]
+
+    assert "COLLISION" in result
+    assert "COLLISION SYNTHESIS" in result
+
+
+def test_no_collision_when_only_sender_native():
+    """FOREIGN: only the sender holds the symbol — this is learning, not collision.
+
+    Codex send: #execute to: Copilot → only Codex has it → Copilot learns.
+    """
+    dispatcher = _fresh_dispatcher()
+
+    codex = dispatcher.registry["Codex"]
+    copilot = dispatcher.registry["Copilot"]
+
+    assert codex.is_native("#execute")
+    assert not copilot.is_native("#execute")
+
+    results = dispatcher.dispatch_source("Codex send: #execute to: Copilot")
+    assert len(results) == 1
+    result = results[0]
+
+    # Should NOT be a collision — it's a foreign symbol event
+    assert "COLLISION: both" not in result
+    # Copilot should learn the symbol
+    assert "foreign" in result or "learns" in result
+    assert copilot.is_native("#execute")
+
+
+def test_collision_logs_event():
+    """Verify collision is logged with context."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+
+    # Clear collision log
+    log_path = Path(dispatcher.log_file)
+    if log_path.exists():
+        log_path.unlink()
+
+    # Both hold #parse natively → collision
+    dispatcher.dispatch_source("Claude send: #parse to: Codex")
+
+    assert log_path.exists()
+    log_text = log_path.read_text()
+    assert "COLLISION" in log_text
+    assert "Codex" in log_text
+    assert "#parse" in log_text
+
+
+def test_bootstrap_from_markdown():
+    """Dispatcher bootstraps receivers from Markdown .hw files."""
+    dispatcher = _fresh_dispatcher()
+    # Claude.hw is in Markdown format — should bootstrap correctly
+    assert "Claude" in dispatcher.registry
+    claude = dispatcher.registry["Claude"]
+    assert "#parse" in claude.vocabulary
+    assert "#Collision" in claude.vocabulary
+    assert "#boundary" in claude.vocabulary
+
+
+def test_markdown_receiver_definition():
+    """dispatch_source with Markdown defines a receiver and its symbols."""
+    dispatcher = _fresh_dispatcher()
+    source = "# TestMd\n- A test receiver.\n## alpha\n- First symbol.\n## Beta\n- Second symbol.\n"
+    results = dispatcher.dispatch_source(source)
+    assert "TestMd" in dispatcher.registry
+    vocab = dispatcher.registry["TestMd"].vocabulary
+    assert "#alpha" in vocab
+    assert "#Beta" in vocab
+
+
+def test_markdown_self_hosting():
+    """HelloWorld.hw parses via dispatch_source and produces correct vocabulary."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    hw_path = Path(__file__).parent.parent / "vocabularies" / "HelloWorld.hw"
+    results = dispatcher.dispatch_source(hw_path.read_text())
+    hw = dispatcher.registry["HelloWorld"]
+    assert "#" in hw.vocabulary
+    assert "#Object" in hw.vocabulary
+    assert "#Agent" in hw.vocabulary
+    assert len(hw.vocabulary) >= 30  # all symbols from HelloWorld.hw
+
+
+def test_markdown_and_smalltalk_bootstrap():
+    """Both Markdown definitions and Smalltalk messages execute in the same source."""
+    dispatcher = _fresh_dispatcher()
+    source = (
+        "# NewAgent\n"
+        "## greet\n"
+        "## farewell\n"
+        "NewAgent greet: #parse\n"
+    )
+    results = dispatcher.dispatch_source(source)
+    assert "NewAgent" in dispatcher.registry
+    assert "#greet" in dispatcher.registry["NewAgent"].vocabulary
+    assert "#farewell" in dispatcher.registry["NewAgent"].vocabulary
+    # The message result should be in the output
+    msg_results = [r for r in results if "NewAgent" in r and "greet" in r.lower()]
+    assert len(msg_results) >= 1
+
+
+def test_markdown_hw_receiver_added():
+    """Markdown.hw bootstraps a Markdown receiver with its symbols."""
+    dispatcher = _fresh_dispatcher()
+    assert "Markdown" in dispatcher.registry
+    md = dispatcher.registry["Markdown"]
+    assert "#heading" in md.vocabulary
+    assert "#list" in md.vocabulary
+    assert "#comment" in md.vocabulary
 
 
 if __name__ == "__main__":
@@ -382,4 +535,13 @@ if __name__ == "__main__":
     test_collision_for_non_global()
     test_save_persists_local_only()
     test_inherited_includes_receiver_context()
+    test_collision_synthesis_both_native()
+    test_collision_synthesis_with_llm()
+    test_no_collision_when_only_sender_native()
+    test_collision_logs_event()
+    test_bootstrap_from_markdown()
+    test_markdown_receiver_definition()
+    test_markdown_self_hosting()
+    test_markdown_and_smalltalk_bootstrap()
+    test_markdown_hw_receiver_added()
     print("All dispatcher tests passed")

@@ -20,6 +20,9 @@ class TokenType(Enum):
     IDENTIFIER = auto()    # unquoted text
     NUMBER = auto()        # 123, 7.days
     NEWLINE = auto()
+    HEADING1 = auto()      # # Name  (at column 1)
+    HEADING2 = auto()      # ## name (at column 1)
+    LIST_ITEM = auto()     # - text  (at column 1)
     EOF = auto()
 
 
@@ -42,10 +45,12 @@ class Lexer:
     def tokenize(self) -> List[Token]:
         while self.pos < len(self.source):
             self._skip_whitespace_and_comments()
-            
+
             if self.pos >= len(self.source):
                 break
-            
+
+            if self._match_markdown():
+                continue
             if self._match_receiver():
                 continue
             if self._match_symbol():
@@ -60,11 +65,60 @@ class Lexer:
                 continue
             if self._match_identifier():
                 continue
-            
+
             raise SyntaxError(f"Unexpected character '{self.source[self.pos]}' at line {self.line}, column {self.column}")
-        
+
         self.tokens.append(Token(TokenType.EOF, '', self.line, self.column))
         return self.tokens
+
+    def _match_markdown(self) -> bool:
+        """Recognize Markdown structure at column 1: headings and list items."""
+        if self.column != 1:
+            return False
+
+        # ## name (HEADING2 — must check before single #)
+        if (self.source[self.pos:self.pos + 2] == '##'
+                and self.pos + 2 < len(self.source)
+                and self.source[self.pos + 2] == ' '):
+            col = self.column
+            self.pos += 3  # skip "## "
+            self.column += 3
+            start = self.pos
+            while self.pos < len(self.source) and self.source[self.pos] != '\n':
+                self._advance()
+            value = self.source[start:self.pos].strip()
+            self.tokens.append(Token(TokenType.HEADING2, value, self.line, col))
+            return True
+
+        # # Name (HEADING1 — only when followed by space then text)
+        if (self.source[self.pos] == '#'
+                and self.pos + 1 < len(self.source)
+                and self.source[self.pos + 1] == ' '):
+            col = self.column
+            self.pos += 2  # skip "# "
+            self.column += 2
+            start = self.pos
+            while self.pos < len(self.source) and self.source[self.pos] != '\n':
+                self._advance()
+            value = self.source[start:self.pos].strip()
+            self.tokens.append(Token(TokenType.HEADING1, value, self.line, col))
+            return True
+
+        # - text (LIST_ITEM)
+        if (self.source[self.pos] == '-'
+                and self.pos + 1 < len(self.source)
+                and self.source[self.pos + 1] == ' '):
+            col = self.column
+            self.pos += 2  # skip "- "
+            self.column += 2
+            start = self.pos
+            while self.pos < len(self.source) and self.source[self.pos] != '\n':
+                self._advance()
+            value = self.source[start:self.pos].strip()
+            self.tokens.append(Token(TokenType.LIST_ITEM, value, self.line, col))
+            return True
+
+        return False
 
     def _match_receiver(self) -> bool:
         """Legacy @name syntax — normalize to Capitalized bare word."""
@@ -101,14 +155,18 @@ class Lexer:
                     self._advance()
                 if self.pos < len(self.source):
                     self._advance()  # consume closing "
-            elif (
-                self.source[self.pos] == '#'
-                and self.pos + 1 < len(self.source)
-                and self.source[self.pos + 1] == ' '
-                and self.column == 1
-            ):
-                # Legacy line comments: # text
-                while self.pos < len(self.source) and self.source[self.pos] != '\n':
+            elif self.source[self.pos:self.pos + 4] == '<!--':
+                # HTML comment: <!-- ... -->
+                self.pos += 4
+                self.column += 4
+                while self.pos < len(self.source):
+                    if self.source[self.pos:self.pos + 3] == '-->':
+                        self.pos += 3
+                        self.column += 3
+                        break
+                    if self.source[self.pos] == '\n':
+                        self.line += 1
+                        self.column = 0
                     self._advance()
             else:
                 break

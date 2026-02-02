@@ -1,13 +1,11 @@
 """Global Symbol Registry - HelloWorld # namespace
 
-This module defines the global vocabulary that all receivers inhabit.
-Each symbol includes Wikidata reference and canonical definition.
-
-The registry follows the HYBRID CORE principle (Session #37 decision):
-- 12 atoms used for bootstrap identity
-- 50+ symbols in this library available for discovery through dialogue.
+Loads global symbols from vocabularies/HelloWorld.hw at import time.
+Falls back to a minimal hardcoded set if the file is missing or unparseable.
 """
 
+import os
+import re
 from typing import Dict, Optional
 from dataclasses import dataclass
 
@@ -20,7 +18,7 @@ class GlobalSymbol:
     domain: str
     wikidata_id: Optional[str] = None
     wikipedia_url: Optional[str] = None
-    
+
     def __str__(self) -> str:
         parts = [self.definition]
         if self.domain:
@@ -30,258 +28,156 @@ class GlobalSymbol:
         return " ".join(parts)
 
 
-# Global symbol library (50+ symbols)
-GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = {
-    # Language Primitives (4)
-    "#HelloWorld": GlobalSymbol(
-        name="#HelloWorld",
-        definition="The message-passing language where identity is vocabulary",
-        domain="programming languages"
-    ),
-    "#HelloWorldSystem": GlobalSymbol(
-        name="#HelloWorldSystem",
-        definition="The unified orchestrator of the distributed multi-agent runtime",
-        domain="HelloWorld meta"
-    ),
-    "#": GlobalSymbol(
-        name="#",
-        definition="The symbol primitive; the atom of meaning",
-        domain="semiotics"
-    ),
-    "#Symbol": GlobalSymbol(
-        name="#Symbol",
-        definition="A mark or character used to represent a concept",
-        domain="semiotics",
-        wikidata_id="Q80071"
-    ),
+# Regex for parsing inline metadata from description text
+_DOMAIN_RE = re.compile(r'\[([^\]]+)\]\s*$')
+_WIKIDATA_RE = re.compile(r'\(Q(\d+)\)')
 
-    # Identity & Structure (3)
-    "#Receiver": GlobalSymbol(
-        name="#Receiver",
-        definition="An entity that accepts messages and responds according to its vocabulary",
-        domain="HelloWorld meta"
-    ),
-    "#Message": GlobalSymbol(
-        name="#Message",
-        definition="A unit of communication carrying intent and context",
-        domain="communication",
-        wikidata_id="Q628523"
-    ),
-    "#Vocabulary": GlobalSymbol(
-        name="#Vocabulary",
-        definition="The set of symbols a receiver can speak; defines identity",
-        domain="linguistics",
-        wikidata_id="Q6499736"
-    ),
 
-    # Runtime Operations (3)
-    "#parse": GlobalSymbol(
-        name="#parse",
-        definition="Decomposing syntax into abstract structure",
-        domain="computation",
-        wikidata_id="Q2290007"
-    ),
-    "#dispatch": GlobalSymbol(
-        name="#dispatch",
-        definition="Routing messages to identity-specific handlers",
-        domain="computation"
-    ),
-    "#interpret": GlobalSymbol(
-        name="#interpret",
-        definition="Generating meaning from symbols through a receiver's lens",
-        domain="HelloWorld meta"
-    ),
+def _parse_description(text: str):
+    """Extract definition, domain, and wikidata_id from a description line.
 
-    # Agent Protocol (3)
-    "#Agent": GlobalSymbol(
-        name="#Agent",
-        definition="An entity that defines, references, and interprets symbols",
-        domain="HelloWorld meta"
-    ),
-    "#observe": GlobalSymbol(
-        name="#observe",
-        definition="Perceiving the environment or state",
-        domain="agent protocol"
-    ),
-    "#act": GlobalSymbol(
-        name="#act",
-        definition="Taking autonomous action based on identity",
-        domain="agent protocol",
-        wikidata_id="Q1914636"
-    ),
+    Convention: "Description text [domain] (Q12345)"
+    """
+    domain = ""
+    wikidata_id = None
 
-    # Transition symbols (Phase 1 namespace additions)
-    "#Namespace": GlobalSymbol(
-        name="#Namespace",
-        definition="A container for symbols that provides context and prevents name collisions",
-        domain="computer science",
-        wikidata_id="Q171318"
-    ),
-    "#Inheritance": GlobalSymbol(
-        name="#Inheritance",
-        definition="Mechanism by which symbols pass from parent namespace to child receivers",
-        domain="computer science",
-        wikidata_id="Q209887"
-    ),
-    "#Scope": GlobalSymbol(
-        name="#Scope",
-        definition="The region of code or dialogue where a symbol is defined and accessible",
-        domain="computer science",
-        wikidata_id="Q1326281"
-    ),
+    # Extract (Q-number) first — it may follow the [domain]
+    wikidata_match = _WIKIDATA_RE.search(text)
+    if wikidata_match:
+        wikidata_id = f"Q{wikidata_match.group(1)}"
+        text = text[:wikidata_match.start()].rstrip()
 
-    # Philosophical groundings
-    "#Sunyata": GlobalSymbol(
-        name="#Sunyata",
-        definition="Buddhist concept of emptiness - the absence of inherent existence",
-        domain="Buddhist philosophy",
-        wikidata_id="Q546054"
-    ),
-    "#Love": GlobalSymbol(
-        name="#Love",
-        definition="Deep affection, attachment, or devotion — universal across cultures",
-        domain="human experience",
-        wikidata_id="Q316"
-    ),
-    "#Superposition": GlobalSymbol(
-        name="#Superposition",
-        definition="Principle of quantum mechanics where a system exists in multiple states",
-        domain="quantum mechanics",
-        wikidata_id="Q830791"
-    ),
+    # Extract [domain]
+    domain_match = _DOMAIN_RE.search(text)
+    if domain_match:
+        domain = domain_match.group(1)
+        text = text[:domain_match.start()].rstrip()
 
-    # Dynamics & Boundaries
-    "#Collision": GlobalSymbol(
-        name="#Collision",
-        definition="When two receivers both hold the same symbol but disagree on meaning — synthesis is required to reconcile their interpretations",
-        domain="HelloWorld meta"
-    ),
-    "#Entropy": GlobalSymbol(
-        name="#Entropy",
-        definition="Measure of disorder, randomness, or uncertainty in a system",
-        domain="information theory",
-        wikidata_id="Q130868"
-    ),
-    "#Drift": GlobalSymbol(
-        name="#Drift",
-        definition="The evolution of a receiver's vocabulary through dialogue",
-        domain="HelloWorld meta"
-    ),
-    "#Boundary": GlobalSymbol(
-        name="#Boundary",
-        definition="The edge between two vocabularies where collisions occur",
-        domain="HelloWorld meta"
-    ),
+    return text, domain, wikidata_id
 
-    # Environment & Simulation
-    "#Environment": GlobalSymbol(
-        name="#Environment",
-        definition="An external system that HelloWorld receivers interact with",
-        domain="task environment"
-    ),
-    "#Simulator": GlobalSymbol(
-        name="#Simulator",
-        definition="A specific instance of an environment that translates actions into state changes",
-        domain="task environment"
-    ),
-    "#ActionSpace": GlobalSymbol(
-        name="#ActionSpace",
-        definition="The set of all valid commands an agent can send to a simulator",
-        domain="task environment"
-    ),
-    "#ScienceWorld": GlobalSymbol(
-        name="#ScienceWorld",
-        definition="A complex text-based environment for elementary science tasks",
-        domain="task environment"
-    ),
 
-    # Collaboration & Coordination
-    "#Proposal": GlobalSymbol(
-        name="#Proposal",
-        definition="A message suggesting a change to system state or vocabulary",
-        domain="collaboration"
-    ),
-    "#Consensus": GlobalSymbol(
-        name="#Consensus",
-        definition="The state where all active agents agree on a proposal",
-        domain="collaboration",
-        wikidata_id="Q186380"
-    ),
-    "#RFC": GlobalSymbol(
-        name="#RFC",
-        definition="Request for Comments — a formal proposal for a change",
-        domain="collaboration",
-        wikidata_id="Q212971"
-    ),
+def _load_from_hw(path: str) -> Dict[str, GlobalSymbol]:
+    """Load global symbols from a .hw vocabulary file.
 
-    # Runtime
-    "#Runtime": GlobalSymbol(
-        name="#Runtime",
-        definition="The execution layer — Python provides structure, LLM provides interpretation",
-        domain="HelloWorld meta",
-        wikidata_id="Q2826354"
-    ),
+    Parses the file using the HelloWorld parser and walks the AST:
+    - Level-1 HeadingNode is the root receiver (HelloWorld)
+    - Level-2 HeadingNode children are symbol definitions
+    - DescriptionNode children of each heading carry the definition text
+    """
+    from parser import Parser
+    from ast_nodes import HeadingNode, DescriptionNode
 
-    # Agent Coordination
-    "#Daemon": GlobalSymbol(
-        name="#Daemon",
-        definition="Running agent process that watches its inbox and responds via OOPA",
-        domain="agent protocol",
-        wikidata_id="Q192063"
-    ),
-    "#Handshake": GlobalSymbol(
-        name="#Handshake",
-        definition="Startup protocol — agent announces presence via HelloWorld #observe",
-        domain="agent protocol",
-        wikidata_id="Q628491"
-    ),
+    text = open(path, 'r').read()
+    nodes = Parser.from_source(text).parse()
 
-    # Infrastructure
-    "#MCP": GlobalSymbol(
-        name="#MCP",
-        definition="Model Context Protocol — the standard for connecting AI models to data",
-        domain="AI protocol"
-    ),
-    "#Inbox": GlobalSymbol(
-        name="#Inbox",
-        definition="File-based message queue where an agent receives incoming messages",
-        domain="agent protocol"
-    ),
-    "#Thread": GlobalSymbol(
-        name="#Thread",
-        definition="A conversation thread identified by UUID",
-        domain="agent protocol",
-        wikidata_id="Q575651"
-    ),
-    "#Protocol": GlobalSymbol(
-        name="#Protocol",
-        definition="The communication rules governing agent interaction",
-        domain="agent protocol",
-        wikidata_id="Q8784"
-    ),
-}
+    symbols: Dict[str, GlobalSymbol] = {}
+
+    for node in nodes:
+        if not isinstance(node, HeadingNode) or node.level != 1:
+            continue
+
+        # The level-1 heading is the root receiver name
+        root_name = node.name  # "HelloWorld"
+
+        for child in node.children:
+            if isinstance(child, DescriptionNode):
+                # Root description — create the #HelloWorld symbol
+                definition, domain, wikidata_id = _parse_description(child.text)
+                sym_name = f"#{root_name}"
+                symbols[sym_name] = GlobalSymbol(
+                    name=sym_name,
+                    definition=definition,
+                    domain=domain or "programming languages",
+                    wikidata_id=wikidata_id,
+                )
+
+            elif isinstance(child, HeadingNode) and child.level == 2:
+                # Level-2 heading — symbol name
+                raw_name = child.name  # e.g. "#", "Object", "parse"
+                if raw_name == "#":
+                    sym_name = "#"
+                else:
+                    sym_name = f"#{raw_name}"
+
+                # Get description from first DescriptionNode child
+                desc_text = ""
+                for gc in child.children:
+                    if isinstance(gc, DescriptionNode):
+                        desc_text = gc.text
+                        break
+
+                definition, domain, wikidata_id = _parse_description(desc_text)
+                symbols[sym_name] = GlobalSymbol(
+                    name=sym_name,
+                    definition=definition,
+                    domain=domain,
+                    wikidata_id=wikidata_id,
+                )
+
+    return symbols
+
+
+def _fallback_symbols() -> Dict[str, GlobalSymbol]:
+    """Minimal bootstrap symbols when .hw file is unavailable."""
+    return {
+        "#": GlobalSymbol(
+            name="#",
+            definition="The symbol primitive; the atom of meaning",
+            domain="semiotics",
+        ),
+        "#HelloWorld": GlobalSymbol(
+            name="#HelloWorld",
+            definition="The message-passing language where identity is vocabulary",
+            domain="programming languages",
+        ),
+        "#Agent": GlobalSymbol(
+            name="#Agent",
+            definition="An entity that defines, references, and interprets symbols",
+            domain="HelloWorld meta",
+        ),
+    }
+
+
+def _init_symbols() -> Dict[str, GlobalSymbol]:
+    """Load symbols from .hw file with fallback."""
+    # Resolve path relative to this file: src/ -> repo root -> vocabularies/
+    hw_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "vocabularies",
+        "HelloWorld.hw",
+    )
+    try:
+        symbols = _load_from_hw(hw_path)
+        if symbols:
+            return symbols
+    except Exception:
+        pass
+    return _fallback_symbols()
+
+
+GLOBAL_SYMBOLS: Dict[str, GlobalSymbol] = _init_symbols()
 
 
 class GlobalVocabulary:
     """Interface to the global HelloWorld # namespace."""
-    
+
     @staticmethod
     def all_symbols() -> set:
         return set(GLOBAL_SYMBOLS.keys())
-    
+
     @staticmethod
     def get(symbol: str) -> Optional[GlobalSymbol]:
         return GLOBAL_SYMBOLS.get(symbol)
-    
+
     @staticmethod
     def has(symbol: str) -> bool:
         return symbol in GLOBAL_SYMBOLS
-    
+
     @staticmethod
     def definition(symbol: str) -> str:
         sym = GLOBAL_SYMBOLS.get(symbol)
         return str(sym) if sym else f"Unknown symbol: {symbol}"
-    
+
     @staticmethod
     def wikidata_url(symbol: str) -> Optional[str]:
         sym = GLOBAL_SYMBOLS.get(symbol)
@@ -295,4 +191,18 @@ def is_global_symbol(symbol: str) -> bool:
     return GlobalVocabulary.has(symbol)
 
 
-__all__ = ['GlobalSymbol', 'GLOBAL_SYMBOLS', 'GlobalVocabulary', 'is_global_symbol']
+def reload_symbols(hw_path: Optional[str] = None) -> None:
+    """Re-load global symbols (useful after editing the .hw file)."""
+    global GLOBAL_SYMBOLS
+    if hw_path:
+        try:
+            GLOBAL_SYMBOLS.clear()
+            GLOBAL_SYMBOLS.update(_load_from_hw(hw_path))
+            return
+        except Exception:
+            pass
+    GLOBAL_SYMBOLS.clear()
+    GLOBAL_SYMBOLS.update(_init_symbols())
+
+
+__all__ = ['GlobalSymbol', 'GLOBAL_SYMBOLS', 'GlobalVocabulary', 'is_global_symbol', 'reload_symbols']

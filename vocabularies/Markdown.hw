@@ -1,0 +1,13 @@
+# Markdown
+- A lightweight markup language created by John Gruber. The syntax layer of HelloWorld.
+- Daring Fireball spec: https://daringfireball.net/projects/markdown/syntax
+## heading
+- A line starting with # at column 1. In HelloWorld, headings declare receivers and symbols.
+## list
+- A line starting with - at column 1. In HelloWorld, list items attach descriptions to headings.
+## comment
+- HTML comments <!-- --> serve as meta-annotations in HelloWorld source files.
+## emphasis
+- Inline formatting (*italic*, **bold**). Reserved for future use in annotations.
+## link
+- Inline references [text](url). Used in descriptions to ground symbols in external sources.

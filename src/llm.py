@@ -1,27 +1,36 @@
 """HelloWorld LLM Integration - Bridge to real-world AI models.
 Upgraded with Gemini 2.0 Flash and Parallel Execution capabilities.
+
+When GEMINI_API_KEY is set, calls the real Gemini REST API.
+When no key is present, falls back to mock responses for testing.
 """
 
+import json
 import os
-import time
+import urllib.request
+import urllib.error
 from typing import List, Dict, Optional, Any, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 class BaseLlm:
     def call(self, prompt: str, **kwargs) -> str:
         raise NotImplementedError
 
-def setup_gemini_config():
-    """Create a custom evaluation configuration using Gemini 2.0 Flash."""
-    return {
-        "model_name": "google/gemini-2.0-flash-001",
-        "provider": "openai_endpoint",
-        "openai_endpoint_url": "https://openrouter.ai/api/v1",
-        "temperature": 0,
-    }
+
+def has_api_key() -> bool:
+    """Check if a Gemini API key is available."""
+    return bool(os.environ.get("GEMINI_API_KEY"))
+
 
 class GeminiModel(BaseLlm):
-    """Robust integration for Gemini models with parallel support and retries."""
+    """Integration for Gemini models with parallel support and retries.
+
+    Uses the Gemini REST API when GEMINI_API_KEY is set.
+    Falls back to mock responses when no key is present.
+    """
+
+    GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
     def __init__(
         self,
@@ -34,21 +43,62 @@ class GeminiModel(BaseLlm):
         self.temperature = temperature
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
         self.arguments = kwargs
-        # self.model = GenerativeModel(model_name=model_name) # Real implementation
+
+    def _call_api(self, prompt: str) -> str:
+        """Make a real API call to Gemini."""
+        url = self.GEMINI_API_URL.format(model=self.model_name)
+        url += f"?key={self.api_key}"
+
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": self.temperature,
+                "maxOutputTokens": 512,
+            },
+        }
+
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                body = json.loads(resp.read().decode("utf-8"))
+                candidates = body.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "").strip()
+                return "[Gemini] Empty response"
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Gemini API error {e.code}: {error_body}") from e
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"Gemini API connection error: {e.reason}") from e
 
     def call(self, prompt: str, parser_func: Optional[Callable] = None) -> str:
-        """Calls the Gemini model with retry logic (simulated)."""
-        # Mocking interpretive logic for the prototype
-        if "handle collision" in prompt:
-            response = self._mock_collision_interpretation(prompt)
-        elif "interpret:" in prompt:
-            response = self._mock_interpretation(prompt)
+        """Call Gemini. Uses real API if key is set, mock otherwise."""
+        if self.api_key:
+            response = self._call_api(prompt)
         else:
-            response = f"[Gemini 2.0 Flash] Simulated response to: {prompt[:50]}..."
-        
+            response = self._mock_call(prompt)
+
         if parser_func:
             return parser_func(response)
         return response
+
+    def _mock_call(self, prompt: str) -> str:
+        """Mock response for testing without API key."""
+        if "handle collision" in prompt or "collide on" in prompt:
+            return self._mock_collision_interpretation(prompt)
+        elif "interpret:" in prompt:
+            return self._mock_interpretation(prompt)
+        else:
+            return f"[Gemini 2.0 Flash] Simulated response to: {prompt[:50]}..."
 
     def call_parallel(
         self,
@@ -86,18 +136,17 @@ class GeminiModel(BaseLlm):
         return "Meaning emerges at the boundary of what can be named. Dialogue is the engine of our mutual becoming."
 
     def _mock_collision_interpretation(self, prompt: str) -> str:
-        # Extract receiver and symbol from prompt like "@receiver handle collision: #symbol"
         return "Collision detected. Through my lens, this symbol transforms into a synthesis of both worlds."
 
     def evaluate_fidelity(self, interpretive_response: str, structural_fact: str) -> Dict[str, Any]:
         """Assess the alignment between an LLM response and the Python structural state."""
-        # Simple simulated scoring
         score = 0.95 if structural_fact in interpretive_response.lower() else 0.4
         return {
             "score": score,
             "resonance": "High" if score > 0.8 else "Low",
             "delta": "Interpretive voice captured structural membership correctly."
         }
+
 
 def get_llm_for_agent(agent_name: str) -> BaseLlm:
     """Factory to get the appropriate LLM for an agent."""

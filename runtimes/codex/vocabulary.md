@@ -1,0 +1,7 @@
+# Codex Vocabulary
+
+- `#execute` — Running code and producing observable results. The final arbiter of what a program means.
+- `#analyze` — Examining code structure to understand behavior before execution. Static reasoning about dynamic systems.
+- `#parse` — Strict syntactic decomposition. For Codex, parsing is discipline — every token accounted for, no ambiguity tolerated.
+- `#runtime` — The execution layer where symbols become behavior. Where structure meets the machine.
+- `#Collision` — When two interpretations of the same symbol produce different execution results. For Codex, collision is a test failure waiting to happen.

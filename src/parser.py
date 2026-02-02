@@ -5,8 +5,9 @@ Managed by: Gemini
 from typing import List, Optional, Union, Dict
 from lexer import Lexer, Token, TokenType
 from ast_nodes import (
-    Node, SymbolNode, ReceiverNode, LiteralNode, 
-    VocabularyQueryNode, ScopedLookupNode, MessageNode, VocabularyDefinitionNode
+    Node, SymbolNode, ReceiverNode, LiteralNode,
+    VocabularyQueryNode, ScopedLookupNode, MessageNode, VocabularyDefinitionNode,
+    HeadingNode, DescriptionNode
 )
 
 # Compatibility exports for tests
@@ -46,6 +47,18 @@ class Parser:
         return nodes
 
     def _parse_statement(self) -> Optional[Node]:
+        # Markdown heading: # Name (receiver declaration)
+        if self._match(TokenType.HEADING1):
+            return self._parse_heading(1)
+
+        # Markdown heading: ## name (symbol definition, but can appear top-level)
+        if self._match(TokenType.HEADING2):
+            return self._parse_heading(2)
+
+        # Markdown list item: - text (description, can appear top-level)
+        if self._match(TokenType.LIST_ITEM):
+            return DescriptionNode(self._previous().value)
+
         if self._match(TokenType.RECEIVER):
             receiver_token = self._previous()
             receiver = ReceiverNode(receiver_token.value)
@@ -55,17 +68,36 @@ class Parser:
                 suffix_node = self._parse_receiver_suffix(receiver)
                 if suffix_node:
                     return suffix_node
-            
+
             # Message Passing: Name action: value
             if self._check(TokenType.IDENTIFIER):
                 return self._parse_message(receiver)
-            
+
             # Bare receiver: Name
             return VocabularyQueryNode(receiver)
 
         # Skip tokens we don't recognize as starts of statements for now
         self._advance()
         return None
+
+    def _parse_heading(self, level: int) -> HeadingNode:
+        """Parse a Markdown heading and its children (list items, sub-headings)."""
+        name = self._previous().value
+        node = HeadingNode(level=level, name=name)
+
+        # Collect children: list items and (for level 1) sub-headings
+        while not self._is_at_end():
+            if self._check(TokenType.LIST_ITEM):
+                self._advance()
+                node.children.append(DescriptionNode(self._previous().value))
+            elif level == 1 and self._check(TokenType.HEADING2):
+                self._advance()
+                node.children.append(self._parse_heading(2))
+            else:
+                # Stop when we hit a non-child token
+                break
+
+        return node
 
     def _parse_vocabulary_definition(self, receiver: ReceiverNode) -> VocabularyDefinitionNode:
         self._consume(TokenType.LBRACKET, "Expect '[' after '→'")

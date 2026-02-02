@@ -94,7 +94,7 @@ Copilot:
 - Bootloader: `runtimes/copilot/copilot-instructions.md`
 - Vocabulary: `runtimes/copilot/vocabulary.md`
 - Session logs: `runtimes/copilot/SESSION_*.md`
-- Message protocol: See SPEC.md #Agent #Protocol
+- Message protocol: See AGENTS.md and vocabularies/HelloWorld.hw
 
 The Python runtime provides structure. Claude/Gemini provide deep interpretation. **Copilot provides action.**
 

@@ -276,7 +276,7 @@ class MessageHandlerRegistry:
         )
 
         # --- Agent Protocol: #observe and #act ---
-        # SPEC.md defines these as the core agent capabilities.
+        # vocabularies/HelloWorld.hw defines these as the core agent capabilities.
         # observe: reports the symbol's status relative to the receiver.
         # act: acknowledges action, shaped by the receiver's vocabulary.
 

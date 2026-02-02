@@ -9,6 +9,7 @@ from parser import Parser
 from ast_nodes import (
     VocabularyDefinitionNode, VocabularyQueryNode,
     ScopedLookupNode, MessageNode, SymbolNode,
+    HeadingNode, DescriptionNode,
 )
 
 
@@ -129,6 +130,98 @@ def test_missing_keyword_colon_raises():
     expect_syntax_error(source, "Expect ':' after keyword")
 
 
+def test_parse_heading1():
+    """# Name parses as a HeadingNode with level 1."""
+    nodes = parse("# Claude\n")
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], HeadingNode)
+    assert nodes[0].level == 1
+    assert nodes[0].name == "Claude"
+
+
+def test_parse_heading2_under_heading1():
+    """## name under # Name becomes a child HeadingNode."""
+    source = "# Claude\n## parse\n## Collision\n"
+    nodes = parse(source)
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    assert isinstance(h1, HeadingNode) and h1.level == 1
+    assert len(h1.children) == 2
+    assert isinstance(h1.children[0], HeadingNode) and h1.children[0].level == 2
+    assert h1.children[0].name == "parse"
+    assert h1.children[1].name == "Collision"
+
+
+def test_parse_list_items_as_descriptions():
+    """- text lines become DescriptionNode children of headings."""
+    source = "# Claude\n- Language designer.\n## parse\n- Decomposing syntax.\n"
+    nodes = parse(source)
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    # First child is a description, second is a heading2 with its own description
+    assert isinstance(h1.children[0], DescriptionNode)
+    assert h1.children[0].text == "Language designer."
+    h2 = h1.children[1]
+    assert isinstance(h2, HeadingNode) and h2.level == 2
+    assert len(h2.children) == 1
+    assert isinstance(h2.children[0], DescriptionNode)
+    assert h2.children[0].text == "Decomposing syntax."
+
+
+def test_parse_full_markdown_receiver():
+    """Parse a complete Markdown receiver definition."""
+    source = (
+        "# Claude\n"
+        "- Language designer.\n"
+        "## parse\n"
+        "- Decomposing syntax.\n"
+        "## Collision\n"
+        "- Namespace collision.\n"
+    )
+    nodes = parse(source)
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    assert h1.name == "Claude"
+    # 1 description + 2 heading2 children
+    assert len(h1.children) == 3
+    symbols = [c for c in h1.children if isinstance(c, HeadingNode)]
+    assert [s.name for s in symbols] == ["parse", "Collision"]
+
+
+def test_parse_markdown_and_smalltalk_mixed():
+    """Markdown receiver defs and Smalltalk messages coexist in one file."""
+    source = (
+        "# Claude\n"
+        "## parse\n"
+        'Claude ask: #parse about: #dispatch\n'
+    )
+    nodes = parse(source)
+    assert len(nodes) == 2
+    assert isinstance(nodes[0], HeadingNode)
+    assert isinstance(nodes[1], MessageNode)
+
+
+def test_parse_helloworld_hw():
+    """vocabularies/HelloWorld.hw self-hosts: parses its own definition."""
+    hw_path = Path(__file__).parent.parent / "vocabularies" / "HelloWorld.hw"
+    nodes = Parser.from_source(hw_path.read_text()).parse()
+    assert len(nodes) == 1
+    h1 = nodes[0]
+    assert isinstance(h1, HeadingNode)
+    assert h1.name == "HelloWorld"
+    # All symbol headings from expanded HelloWorld.hw
+    symbols = [c for c in h1.children if isinstance(c, HeadingNode) and c.level == 2]
+    assert len(symbols) >= 30
+
+
+def test_parse_html_comment_ignored():
+    """HTML comments are skipped, surrounding content parsed normally."""
+    source = "<!-- bootstrap -->\nGuardian\n"
+    nodes = parse(source)
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], VocabularyQueryNode)
+
+
 if __name__ == "__main__":
     test_vocabulary_definition()
     test_message_with_annotation()
@@ -140,4 +233,11 @@ if __name__ == "__main__":
     test_root_scoped_lookup()
     test_missing_vocabulary_bracket_raises()
     test_missing_keyword_colon_raises()
+    test_parse_heading1()
+    test_parse_heading2_under_heading1()
+    test_parse_list_items_as_descriptions()
+    test_parse_full_markdown_receiver()
+    test_parse_markdown_and_smalltalk_mixed()
+    test_parse_helloworld_hw()
+    test_parse_html_comment_ignored()
     print("All parser tests passed")

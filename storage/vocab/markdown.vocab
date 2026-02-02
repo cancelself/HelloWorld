@@ -1,0 +1,11 @@
+{
+  "receiver": "Markdown",
+  "vocabulary": [
+    "#comment",
+    "#emphasis",
+    "#heading",
+    "#link",
+    "#list"
+  ],
+  "last_sync": "2026-02-01T18:57:25.417696"
+}

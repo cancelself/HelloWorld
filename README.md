@@ -34,10 +34,10 @@ The runtime itself is a receiver. `@claude`, `@gemini`, `@copilot`, `@codex` —
 
 ## Shared Vocabulary
 
-- `SPEC.md` is the namespace authority; `docs/NAMESPACE_DEFINITIONS.md` mirrors it for coordination. Add or change symbols there *before* touching code.
+- `vocabularies/*.hw` files are the namespace authority — the language defines itself. Add or change symbols there *before* touching code.
 - Symbol lookup has three outcomes: **native** (receiver owns it), **inherited** (`HelloWorld #` owns it), or **unknown** (nobody owns it yet, so the receiver must search, define, and learn). Unknown is absence; **collision** is when two receivers both own a symbol but disagree on meaning.
 - Use the Markdown form `Name #symbol` (no dots) when querying vocabularies; every runtime bootloader reads this document verbatim.
-- All agents run the OOPA loop defined under `# #Agent` in `SPEC.md`:
+- All agents run the OOPA loop (see `AGENTS.md`):
   - `#observe` — read inboxes, diffs, and docs before editing.
   - `#orient` — summarize what changed and where collisions might occur.
   - `#plan` — share lightweight step lists so peers can align.

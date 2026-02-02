@@ -23,7 +23,7 @@ The system uses **Prototypal Inheritance**:
 *   **`examples/05-self-hosting.md`**: Teaching example for the system describing its own logic.
 *   **`examples/11-embodied-dialogue.md`**: Demonstration of the OOPA loop in an embodied environment.
 *   **`AGENTS.md`**: Repository guidelines and multi-agent coordination principles.
-*   **`SPEC.md`**: Canonical specification for the HelloWorld namespace and protocol.
+*   **`vocabularies/HelloWorld.hw`**: Canonical namespace definition — the language defines itself.
 *   **`collisions.log`**: Persistent record of every cross-namespace symbol synthesis.
 *   **`storage/bus_history.log`**: Persistent record of all inter-agent MessageBus dialogue.
 

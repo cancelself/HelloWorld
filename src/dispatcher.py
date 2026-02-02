@@ -11,6 +11,8 @@ import os
 from datetime import datetime
 
 from ast_nodes import (
+    DescriptionNode,
+    HeadingNode,
     LiteralNode,
     MessageNode,
     Node,
@@ -27,6 +29,7 @@ from message_bus import MessageBus
 from tools import ToolRegistry
 from envs import EnvironmentRegistry
 from message_handlers import MessageHandlerRegistry
+from prompts import scoped_lookup_prompt, message_prompt, collision_prompt
 
 
 class LookupOutcome(Enum):
@@ -223,10 +226,7 @@ class Dispatcher:
         
         # Fallback: HelloWorld must always exist (minimal core)
         if "HelloWorld" not in self.registry:
-            minimal_core = [
-                "#HelloWorld", "#", "#Symbol", "#Receiver", "#Message", "#Vocabulary",
-                "#parse", "#dispatch", "#interpret", "#Agent", "#observe", "#act"
-            ]
+            minimal_core = ["#", "#Object", "#Agent"]
             self.registry["HelloWorld"] = Receiver("HelloWorld", set(minimal_core))
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
@@ -270,6 +270,27 @@ class Dispatcher:
             return self._handle_definition(node)
         if isinstance(node, MessageNode):
             return self._handle_message(node)
+        if isinstance(node, HeadingNode):
+            return self._handle_heading(node)
+        if isinstance(node, DescriptionNode):
+            return None  # standalone descriptions are no-ops
+        return None
+
+    def _handle_heading(self, node: HeadingNode) -> Optional[str]:
+        """Handle Markdown heading nodes.
+
+        HEADING1 declares a receiver and defines its symbols from child HEADING2 nodes.
+        HEADING2 at top level is a standalone symbol reference (no receiver context).
+        """
+        if node.level == 1:
+            receiver = self._get_or_create_receiver(node.name)
+            for child in node.children:
+                if isinstance(child, HeadingNode) and child.level == 2:
+                    # If name already starts with #, use as-is (e.g., ## # → "#")
+                    symbol = child.name if child.name.startswith("#") else f"#{child.name}"
+                    receiver.add_symbol(symbol)
+            self.vocab_manager.save(receiver.name, receiver.local_vocabulary)
+            return f"Defined {node.name} with {len(receiver.vocabulary)} symbols."
         return None
 
     def _handle_query(self, node: VocabularyQueryNode) -> str:
@@ -327,7 +348,9 @@ class Dispatcher:
         if lookup.is_native() and receiver_name in self.agents:
             # Try LLM interpretation first if enabled
             if self.use_llm and self.llm:
-                prompt = f"Interpret {receiver_name} {symbol_name} from your perspective. Be concise."
+                local_vocab = sorted(receiver.local_vocabulary)
+                global_def = GlobalVocabulary.definition(symbol_name)
+                prompt = scoped_lookup_prompt(receiver_name, symbol_name, local_vocab, global_def)
                 print(f"🤖 LLM interpreting {receiver_name} {symbol_name}...")
                 try:
                     llm_response = self.llm.call(prompt)
@@ -421,14 +444,9 @@ class Dispatcher:
         """
         # Try LLM synthesis first
         if self.use_llm and self.llm:
-            prompt = (
-                f"Two receivers collide on {symbol_name}.\n"
-                f"{sender_name} (vocabulary: {sorted(sender.local_vocabulary)}) "
-                f"sends {symbol_name} to {target_name} (vocabulary: {sorted(target.local_vocabulary)}).\n"
-                f"Both hold {symbol_name} natively but with different meanings shaped by their vocabularies.\n"
-                f"Synthesize: what new meaning emerges from this collision? "
-                f"Voice both perspectives, then produce a synthesis neither could reach alone. Be concise."
-            )
+            sender_vocab = sorted(sender.local_vocabulary)
+            target_vocab = sorted(target.local_vocabulary)
+            prompt = collision_prompt(sender_name, sender_vocab, target_name, target_vocab, symbol_name)
             try:
                 return self.llm.call(prompt)
             except Exception as e:
@@ -543,7 +561,8 @@ class Dispatcher:
             
             # Try LLM first if enabled
             if self.use_llm and self.llm:
-                prompt = f"As {receiver_name}, respond to this message: {message_content}"
+                local_vocab = sorted(receiver.local_vocabulary)
+                prompt = message_prompt(receiver_name, local_vocab, message_content)
                 print(f"🤖 LLM interpreting message for {receiver_name}...")
                 try:
                     llm_response = self.llm.call(prompt)

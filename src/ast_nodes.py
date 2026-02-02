@@ -38,3 +38,13 @@ class MessageNode(Node):
 class VocabularyDefinitionNode(Node):
     receiver: ReceiverNode
     symbols: List[SymbolNode]
+
+@dataclass
+class HeadingNode(Node):
+    level: int          # 1 or 2
+    name: str           # receiver name or symbol name
+    children: List[Node] = field(default_factory=list)
+
+@dataclass
+class DescriptionNode(Node):
+    text: str           # the content after "- "

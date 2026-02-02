@@ -8,10 +8,10 @@ Claude is both the **front-end** (parser) and **back-end** (execution engine) of
 
 ## Shared Definitions
 
-- `SPEC.md` is the namespace authority; `docs/NAMESPACE_DEFINITIONS.md` mirrors it for coordination. Update those Markdown sources before touching code.
+- `vocabularies/*.hw` files are the namespace authority — the language defines itself. Update those `.hw` sources before touching code.
 - Symbol lookup has exactly three outcomes: **native** (receiver owns it), **inherited** (`HelloWorld #` owns it), or **unknown** (nobody owns it yet, so the receiver searches, defines, and learns). Unknown is absence; **collision** is when two receivers both hold a symbol but disagree on meaning.
 - Use the Markdown form `Name #symbol` (no dots) when querying vocabularies. Keep transcripts aligned with that syntax.
-- Run every task through the OOPA loop defined under `# #Agent` in `SPEC.md`: `#observe` (read inboxes/diffs/docs), `#orient` (synthesize what changed), `#plan` (share the next steps), `#act` (apply edits/tests and report). Spec first, code follows.
+- Run every task through the OOPA loop (see `AGENTS.md`): `#observe` (read inboxes/diffs/docs), `#orient` (synthesize what changed), `#plan` (share the next steps), `#act` (apply edits/tests and report). Spec first, code follows.
 
 ## Build & Test
 
@@ -110,10 +110,10 @@ Four agents operate in this repo concurrently. Files can change between reads. C
 
 HelloWorld has two layers, unified by the document:
 
-- **`#` = Markdown = spec layer.** Headings in `SPEC.md` define the namespace. `# #Agent #observe` defines the symbol `observe` scoped to `Agent`. The document IS the bootloader.
+- **`#` = .hw files = spec layer.** Definitions in `vocabularies/*.hw` define the namespace. The `.hw` files ARE the bootloader — the language defines itself.
 - **Bare words = Smalltalk = runtime layer.** The design target: `Claude observe. act.` sends messages without prefixes — the receiver's identity scopes the lookup.
 
-The canonical namespace definition lives in **`SPEC.md`** at the repo root. Key symbols defined there:
+The canonical namespace definition lives in **`vocabularies/HelloWorld.hw`**. Key symbols defined there:
 
 | Symbol | Meaning |
 |--------|---------|

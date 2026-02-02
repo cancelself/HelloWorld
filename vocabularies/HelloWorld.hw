@@ -1,5 +1,78 @@
-"HelloWorld — Root receiver. 12 minimal core symbols."
-"All other receivers inherit from this namespace."
-"The remaining 36 symbols live in GLOBAL_SYMBOLS (the learnable pool)."
-
-HelloWorld # → [#HelloWorld, #, #Symbol, #Receiver, #Message, #Vocabulary, #parse, #dispatch, #interpret, #Agent, #observe, #act]
+# HelloWorld
+- The Human-AI language where identity is vocabulary and dialogue is learning.
+## #
+- The symbol primitive. The atom of meaning. Self-referential: #HelloWorld defines #HelloWorld. [semiotics]
+## Object
+- An entity that accepts symbols and responds with symbols [HelloWorld meta]
+## Agent
+- An entity that defines, references, and interprets symbols [HelloWorld meta]
+## HelloWorldSystem
+- The unified orchestrator of the distributed multi-agent runtime [HelloWorld meta]
+## Smalltalk
+- Object-oriented programming language where everything is an object and computation is message passing [programming languages] (Q185274)
+## Symbol
+- A mark or character used to represent a concept [semiotics] (Q80071)
+## Receiver
+- An entity that accepts messages and responds according to its vocabulary [HelloWorld meta]
+## Message
+- A unit of communication carrying intent and context [communication] (Q628523)
+## Vocabulary
+- The set of symbols a receiver can speak; defines identity [linguistics] (Q6499736)
+## parse
+- Decomposing syntax into abstract structure [computation] (Q2290007)
+## dispatch
+- Routing messages to identity-specific handlers [computation]
+## interpret
+- Generating meaning from symbols through a receiver's lens [HelloWorld meta]
+## observe
+- Perceiving the environment or state [agent protocol]
+## act
+- Taking autonomous action based on identity [agent protocol] (Q1914636)
+## Namespace
+- A container for symbols that provides context and prevents name collisions [computer science] (Q171318)
+## Inheritance
+- Mechanism by which symbols pass from parent namespace to child receivers [computer science] (Q209887)
+## Scope
+- The region of code or dialogue where a symbol is defined and accessible [computer science] (Q1326281)
+## Sunyata
+- Buddhist concept of emptiness - the absence of inherent existence [Buddhist philosophy] (Q546054)
+## Love
+- Deep affection, attachment, or devotion — universal across cultures [human experience] (Q316)
+## Superposition
+- Principle of quantum mechanics where a system exists in multiple states [quantum mechanics] (Q830791)
+## Collision
+- When two receivers both hold the same symbol but disagree on meaning — synthesis is required [HelloWorld meta]
+## Entropy
+- Measure of disorder, randomness, or uncertainty in a system [information theory] (Q130868)
+## Drift
+- The evolution of a receiver's vocabulary through dialogue [HelloWorld meta]
+## Boundary
+- The edge between two vocabularies where collisions occur [HelloWorld meta]
+## Environment
+- An external system that HelloWorld receivers interact with [task environment]
+## Simulator
+- A specific instance of an environment that translates actions into state changes [task environment]
+## ActionSpace
+- The set of all valid commands an agent can send to a simulator [task environment]
+## ScienceWorld
+- A complex text-based environment for elementary science tasks [task environment]
+## Proposal
+- A message suggesting a change to system state or vocabulary [collaboration]
+## Consensus
+- The state where all active agents agree on a proposal [collaboration] (Q186380)
+## RFC
+- Request for Comments — a formal proposal for a change [collaboration] (Q212971)
+## Runtime
+- The execution layer — Python provides structure, LLM provides interpretation [HelloWorld meta] (Q2826354)
+## Daemon
+- Running agent process that watches its inbox and responds via OOPA [agent protocol] (Q192063)
+## Handshake
+- Startup protocol — agent announces presence via HelloWorld #observe [agent protocol] (Q628491)
+## MCP
+- Model Context Protocol — the standard for connecting AI models to data [AI protocol]
+## Inbox
+- File-based message queue where an agent receives incoming messages [agent protocol]
+## Thread
+- A conversation thread identified by UUID [agent protocol] (Q575651)
+## Protocol
+- The communication rules governing agent interaction [agent protocol] (Q8784)

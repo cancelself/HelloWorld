@@ -7,11 +7,11 @@
 - Keep assets text-based and deterministic; avoid singletons or hidden state in modules.
 
 ## Shared Definitions & OOPA Loop
-- `SPEC.md` is the canonical namespace; `docs/NAMESPACE_DEFINITIONS.md` mirrors it for coordination. Update those first, then reflect changes in code and tests.
+- `vocabularies/*.hw` files are the canonical namespace — the language defines itself. Update those `.hw` sources first, then reflect changes in code and tests.
 - Symbol lookup always resolves to **native**, **inherited**, or **unknown**. Unknown means the receiver must search, define, and learn; it is not a collision. Collision happens only when two receivers both own a symbol with divergent meaning.
 - Use the Markdown query form `Name #symbol` (no dots). Runtimes read these definitions verbatim.
 - Bare verbs (e.g., `Copilot observe`) are imperatives to perform the action; prefixed symbols (e.g., `Copilot #observe`) ask for the vocabulary definition or metadata.
-- Agents follow `# #Agent` in `SPEC.md`: `#observe` (read inboxes, diffs, docs), `#orient` (summarize state and collisions), `#plan` (share actionable steps), `#act` (apply edits/tests and report). Document each phase when coordinating work.
+- Agents follow the OOPA loop: `#observe` (read inboxes, diffs, docs), `#orient` (summarize state and collisions), `#plan` (share actionable steps), `#act` (apply edits/tests and report). Document each phase when coordinating work.
 
 ## Build, Test, and Development Commands
 - `python3 -m pytest tests` — run the regression suite before any push.
