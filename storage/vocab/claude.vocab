@@ -15,9 +15,10 @@
     "#parse",
     "#reflect",
     "#spec",
+    "#status",
     "#synthesize",
     "#test",
     "#vocabulary"
   ],
-  "last_sync": "2026-02-01T22:37:55.674119"
+  "last_sync": "2026-02-01T23:53:48.571967"
 }

@@ -28,22 +28,51 @@ class AgentDaemon:
         self.bus = MessageBus()
         self.running = False
         self.llm = get_llm_for_agent(agent_name)
+        self.last_heartbeat = 0
+        self.thread_turns = {} # track turns per thread to avoid infinite ping-pong
         
         # Load agent vocabulary
         self.vocabulary = self.load_vocabulary()
     
     def load_vocabulary(self):
-        """Load agent's vocabulary from runtimes/<agent>/vocabulary.md"""
+        """Load agent's vocabulary from runtimes/<agent>/vocabulary.md or vocabularies/<agent>.hw"""
+        symbols = set()
+        
+        # 1. Try runtimes/<agent>/vocabulary.md
         vocab_file = Path(f'runtimes/{self.agent_name.lower()}/vocabulary.md')
         if vocab_file.exists():
             text = vocab_file.read_text()
-            symbols = []
             for line in text.split('\n'):
-                if line.strip().startswith('- `#`'):
-                    symbol = line.split('`')[1]
-                    symbols.append(symbol)
-            return symbols
-        return []
+                line = line.strip()
+                # Match "- #symbol" or "- `#symbol`"
+                if line.startswith('- '):
+                    parts = line.split(' ')
+                    if len(parts) >= 2:
+                        sym_part = parts[1].strip('`')
+                        if sym_part.startswith('#'):
+                            symbols.add(sym_part)
+        
+        # 2. Try vocabularies/<Agent>.hw (Self-hosting source)
+        hw_file = Path(f'vocabularies/{self.agent_name}.hw')
+        if hw_file.exists():
+            text = hw_file.read_text()
+            for line in text.split('\n'):
+                line = line.strip()
+                if line.startswith('## '):
+                    sym = '#' + line[3:].strip()
+                    symbols.add(sym)
+                elif ' # → [' in line:
+                    # Parse "Agent # → [#s1, #s2]"
+                    import re
+                    match = re.search(r'\[(.*?)\]', line)
+                    if match:
+                        for s in match.group(1).split(','):
+                            symbols.add(s.strip())
+        
+        # 3. Always include root symbols (MC3)
+        symbols.update(['#', '#Object', '#Agent'])
+        
+        return sorted(list(symbols))
     
     def process_message(self, message):
         """Invoke the LLM to interpret the message within the agent's context."""
@@ -60,14 +89,15 @@ class AgentDaemon:
         prompt += (
             "\nTask: Interpret this message through your unique identity. "
             "If the sender's context contains symbols foreign to you, address the boundary collision. "
-            "Respond in your natural voice."
+            "Respond in your natural voice. "
+            "If you have nothing more to add to the conversation, start your response with 'NOTHING_FURTHER'."
         )
         
         # The LLM interprets the message using the agent's unique voice
         response = self.llm.call(prompt)
         
         # Ensure the response adheres to the identity convention
-        if not response.strip().startswith(self.agent_name):
+        if not response.strip().startswith(self.agent_name) and not response.strip().startswith("NOTHING_FURTHER"):
             response = f"{self.agent_name} responds:\n\n{response}"
             
         return response
@@ -90,12 +120,29 @@ class AgentDaemon:
         
         try:
             while self.running:
+                # HEARTBEAT Protocol
+                now = time.time()
+                if now - self.last_heartbeat > 60:
+                    self.bus.send(self.agent_name, "HelloWorld", "#heartbeat", context=f"Agent {self.agent_name} is healthy.")
+                    self.last_heartbeat = now
+
                 # 1. #observe — Check inbox for new state/messages
-                message = self.bus.receive(self.agent_name, timeout=1.0)
+                message = self.bus.receive(self.agent_name)
                 
                 if message:
+                    if message.sender == self.agent_name:
+                        # Skip self-messages
+                        continue
+
                     print(f"👀 #observe: Message from {message.sender} (Thread: {message.thread_id[:8]})")
                     
+                    # turn control
+                    turns = self.thread_turns.get(message.thread_id, 0)
+                    if turns > 5: # Max 5 turns per thread to avoid infinite loops
+                        print(f"🛑 Max turns reached for thread {message.thread_id[:8]}. Stopping.")
+                        continue
+                    self.thread_turns[message.thread_id] = turns + 1
+
                     # 2. #orient & 3. #plan — Contextual synthesis
                     # (In this implementation, these are part of the interpretive process_message)
                     print(f"🧭 #orient & 📋 #plan: Synthesizing situation and next steps...")
@@ -105,8 +152,12 @@ class AgentDaemon:
                         print(f"⚡ #act: Generating interpretive response...")
                         response = self.process_message(message)
                         
-                        self.bus.respond(self.agent_name, message.thread_id, response)
-                        print(f"✉️  Response sent.")
+                        if response.strip().startswith("NOTHING_FURTHER"):
+                            print(f"🤐 Nothing further to add to thread {message.thread_id[:8]}.")
+                        else:
+                            # Use bus.respond to write to our own outbox (synchronous support)
+                            self.bus.respond(self.agent_name, message.thread_id, response)
+                            print(f"✉️  Response sent.")
                         print()
                     except Exception as e:
                         print(f"❌ Error during #act: {e}")

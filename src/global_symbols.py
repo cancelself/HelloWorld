@@ -118,24 +118,8 @@ def _load_from_hw(path: str) -> Dict[str, GlobalSymbol]:
 
 
 def _fallback_symbols() -> Dict[str, GlobalSymbol]:
-    """Minimal bootstrap symbols when .hw file is unavailable."""
-    return {
-        "#": GlobalSymbol(
-            name="#",
-            definition="The symbol primitive; the atom of meaning",
-            domain="semiotics",
-        ),
-        "#HelloWorld": GlobalSymbol(
-            name="#HelloWorld",
-            definition="The message-passing language where identity is vocabulary",
-            domain="programming languages",
-        ),
-        "#Agent": GlobalSymbol(
-            name="#Agent",
-            definition="An entity that defines, references, and interprets symbols",
-            domain="HelloWorld meta",
-        ),
-    }
+    """Empty fallback. All symbols must live in .hw files."""
+    return {}
 
 
 def _init_symbols() -> Dict[str, GlobalSymbol]:

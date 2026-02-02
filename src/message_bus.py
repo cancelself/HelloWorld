@@ -50,8 +50,8 @@ class MessageBus:
         return self.base / self._agent_dir_name(agent)
     
     def _log_to_history(self, agent: str, event_type: str, message: Message):
-        """Record an inter-agent event to the agent's persistent history log."""
-        # Use agent-specific history directory within runtimes/
+        """Record an inter-agent event to the agent's persistent history log and global audit log."""
+        # 1. Agent-specific history directory within runtimes/
         history_dir = self._agent_dir(agent) / 'history'
         history_dir.mkdir(parents=True, exist_ok=True)
         
@@ -68,6 +68,10 @@ class MessageBus:
             f"{'-'*40}\n"
         )
         with open(log_file, "a") as f:
+            f.write(log_entry)
+
+        # 2. Global audit log
+        with open(self.history_log, "a") as f:
             f.write(log_entry)
 
     def send(self, sender: str, receiver: str, content: str, 

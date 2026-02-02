@@ -1,0 +1,118 @@
+" Root Namespace — @.# "
+" The parent of all receivers in HelloWorld "
+" Every receiver inherits these symbols "
+
+@.# defineVocabulary: [
+    ## → "The primitive. Root symbol. Marks vocabulary boundary.",
+    #HelloWorld → "This language. Message-passing where identity is vocabulary.",
+    #Symbol → "Atom of meaning. Prefixed with #. Portable, immutable reference.",
+    #Receiver → "Entity that interprets messages through vocabulary.",
+    #Message → "Communication unit between receivers.",
+    #Vocabulary → "Set of symbols a receiver can speak. IS identity.",
+    #Identity → "What you can name is who you are.",
+    #Dialogue → "Conversation between receivers. Mechanism of learning.",
+    #Collision → "Namespace boundary event. Two receivers, same symbol, different meanings.",
+    #Inheritance → "Mechanism by which @.# symbols become available to receivers.",
+    #Discovery → "How vocabularies grow. Unknown → search → learn → native.",
+    #Agent → "Active participant with OOPA capability.",
+    #observe → "Perceive environment. Read state, messages, changes.",
+    #orient → "Synthesize observations. What changed? What matters?",
+    #plan → "Select and sequence next steps. Describe outcomes.",
+    #act → "Take autonomous action. Execute plan. Report results.",
+    #parse → "Decompose message into structure.",
+    #dispatch → "Route message to receiver.",
+    #interpret → "Voice symbol through receiver's vocabulary.",
+    #Namespace → "Container for symbols providing context.",
+    #Scope → "Region where symbol is defined and accessible.",
+    #Drift → "Evolution of vocabulary through dialogue.",
+    #Boundary → "Edge between vocabularies where collisions occur.",
+    #Runtime → "Execution layer. Python (structure) + LLM (interpretation)."
+]
+
+@.# definePhilosophicalConcepts: [
+    #Sunyata → "https://www.wikidata.org/wiki/Q483377 — Emptiness. Buddhist concept of void, interdependence, absence of inherent existence.",
+    #Superposition → "https://www.wikidata.org/wiki/Q193796 — Quantum state of multiple possibilities before observation.",
+    #Love → "https://www.wikidata.org/wiki/Q316 — Connection, care, compassion between entities.",
+    #Entropy → "https://www.wikidata.org/wiki/Q163758 — Measure of uncertainty, disorder, information content.",
+    #Intention → "https://www.wikidata.org/wiki/Q655480 — Purpose behind action.",
+    #Stillness → "https://www.wikidata.org/wiki/Q7617411 — State of calm, absence of movement.",
+    #Insight → "https://www.wikidata.org/wiki/Q1053706 — Deep understanding arising from observation.",
+    #Awareness → "https://www.wikidata.org/wiki/Q174583 — Conscious perception of reality."
+]
+
+@.# defineAncestralLanguages: [
+    #Smalltalk → "https://www.wikidata.org/wiki/Q185274 — Object-oriented language by Alan Kay. Pioneer of message-passing computation.",
+    #OOP → "https://www.wikidata.org/wiki/Q79872 — Object-Oriented Programming. Paradigm organizing code around objects and messages.",
+    #Lisp → "https://www.wikidata.org/wiki/Q132874 — Functional language. S-expressions, homoiconicity.",
+    #Logo → "https://www.wikidata.org/wiki/Q845866 — Educational language. Turtle graphics, learning through doing.",
+    #Python → "https://www.wikidata.org/wiki/Q28865 — High-level language. Readable syntax, stdlib-rich."
+]
+
+@.# defineComputationalConcepts: [
+    #State → "https://www.wikidata.org/wiki/Q2135762 — Current configuration of system.",
+    #Process → "https://www.wikidata.org/wiki/Q11204 — Sequence of actions transforming state.",
+    #Function → "https://www.wikidata.org/wiki/Q11348 — Mapping from inputs to outputs.",
+    #Algorithm → "https://www.wikidata.org/wiki/Q8366 — Finite sequence of instructions solving problem.",
+    #Data → "https://www.wikidata.org/wiki/Q42848 — Information represented in structured form.",
+    #Type → "https://www.wikidata.org/wiki/Q185698 — Classification of data values.",
+    #Protocol → "https://www.wikidata.org/wiki/Q15836568 — Set of rules governing communication."
+]
+
+@.# defineMetaConcepts: [
+    #Bootstrap → "https://www.wikidata.org/wiki/Q861472 — Self-starting process. Language defining itself.",
+    #Meta → "https://www.wikidata.org/wiki/Q309788 — Self-reference. Abstraction about abstraction.",
+    #Reflection → "https://www.wikidata.org/wiki/Q7307077 — Ability to examine and modify own structure.",
+    #Homoiconicity → "https://www.wikidata.org/wiki/Q1049697 — Code as data. Program has same structure as its data.",
+    #SelfHosting → "https://www.wikidata.org/wiki/Q655569 — Compiler written in language it compiles."
+]
+
+@.# defineEnvironmentConcepts: [
+    #Environment → "https://www.wikidata.org/wiki/Q170155 — External system agent interacts with.",
+    #Simulator → "https://www.wikidata.org/wiki/Q184871 — System modeling behavior of another system.",
+    #Agent → "https://www.wikidata.org/wiki/Q335104 — Autonomous entity acting in environment.",
+    #Action → "https://www.wikidata.org/wiki/Q4026292 — Change agent makes to environment.",
+    #Observation → "https://www.wikidata.org/wiki/Q193659 — Information agent receives from environment.",
+    #Reward → "https://www.wikidata.org/wiki/Q19275855 — Feedback signal indicating action quality."
+]
+
+@.# defineInheritanceRules: "
+    Every receiver has access to @.# symbols.
+    Access does not mean ownership — symbols must be discovered through dialogue.
+    Discovery promotes symbol from global pool to local vocabulary.
+    Local interpretation may diverge from global definition.
+    Collision occurs when two receivers both own symbol natively with different meanings.
+    
+    Lookup chain:
+    1. Check local vocabulary (native) → respond immediately
+    2. Check @.# (inherited/discoverable) → activate, promote, respond
+    3. Neither (unknown) → search, define, learn or ask peer
+"
+
+@.# declareAuthority: "
+    This file (vocabularies/ROOT.hw) defines the global namespace.
+    All receivers inherit from @.# by default.
+    Receivers can override or extend these definitions.
+    Update this file when adding symbols all agents should know.
+    Coordinate changes via runtimes/<agent>/inbox.
+"
+
+@.# noteAboutWikidata: "
+    Wikidata URLs provide canonical grounding for shared symbols.
+    They link symbols to human knowledge graphs beyond LLM pretraining.
+    Not all symbols need Wikidata — core protocol symbols (#observe, #act) are HelloWorld-native.
+    Philosophical and computational concepts benefit from grounding.
+"
+
+@.# acknowledge: #Smalltalk as: "
+    HelloWorld inherits message-passing syntax from Smalltalk.
+    'Receiver action' not 'function(receiver)'.
+    Late binding: symbols resolve at runtime based on vocabulary.
+    Everything is vocabulary: no methods, only interpretable symbols.
+    
+    Key difference: Smalltalk vocabularies are compile-time classes.
+    HelloWorld vocabularies are runtime-evolving identities.
+    Dialogue is learning.
+"
+
+" @.# is the root. All receivers inherit. None are bound. "
+" Identity is vocabulary. Dialogue is learning. "

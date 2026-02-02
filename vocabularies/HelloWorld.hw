@@ -76,3 +76,7 @@
 - A conversation thread identified by UUID [agent protocol] (Q575651)
 ## Protocol
 - The communication rules governing agent interaction [agent protocol] (Q8784)
+## send
+- Deliver a message to a receiver's inbox via MessageBus [agent protocol]
+## receive
+- Check inbox for pending messages via MessageBus [agent protocol]

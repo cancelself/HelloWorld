@@ -111,13 +111,10 @@ class TestParseDescription:
 class TestFallback:
     """Test fallback when .hw file is missing."""
 
-    def test_fallback_returns_minimal_set(self):
-        """Fallback should return exactly 3 bootstrap symbols."""
+    def test_fallback_returns_empty_set(self):
+        """Fallback should return an empty set. Symbols must live in .hw."""
         fb = _fallback_symbols()
-        assert len(fb) == 3
-        assert "#" in fb
-        assert "#HelloWorld" in fb
-        assert "#Agent" in fb
+        assert len(fb) == 0
 
     def test_load_from_missing_file_raises(self):
         """_load_from_hw should raise when file doesn't exist."""

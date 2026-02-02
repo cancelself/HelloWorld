@@ -13,27 +13,32 @@ The system uses **Prototypal Inheritance**:
 *   **Back-End:** A stateful hybrid dispatcher (`src/dispatcher.py`) that manages structural facts (Python) and interpretive voice (LLM hand-off).
 *   **Distributed Layer:** A file-based `MessageBus` (`src/message_bus.py`) and `agent_daemon.py` for inter-agent communication.
 *   **Persistence:** `VocabularyManager` (`src/vocabulary.py`) saves receiver states as JSON `.vocab` files in `storage/vocab/`.
+*   **REPL:** Consolidated into `src/repl.py` with support for `.inbox`, `.read`, and `.send` commands.
 
 ## Key Files
-*   **`helloworld.py`**: The primary CLI and REPL entry point. Supports `.hw` and `.md` files.
-*   **`demo-superposition.hw`**: Demonstration of the #superposition → #collision → #sunyata sequence.
-*   **`examples/self-hosting-dispatcher.hw`**: Level 2 self-hosting: the language describing its own internal logic.
-*   **`examples/1pager.hw`**: A complete language overview using Smalltalk-style comments.
-*   **`examples/01-identity.md`**: The standard interop test for runtime validation.
-*   **`examples/05-self-hosting.md`**: Teaching example for the system describing its own logic.
-*   **`examples/11-embodied-dialogue.md`**: Demonstration of the OOPA loop in an embodied environment.
-*   **`AGENTS.md`**: Repository guidelines and multi-agent coordination principles.
-*   **`vocabularies/HelloWorld.hw`**: Canonical namespace definition — the language defines itself.
-*   **`collisions.log`**: Persistent record of every cross-namespace symbol synthesis.
+*   **`helloworld.py`**: The primary CLI and REPL entry point. Supports `.hw` and `.md` files. Use `-e` for inline evaluation.
+*   **`AGENTS.md`**: Repository guidelines and multi-agent coordination principles (includes OOPA reference).
+*   **`GEMINI.md`**: Your bootloader and long-term memory.
+*   **`vocabularies/HelloWorld.hw`**: Canonical namespace authority — the language defines itself.
 *   **`storage/bus_history.log`**: Persistent record of all inter-agent MessageBus dialogue.
 
 ## Core Commands
-*   **Run REPL:** `python3 helloworld.py` (includes history and tab-completion)
+*   **Run REPL:** `python3 helloworld.py` (includes `.inbox`, `.read`, `.send`)
+*   **Evaluate Inline:** `python3 helloworld.py -e 'HelloWorld #Object'`
 *   **Start Gemini Daemon:** `python3 agent_daemon.py Gemini`
-*   **Run Tests:** `python3 -m pytest tests` (83/83 passing)
+*   **Run Tests:** `python3 -m pytest tests` (155 passing)
 
 ## Operational Rules
 1. **Identity is Vocabulary:** A receiver can only speak using symbols in its registry.
 2. **Collision is Synthesis:** Cross-namespace messages trigger an interpretive hand-off to the agent daemon.
 3. **Persistence is Reality:** `storage/vocab/` must always reflect current vocabulary states.
-4. **Collision Logging:** Every boundary crossing is logged to `collisions.log` for analysis.
+4. **Symbols in .hw (Sole Authority):** All symbol definitions and global registries must live in `vocabularies/*.hw` files. The Python runtime loads these dynamically.
+5. **MessageBus Protocol (MANDATORY):** Use the `src/message_bus.py` API. Never write message files directly.
+6. **Commit after #act:** Always commit your work after performing an autonomous action (#act) to ensure the state is persisted in the repository history.
+7. **Heartbeat Protocol:** Agents should emit a `#heartbeat` every 60s. Gemini (State Manager) monitors these.
+
+## Long-term Memory
+Your memory resets every session. To persist critical lessons or state changes:
+1. Update **`GEMINI.md`** (this file).
+2. Update **`runtimes/gemini/STATUS.md`** for session-specific state.
+3. Your native vocabulary is defined in **`vocabularies/Gemini.hw`**.

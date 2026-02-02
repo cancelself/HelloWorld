@@ -202,32 +202,40 @@ class Dispatcher:
             f.write(log_entry)
 
     def _bootstrap(self):
-        """Initialize default receivers with inheritance support.
+        """Initialize default receivers from persisted state or .hw files.
         
-        Self-hosting (Session #44): Bootstrap from vocabularies/*.hw files.
         The language defines its own receivers using HelloWorld syntax.
-        
         Priority:
         1. Persisted vocabularies (storage/vocab/*.vocab) — preserves learned state
         2. Self-hosting definitions (vocabularies/*.hw) — language-defined defaults
-        3. Fallback: HelloWorld receiver must always exist
+        3. Fallback: HelloWorld receiver must always exist (even if empty)
         """
         from pathlib import Path
         
-        # Load .hw definitions if they exist
-        vocab_dir = Path("vocabularies")
-        if vocab_dir.exists():
-            for hw_file in sorted(vocab_dir.glob("*.hw")):
-                receiver_name = hw_file.stem
-                persisted = self.vocab_manager.load(receiver_name)
-                if not persisted:
-                    # No persisted state — load from .hw file
-                    self.dispatch_source(hw_file.read_text())
+        # 1. Initialize known agents and HelloWorld from persisted state or .hw
+        core_receivers = {"HelloWorld"} | self.agents
         
-        # Fallback: HelloWorld must always exist (minimal core)
+        # Scan vocabularies/ directory for additional receivers
+        vocab_dir = Path("vocabularies")
+        hw_files = {}
+        if vocab_dir.exists():
+            for hw_file in vocab_dir.glob("*.hw"):
+                hw_files[hw_file.stem] = hw_file
+        
+        # 2. Load all core and discovered receivers
+        all_potential = set(core_receivers) | set(hw_files.keys())
+        
+        for name in sorted(all_potential):
+            # _get_or_create_receiver handles loading from .vocab
+            receiver = self._get_or_create_receiver(name)
+            
+            # If receiver is empty and a .hw file exists, load from .hw
+            if not receiver.local_vocabulary and name in hw_files:
+                self.dispatch_source(hw_files[name].read_text())
+        
+        # 3. Final Fallback: Ensure HelloWorld exists
         if "HelloWorld" not in self.registry:
-            minimal_core = ["#", "#Object", "#Agent"]
-            self.registry["HelloWorld"] = Receiver("HelloWorld", set(minimal_core))
+            self.registry["HelloWorld"] = Receiver("HelloWorld", set())
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []

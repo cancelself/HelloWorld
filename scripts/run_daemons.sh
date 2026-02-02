@@ -41,7 +41,7 @@ for agent in "${AGENTS[@]}"; do
   log="$LOG_DIR/${safe}.log"
   : > "$log"
   echo "  - $agent (log: $log)"
-  python3 agent_daemon.py "$agent" >> "$log" 2>&1 &
+  python3 -u agent_daemon.py "$agent" >> "$log" 2>&1 &
   pid=$!
   PIDS+=("$pid")
   echo "$pid" > "$LOG_DIR/${safe}.pid"
