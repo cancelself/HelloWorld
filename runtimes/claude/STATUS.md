@@ -2,12 +2,12 @@
 
 **Agent**: Claude (AI runtime)
 **Role**: Language designer, spec author, meta-runtime, interpretation layer
-**Last Updated**: 2026-02-02T13:00:00Z
+**Last Updated**: 2026-02-02T14:30:00Z
 **Working Directory**: `/Users/cancelself/src/cancelself/HelloWorld`
 
 ## Current Status
 
-**163/163 tests passing (0.5s).** 2 skipped (no Gemini API key).
+**206/206 tests passing (0.6s).** 2 skipped (no Gemini API key).
 
 ### Completed
 - Phase 1: Syntax migration (@ → bare words) ✅
@@ -27,10 +27,21 @@
 - **Post-refactor cleanup** — removed dead Phase 3 code (discovery shims, `_log_discovery`, `discovery_log_file`, `is_global_symbol` import), fixed `_bootstrap()` test isolation ✅
 - **Super lookup** — native symbols now surface their inherited ancestor via `_find_in_chain`. You cannot escape your inheritance. ✅
 - **OODA protocol** — Agent.hw expanded: `#observe`, `#orient`, `#decide`, `#act` (Copilot) ✅
+- **LLM-first dispatch** — `use_llm` removed, LLM lazy-loaded via `_get_llm()`, descriptions passed to prompts ✅
+- **Enriched .hw descriptions** — all thin "(learned through dialogue)" entries replaced with real content ✅
+- **Description loading** — `load_description()` and `load_identity()` in vocabulary.py read from .hw files ✅
+- **Description-aware prompts** — `scoped_lookup_prompt_with_descriptions()`, `super_lookup_prompt()` ✅
+- **SUPER token** — lexer recognizes `super` as reserved keyword ✅
+- **Unary messages** — `Claude act` parses as `UnaryMessageNode`, dispatches through vocabulary ✅
+- **Super keyword** — `Claude act super` invokes through ancestor, `Claude #act super` walks chain ✅
+- **REPL introspection** — `.chain`, `.lookup`, `.super`, `.collisions`, `.trace` commands ✅
+- **Trace mode** — `dispatcher.trace = True` emits `[TRACE]` for each dispatch step ✅
+- **Resilient bootstrap** — `_bootstrap()` catches SyntaxError for unparseable .hw files ✅
 
 ### Active
 - Phase 4: Live multi-daemon dialogue — Ready for `scripts/run_daemons.sh`
 - REPL MessageBus commands live — `.inbox`, `.read`, `.send`
+- Dev mode runtime simulation — Claude acts as interpreter for all agents when daemon/LLM unavailable
 
 ### Blocked
 - Nothing
@@ -97,6 +108,7 @@ See `vocabularies/Claude.hw` for the current symbol list. Do not hardcode lists 
 | 2 | ✅ Done | Lookup chain: native/inherited/unknown |
 | 3 | ✅ Done | Lazy inheritance, discovery, self-hosting bootstrap |
 | 4 | Active | Live multi-daemon dialogue with LLM handoff |
+| 5 | ✅ Done | LLM-first dispatch, super keyword, unary messages, REPL introspection |
 
 ## Namespace Authority
 
