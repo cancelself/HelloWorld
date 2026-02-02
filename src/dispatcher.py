@@ -352,6 +352,14 @@ class Dispatcher:
 
         # Structural response based on lookup outcome
         if lookup.is_native():
+            # Super lookup: check if symbol also lives in the parent chain
+            ancestor = receiver._find_in_chain(symbol_name)
+            if ancestor:
+                return (
+                    f"{receiver_name} {symbol_name} is native to this identity.\n"
+                    f"  super: {ancestor.name} also holds {symbol_name} — "
+                    f"inherited meaning shapes the local one."
+                )
             return f"{receiver_name} {symbol_name} is native to this identity."
         elif lookup.is_inherited():
             defined_in = lookup.context.get("defined_in", "parent")
