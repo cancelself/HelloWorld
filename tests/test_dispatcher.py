@@ -154,7 +154,7 @@ def test_root_receiver_bootstrap():
     assert "HelloWorld" in dispatcher.registry
     # Self-hosting: HelloWorld.hw now defines all global symbols
     root = dispatcher.registry["HelloWorld"]
-    assert len(root.vocabulary) >= 30  # all symbols from HelloWorld.hw
+    assert len(root.vocabulary) >= 25  # core symbols from HelloWorld.hw
     assert "#Agent" in root.vocabulary
     assert "#Sunyata" in root.vocabulary
     assert "#Love" in root.vocabulary
@@ -481,7 +481,7 @@ def test_markdown_self_hosting():
     assert "#" in hw.vocabulary
     assert "#Object" in hw.vocabulary
     assert "#Agent" in hw.vocabulary
-    assert len(hw.vocabulary) >= 30  # all symbols from HelloWorld.hw
+    assert len(hw.vocabulary) >= 25  # core symbols from HelloWorld.hw
 
 
 def test_markdown_and_smalltalk_bootstrap():

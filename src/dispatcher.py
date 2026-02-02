@@ -6,7 +6,6 @@ Enables Prototypal Inheritance: HelloWorld is the parent of all receivers.
 from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass
 from enum import Enum
-import uuid
 import os
 from datetime import datetime
 
@@ -25,7 +24,7 @@ from ast_nodes import (
 from parser import Parser
 from vocabulary import VocabularyManager
 from global_symbols import GlobalVocabulary, is_global_symbol
-from message_bus import MessageBus
+import message_bus
 from tools import ToolRegistry
 from envs import EnvironmentRegistry
 from message_handlers import MessageHandlerRegistry
@@ -167,7 +166,6 @@ class Dispatcher:
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
-        self.message_bus = MessageBus() if self.message_bus_enabled else None
         self.tool_registry = ToolRegistry()
         self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
@@ -366,15 +364,13 @@ class Dispatcher:
                 except Exception as e:
                     print(f"⚠️  LLM interpretation failed: {e}")
             
-            # Fallback to message bus if enabled
-            if self.message_bus_enabled and self.message_bus:
+            # Fallback to message bus if enabled (fire-and-forget)
+            if self.message_bus_enabled:
                 print(f"📡 Querying {receiver_name} for {symbol_name}...")
                 local_vocab = sorted(list(receiver.local_vocabulary))
                 context = f"Local Vocabulary: {local_vocab}"
                 prompt = f"{receiver_name} {symbol_name}?"
-                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
-                if response:
-                    return response
+                self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
         
         # Structural response based on lookup outcome
         if lookup.is_native():
@@ -460,8 +456,8 @@ class Dispatcher:
             except Exception as e:
                 print(f"  LLM synthesis failed: {e}")
 
-        # Try message bus synthesis
-        if self.message_bus_enabled and self.message_bus:
+        # Try message bus synthesis (fire-and-forget)
+        if self.message_bus_enabled:
             prompt = (
                 f"COLLISION SYNTHESIS: {sender_name} and {target_name} both hold {symbol_name}. "
                 f"What emerges?"
@@ -470,11 +466,9 @@ class Dispatcher:
                 f"{sender_name} vocabulary: {sorted(sender.local_vocabulary)}\n"
                 f"{target_name} vocabulary: {sorted(target.local_vocabulary)}"
             )
-            response = self.message_bus_send_and_wait(
+            self.message_bus_send_and_wait(
                 "HelloWorld", sender_name, prompt, context=context
             )
-            if response:
-                return response
 
         return None
 
@@ -578,16 +572,12 @@ class Dispatcher:
                 except Exception as e:
                     print(f"⚠️  LLM interpretation failed: {e}")
             
-            # Fallback to message bus
-            if self.message_bus_enabled and self.message_bus:
+            # Fallback to message bus (fire-and-forget)
+            if self.message_bus_enabled:
                 print(f"📡 Dispatching to {receiver_name} for interpretive response...")
                 local_vocab = sorted(list(receiver.local_vocabulary))
                 context = f"Local Vocabulary: {local_vocab}"
-                response = self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
-                if response:
-                    return response
-                else:
-                    return f"[{receiver_name}] (no response - daemon may not be running)"
+                self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
 
         response_text = f"[{receiver_name}] Received message: {args_str}"
         if tool_results:
@@ -621,21 +611,13 @@ class Dispatcher:
         with open(self.log_file, "a") as f:
             f.write(log_entry)
         
-        # Try LLM research if available
-        if receiver_name in self.agents and self.message_bus_enabled and self.message_bus:
+        # Try LLM research if available (fire-and-forget via message bus)
+        if receiver_name in self.agents and self.message_bus_enabled:
             print(f"📡 Asking {receiver_name} to research unknown symbol {symbol_name}...")
             local_vocab = lookup.context.get("local_vocabulary", []) if lookup else sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}"
             prompt = f"research new symbol: {symbol_name}"
-            response = self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
-            if response:
-                # On successful research, promote to local vocabulary
-                receiver.add_symbol(symbol_name)
-                self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
-                learn_log = f"[{timestamp}] LEARNED: {receiver_name} learned {symbol_name} through research\n"
-                with open(self.log_file, "a") as f:
-                    f.write(learn_log)
-                return response
+            self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
         
         # Fallback: structural response indicating unknown state
         return (
@@ -644,12 +626,14 @@ class Dispatcher:
         )
 
     def message_bus_send_and_wait(self, sender: str, receiver: str, content: str, context: Optional[str] = None) -> Optional[str]:
-        if not self.message_bus_enabled or not self.message_bus:
+        """Send a message via the bus.  Returns None (fire-and-forget)."""
+        if not self.message_bus_enabled:
             return None
-        thread_id = str(uuid.uuid4())
-        self.message_bus.send(sender, receiver, content, thread_id=thread_id, context=context)
-        # Timeout lowered for REPL responsiveness
-        return self.message_bus.wait_for_response(receiver, thread_id, timeout=5.0)
+        full_content = content
+        if context:
+            full_content += f"\n\n# Context\n{context}"
+        message_bus.send(sender, receiver, full_content)
+        return None
 
     def _node_val(self, node: Node) -> str:
         if isinstance(node, SymbolNode): return node.name

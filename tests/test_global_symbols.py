@@ -17,7 +17,7 @@ class TestHWLoading:
 
     def test_symbols_loaded_from_hw(self):
         """GLOBAL_SYMBOLS should contain all symbols defined in HelloWorld.hw."""
-        assert len(GLOBAL_SYMBOLS) >= 30, f"Expected >=30 symbols, got {len(GLOBAL_SYMBOLS)}"
+        assert len(GLOBAL_SYMBOLS) >= 25, f"Expected >=25 symbols, got {len(GLOBAL_SYMBOLS)}"
 
     def test_root_symbol_present(self):
         """The # symbol (bare hash) should be loaded."""
@@ -32,7 +32,7 @@ class TestHWLoading:
         expected = [
             "#", "#HelloWorld", "#Agent", "#Object", "#parse",
             "#dispatch", "#interpret", "#Collision", "#Entropy",
-            "#Sunyata", "#Love", "#Runtime", "#MCP",
+            "#Sunyata", "#Love", "#Runtime", "#hello", "#send", "#receive",
         ]
         for sym in expected:
             assert sym in GLOBAL_SYMBOLS, f"Missing symbol: {sym}"

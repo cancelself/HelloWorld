@@ -1,9 +1,13 @@
 {
-  "receiver": "HelloWorld",
+  "receiver": "ROOT",
   "vocabulary": [
     "#",
     "#Agent",
-    "#Object"
+    "#Love",
+    "#Object",
+    "#Sunyata",
+    "#Superposition",
+    "#become"
   ],
-  "last_sync": "2026-02-01T20:20:38.143078"
+  "last_sync": "2026-02-02T00:35:27.054534"
 }

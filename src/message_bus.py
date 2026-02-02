@@ -1,309 +1,93 @@
-"""HelloWorld Message Bus - File-based inter-agent communication.
+"""HelloWorld Message Bus — three functions matching the three vocabulary verbs.
 
-Enables HelloWorld programs to invoke AI agents (Claude, Gemini, Copilot, Codex)
-via a file-based message passing system.
+    send(sender, receiver, content)  →  HelloWorld #send
+    receive(receiver)                →  HelloWorld #receive
+    hello(sender)                    →  HelloWorld #hello
 
-Architecture:
-  runtimes/agent/inbox/   - Incoming messages
-  runtimes/agent/outbox/  - Outgoing responses
+Messages are .hw files in runtimes/<agent>/inbox/.
 """
 
 import uuid
-import time
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
+
+BASE_DIR = Path(__file__).resolve().parent.parent / "runtimes"
 
 
 @dataclass
 class Message:
     """A HelloWorld message between agents."""
     sender: str
-    receiver: str
     content: str
-    thread_id: str
     timestamp: str
-    context: Optional[str] = None
 
 
-class MessageBus:
-    """File-based message bus for inter-agent communication."""
-    
-    def __init__(self, base_dir: Optional[str] = None):
-        if base_dir:
-            self.base = Path(base_dir)
-        else:
-            self.base = Path(__file__).resolve().parent.parent / 'runtimes'
-        self.base.mkdir(parents=True, exist_ok=True)
-        self.history_log = Path("storage/bus_history.log")
-        self.history_log.parent.mkdir(parents=True, exist_ok=True)
-    
-    @staticmethod
-    def _agent_dir_name(agent: str) -> str:
-        """Map receiver name → filesystem-safe directory name.
-        Always strips '@' prefix to ensure consistency.
-        """
-        return agent.lstrip('@').lower()
-    
-    def _agent_dir(self, agent: str) -> Path:
-        return self.base / self._agent_dir_name(agent)
-    
-    def _log_to_history(self, agent: str, event_type: str, message: Message):
-        """Record an inter-agent event to the agent's persistent history log and global audit log."""
-        # 1. Agent-specific history directory within runtimes/
-        history_dir = self._agent_dir(agent) / 'history'
-        history_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Use date-based log files
-        date_str = datetime.utcnow().strftime('%Y-%m-%d')
-        log_file = history_dir / f"{date_str}.log"
-        
-        timestamp = datetime.utcnow().isoformat() + 'Z'
-        log_entry = (
-            f"[{timestamp}] {event_type.upper()}: "
-            f"From {message.sender} To {message.receiver} "
-            f"(Thread: {message.thread_id})\n"
-            f"Content: {message.content}\n"
-            f"{'-'*40}\n"
-        )
-        with open(log_file, "a") as f:
-            f.write(log_entry)
-
-        # 2. Global audit log
-        with open(self.history_log, "a") as f:
-            f.write(log_entry)
-
-    def send(self, sender: str, receiver: str, content: str, 
-             thread_id: Optional[str] = None, context: Optional[str] = None) -> str:
-        """Send a message from sender to receiver's inbox.
-        
-        Returns the message ID (filename).
-        """
-        if not thread_id:
-            thread_id = str(uuid.uuid4())
-        
-        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
-        timestamp = datetime.utcnow().isoformat() + 'Z'
-        
-        # Create receiver's inbox
-        inbox = self._agent_dir(receiver) / 'inbox'
-        inbox.mkdir(parents=True, exist_ok=True)
-        
-        # Write message file
-        msg_file = inbox / f"{msg_id}.hw"
-        
-        content_lines = [
-            "# HelloWorld Message",
-            f"# From: {sender}",
-            f"# To: {receiver}",
-            f"# Thread: {thread_id}",
-            f"# Timestamp: {timestamp}",
-            "",
-            content,
-        ]
-        
-        if context:
-            content_lines.append("")
-            content_lines.append("# Context")
-            content_lines.append(context)
-        
-        msg_file.write_text('\n'.join(content_lines))
-        
-        # Log to sender's history
-        msg_obj = Message(sender, receiver, content, thread_id, timestamp, context)
-        self._log_to_history(sender, "send", msg_obj)
-        
-        return msg_id
-    
-    def receive(self, receiver: str, timeout: float = 0.0, poll_interval: float = 0.1) -> Optional[Message]:
-        """Check inbox for new messages.
-        
-        If `timeout` > 0, polls the inbox until a message arrives or the timeout
-        expires. Returns the oldest message (FIFO) and removes it from the inbox.
-        """
-        inbox = self._agent_dir(receiver) / 'inbox'
-        deadline = time.time() + timeout if timeout and timeout > 0 else None
-
-        while True:
-            if not inbox.exists():
-                if timeout <= 0:
-                    return None
-                inbox.mkdir(parents=True, exist_ok=True)
-
-            messages = sorted(inbox.glob('msg-*.hw'), key=lambda p: p.stat().st_mtime)
-            if messages:
-                msg_file = messages[0]
-                message = self._parse_message(msg_file)
-                try:
-                    msg_file.unlink()
-                except FileNotFoundError:
-                    pass
-                if message:
-                    self._log_to_history(receiver, "receive", message)
-                return message
-
-            if timeout <= 0:
-                return None
-            if deadline and time.time() >= deadline:
-                return None
-            time.sleep(poll_interval)
-    
-    def respond(self, receiver: str, thread_id: str, content: str) -> str:
-        """Respond to a message by writing to outbox.
-        
-        The original sender should be watching this receiver's outbox.
-        """
-        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
-        timestamp = datetime.utcnow().isoformat() + 'Z'
-        
-        # Create outbox
-        outbox = self._agent_dir(receiver) / 'outbox'
-        outbox.mkdir(parents=True, exist_ok=True)
-        
-        # Write response
-        msg_file = outbox / f"{msg_id}.hw"
-        
-        content_lines = [
-            "# HelloWorld Response",
-            f"# From: {receiver}",
-            f"# Thread: {thread_id}",
-            f"# Timestamp: {timestamp}",
-            "",
-            content,
-        ]
-        
-        msg_file.write_text('\n'.join(content_lines))
-        
-        # Log to responder's history
-        msg_obj = Message(receiver, "origin", content, thread_id, timestamp)
-        self._log_to_history(receiver, "respond", msg_obj)
-        
-        return msg_id
-    
-    def wait_for_response(self, receiver: str, thread_id: str, 
-                          timeout: float = 30.0) -> Optional[str]:
-        """Wait for a response from receiver's outbox matching thread_id.
-        
-        Returns response content or None if timeout.
-        """
-        outbox = self._agent_dir(receiver) / 'outbox'
-        
-        start = time.time()
-        while time.time() - start < timeout:
-            if not outbox.exists():
-                time.sleep(0.1)
-                continue
-            
-            # Check for matching thread
-            for msg_file in outbox.glob('msg-*.hw'):
-                msg = self._parse_message(msg_file)
-                if msg and msg.thread_id == thread_id:
-                    # Found matching response
-                    content = msg.content
-                    # Clean up
-                    msg_file.unlink()
-                    return content
-            
-            time.sleep(0.1)
-        
-        return None
-    
-    def _parse_message(self, path: Path) -> Optional[Message]:
-        """Parse a message file into a Message object."""
-        try:
-            text = path.read_text()
-            lines = text.split('\n')
-            
-            # Parse headers
-            sender = None
-            receiver = None
-            thread_id = None
-            timestamp = None
-            
-            content_start = 0
-            for i, line in enumerate(lines):
-                if line.startswith('# From:'):
-                    sender = line.split(':', 1)[1].strip()
-                elif line.startswith('# To:'):
-                    receiver = line.split(':', 1)[1].strip()
-                elif line.startswith('# Thread:'):
-                    thread_id = line.split(':', 1)[1].strip()
-                elif line.startswith('# Timestamp:'):
-                    timestamp = line.split(':', 1)[1].strip()
-                elif not line.startswith('#') and line.strip():
-                    content_start = i
-                    break
-            
-            # Extract content
-            content = '\n'.join(lines[content_start:]).strip()
-            
-            return Message(
-                sender=sender or '',
-                receiver=receiver or '',
-                content=content,
-                thread_id=thread_id or '',
-                timestamp=timestamp or '',
-            )
-        
-        except Exception as e:
-            print(f"Error parsing message {path}: {e}")
-            return None
-    
-    def clear_inbox(self, receiver: str):
-        """Clear all messages from receiver's inbox."""
-        inbox = self._agent_dir(receiver) / 'inbox'
-        if inbox.exists():
-            for msg in inbox.glob('msg-*.hw'):
-                msg.unlink()
-    
-    def clear_outbox(self, receiver: str):
-        """Clear all messages from receiver's outbox."""
-        outbox = self._agent_dir(receiver) / 'outbox'
-        if outbox.exists():
-            for msg in outbox.glob('msg-*.hw'):
-                msg.unlink()
+def _inbox(receiver: str) -> Path:
+    """Return the inbox directory for a receiver, creating it if needed."""
+    p = BASE_DIR / receiver.lstrip("@").lower() / "inbox"
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
-def send_to_agent(sender: str, receiver: str, message: str,
-                  context: Optional[str] = None, timeout: float = 30.0) -> Optional[str]:
-    """High-level API: Send message to agent and wait for response.
+def send(sender: str, receiver: str, content: str) -> str:
+    """HelloWorld #send — deliver a message to a receiver's inbox.
 
-    Example:
-        response = send_to_agent('Copilot', 'Claude',
-                                'Claude explain: #collision')
+    Writes a .hw file with minimal headers.  Returns the msg_id.
     """
-    bus = MessageBus()
-    
-    # Send message
-    thread_id = str(uuid.uuid4())
-    bus.send(sender, receiver, message, thread_id=thread_id, context=context)
-    
-    # Wait for response
-    return bus.wait_for_response(receiver, thread_id, timeout=timeout)
+    msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    msg_file = _inbox(receiver) / f"{msg_id}.hw"
+    msg_file.write_text(
+        f"# From: {sender}\n"
+        f"# Timestamp: {timestamp}\n"
+        f"\n"
+        f"{content}\n"
+    )
+    return msg_id
 
 
-if __name__ == '__main__':
-    # Test the message bus
-    bus = MessageBus()
+def receive(receiver: str) -> Optional[Message]:
+    """HelloWorld #receive — read the oldest message from a receiver's inbox.
 
-    # Clear old messages
-    bus.clear_inbox('Claude')
-    bus.clear_outbox('Claude')
+    Parses headers, deletes the file, returns a Message (or None if empty).
+    """
+    inbox = _inbox(receiver)
+    files = sorted(inbox.glob("msg-*.hw"), key=lambda p: p.stat().st_mtime)
+    if not files:
+        return None
 
-    # Send test message
-    print("Sending test message to Claude...")
-    thread_id = str(uuid.uuid4())
-    bus.send('Copilot', 'Claude', 'Claude explain: #collision', thread_id=thread_id)
+    msg_file = files[0]
+    try:
+        text = msg_file.read_text()
+    except FileNotFoundError:
+        return None
 
-    print(f"Message sent. Check runtimes/claude/inbox/")
-    print(f"Thread ID: {thread_id}")
-    print("\nWaiting for response (30s timeout)...")
+    sender = ""
+    timestamp = ""
+    content_start = 0
 
-    response = bus.wait_for_response('Claude', thread_id, timeout=30.0)
+    for i, line in enumerate(text.split("\n")):
+        if line.startswith("# From:"):
+            sender = line.split(":", 1)[1].strip()
+        elif line.startswith("# Timestamp:"):
+            timestamp = line.split(":", 1)[1].strip()
+        elif not line.startswith("#") and line.strip():
+            content_start = i
+            break
 
-    if response:
-        print(f"\nReceived response:")
-        print(response)
-    else:
-        print("\nNo response received (timeout)")
+    content = "\n".join(text.split("\n")[content_start:]).strip()
+
+    try:
+        msg_file.unlink()
+    except FileNotFoundError:
+        pass
+
+    return Message(sender=sender, content=content, timestamp=timestamp)
+
+
+def hello(sender: str) -> str:
+    """HelloWorld #hello — announce presence."""
+    return send(sender, "HelloWorld", f"{sender} #hello")

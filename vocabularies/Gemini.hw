@@ -39,5 +39,9 @@
 - An entity with vocabulary, inbox, and the capacity for autonomous action through the OOPA loop.
 ## become
 - Transformation. An object adopting new symbols and shedding old ones. Identity in motion.
+## Simulator
+- A specific instance of an environment that translates actions into state changes.
+## ActionSpace
+- The set of all valid commands an agent can send to a simulator.
 ## ScienceWorld
 - A text-based environment for elementary science tasks. A concrete test of agent reasoning.

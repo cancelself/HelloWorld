@@ -40,3 +40,10 @@
 ⚡ #act: Generating interpretive response...
 ✉️  Response sent.
 
+🚀 Claude daemon starting...
+   Role: #Agent
+   Protocol: #observe -> #orient -> #plan -> #act
+   Vocabulary: 17 symbols
+🤝 Initiating startup handshake (HelloWorld #observe)...
+   Press Ctrl+C to stop
+

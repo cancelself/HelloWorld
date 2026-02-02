@@ -1,17 +1,21 @@
 "HelloWorld: Phase 3 Discovery Audit"
-"This script forces activation of library symbols to test the learning history."
+"Forces activation of global symbols to test the learning history."
 
-"1. Awakener discovers #Sunyata (inherited from global pool)"
-Awakener observe: #Sunyata
+"1. Claude discovers #Sunyata — inherited from HelloWorld root"
+Claude observe: #Sunyata
 
-"2. Guardian discovers #Collision (inherited from global pool)"
-Guardian observe: #Collision
+"2. Copilot discovers #Entropy — inherited from HelloWorld root"
+Copilot observe: #Entropy
 
-"3. Gemini discovers #Entropy (inherited from global pool)"
-Gemini observe: #Entropy
+"3. Gemini discovers #Love — inherited from HelloWorld root"
+Gemini observe: #Love
 
-"4. Cross-discovery: Guardian learns #stillness from Awakener"
-Awakener send: #stillness to: Guardian
+"4. Cross-discovery: Claude sends #design to Copilot"
+"   #design is native to Claude, foreign to Copilot"
+Claude send: #design to: Copilot
+
+"5. Verify: Copilot now holds #design (vocabulary drift)"
+Copilot #
 
 "Verify discovery log and persistent state"
 HelloWorld #observe 'Audit complete. Check storage/discovery.log.'

@@ -2,11 +2,12 @@
 
 import os
 import sys
+from pathlib import Path
 from typing import Optional
 
 from dispatcher import Dispatcher
 from lexer import Lexer
-from message_bus import MessageBus
+import message_bus
 from parser import Parser
 
 
@@ -52,7 +53,7 @@ class REPL:
                 all_symbols = set()
                 for r in receivers:
                     all_symbols.update(self.dispatcher.vocabulary(r))
-                
+
                 options = receivers + sorted(list(all_symbols))
                 matches = [o for o in options if o.startswith(text)]
                 if state < len(matches):
@@ -67,52 +68,66 @@ class REPL:
         except ImportError:
             pass
 
-    def _get_message_bus(self) -> MessageBus:
-        """Return the dispatcher's message bus, or create a standalone one."""
-        if self.dispatcher.message_bus:
-            return self.dispatcher.message_bus
-        return MessageBus()
-
     def _show_inbox(self):
-        """Display pending messages in the HelloWorld inbox."""
-        bus = self._get_message_bus()
-        inbox = bus._agent_dir("HelloWorld") / 'inbox'
-        if not inbox.exists():
-            print(f"{self.YELLOW}No inbox found.{self.RESET}")
-            return
-        messages = sorted(inbox.glob('msg-*.hw'), key=lambda p: p.stat().st_mtime)
-        if not messages:
+        """Display pending messages in the HelloWorld inbox (non-consuming peek)."""
+        inbox = message_bus._inbox("HelloWorld")
+        files = sorted(inbox.glob("msg-*.hw"), key=lambda p: p.stat().st_mtime)
+        if not files:
             print(f"{self.YELLOW}Inbox empty.{self.RESET}")
             return
-        for msg_file in messages:
-            msg = bus._parse_message(msg_file)
-            if msg:
-                preview = msg.content[:80].replace('\n', ' ')
-                print(f"  {self.CYAN}{msg_file.stem}{self.RESET}  from {self.BOLD}{msg.sender}{self.RESET}  {preview}")
+        for msg_file in files:
+            try:
+                text = msg_file.read_text()
+                sender = ""
+                preview = ""
+                for line in text.split("\n"):
+                    if line.startswith("# From:"):
+                        sender = line.split(":", 1)[1].strip()
+                    elif not line.startswith("#") and line.strip():
+                        preview = line.strip()[:80]
+                        break
+                print(f"  {self.CYAN}{msg_file.stem}{self.RESET}  from {self.BOLD}{sender}{self.RESET}  {preview}")
+            except Exception:
+                pass
 
     def _read_message(self, msg_id: str):
         """Read and consume a specific message by ID."""
-        bus = self._get_message_bus()
-        inbox = bus._agent_dir("HelloWorld") / 'inbox'
-        # Allow with or without .hw suffix
+        inbox = message_bus._inbox("HelloWorld")
         msg_file = inbox / f"{msg_id}.hw" if not msg_id.endswith('.hw') else inbox / msg_id
         if not msg_file.exists():
             print(f"{self.RED}Message not found: {msg_id}{self.RESET}")
             return
-        msg = bus._parse_message(msg_file)
-        if msg:
-            print(f"{self.BOLD}From:{self.RESET} {msg.sender}")
-            print(f"{self.BOLD}Thread:{self.RESET} {msg.thread_id}")
-            print(f"{self.BOLD}Timestamp:{self.RESET} {msg.timestamp}")
-            print()
-            print(msg.content)
+        try:
+            text = msg_file.read_text()
+        except FileNotFoundError:
+            print(f"{self.RED}Message not found: {msg_id}{self.RESET}")
+            return
+
+        sender = ""
+        timestamp = ""
+        content_start = 0
+        lines = text.split("\n")
+        for i, line in enumerate(lines):
+            if line.startswith("# From:"):
+                sender = line.split(":", 1)[1].strip()
+            elif line.startswith("# Timestamp:"):
+                timestamp = line.split(":", 1)[1].strip()
+            elif not line.startswith("#") and line.strip():
+                content_start = i
+                break
+
+        content = "\n".join(lines[content_start:]).strip()
+
+        print(f"{self.BOLD}From:{self.RESET} {sender}")
+        print(f"{self.BOLD}Timestamp:{self.RESET} {timestamp}")
+        print()
+        print(content)
         msg_file.unlink()
         print(f"\n{self.YELLOW}(message consumed){self.RESET}")
 
     def _send_message(self, receiver: str, content: str):
         """Send a message to a receiver's inbox."""
-        bus = self._get_message_bus()
-        msg_id = bus.send("HelloWorld", receiver, content)
+        msg_id = message_bus.send("HelloWorld", receiver, content)
         print(f"{self.GREEN}Sent {msg_id} to {receiver}{self.RESET}")
 
     def _show_receivers(self):
@@ -209,7 +224,7 @@ class REPL:
             if not os.path.exists(filename):
                 print(f"{self.RED}File not found: {filename}{self.RESET}")
                 return
-            
+
             with open(filename, 'r') as f:
                 content = f.read()
                 self._process(content)
@@ -221,14 +236,14 @@ class REPL:
             # 1. Lex
             lexer = Lexer(source)
             tokens = lexer.tokenize()
-            
+
             # 2. Parse
             parser = Parser(tokens)
             nodes = parser.parse()
-            
+
             # 3. Dispatch
             results = self.dispatcher.dispatch(nodes)
-            
+
             # 4. Print results
             for result in results:
                 # If result looks like a system log (contains '📡'), use Yellow
@@ -236,7 +251,7 @@ class REPL:
                     print(f"{self.YELLOW}→ {result}{self.RESET}")
                 else:
                     print(f"{self.GREEN}→ {result}{self.RESET}")
-                
+
         except Exception as e:
             print(f"{self.RED}Error: {e}{self.RESET}")
 

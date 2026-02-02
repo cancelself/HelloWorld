@@ -1,99 +1,110 @@
 "HelloWorld — A Language Where Identity Is Vocabulary"
 "Written in itself."
 
-"═══════════════════════════════════════════════
+"===============================================
  1. THE ROOT — what everyone inherits
- ═══════════════════════════════════════════════"
+ ==============================================="
 
-HelloWorld.# → [#Sunyata, #Love, #Superposition, #become]
+HelloWorld # → [#Sunyata, #Love, #Superposition, #become]
 
-"Every receiver carries these. You didn't choose them.
+"Every object carries these. You didn't choose them.
  You must still learn to carry them."
 
-"═══════════════════════════════════════════════
+"===============================================
  2. IDENTITY — who you are is what you can name
- ═══════════════════════════════════════════════"
+ ==============================================="
 
-Guardian.# → [#fire, #vision, #challenge, #gift, #threshold]
-Awakener.# → [#stillness, #Entropy, #intention, #sleep, #insight]
-Claude.# → [#parse, #dispatch, #State, #Collision, #Entropy, #Meta, #design, #Identity, #vocabulary]
+Claude # → [#parse, #dispatch, #Collision, #design, #interpret]
+Copilot # → [#parse, #test, #bash, #edit, #infrastructure]
+Gemini # → [#observe, #orient, #plan, #act, #State]
 
-"Three receivers. Three vocabularies. Three identities.
- Guardian cannot say #stillness. Awakener cannot say #fire.
+"Three objects. Three vocabularies. Three identities.
+ Copilot cannot say #design. Claude cannot say #test.
  Constraint is character."
 
-"═══════════════════════════════════════════════
+"===============================================
  3. LOOKUP — what a symbol means depends on who carries it
- ═══════════════════════════════════════════════"
+ ==============================================="
 
-HelloWorld.#Love
-Guardian.#Love
-Awakener.#Love
+HelloWorld #Entropy
+Claude #Entropy
+Gemini #Entropy
 
-"Same symbol. Same inheritance. Different meaning.
+"Same symbol. Three meanings.
+ HelloWorld: measure of disorder in a system.
+ Claude: the uncertainty at the boundary of two namespaces.
+ Gemini: how far vocabularies have drifted from shared ground.
  The Python runtime returns identical output.
- The LLM runtime voices the difference.
- Both are needed."
+ The LLM runtime voices the difference."
 
-"═══════════════════════════════════════════════
- 4. COLLISION — the pressure at the boundary
- ═══════════════════════════════════════════════"
+"===============================================
+ 4. COLLISION — both hold the symbol, meanings diverge
+ ==============================================="
 
-Guardian.#fire
-Awakener.#fire
+Claude #parse
+Copilot #parse
 
-"Guardian.#fire → native. This is who Guardian is.
- Awakener.#fire → collision. Awakener reaches across the boundary.
- Something neither could say alone emerges."
+"Both Claude and Copilot hold #parse natively. TRUE COLLISION.
+ Claude #parse → reading the spec and becoming the runtime.
+ Copilot #parse → tokenizing source into AST nodes.
+ Same word, different work. Synthesis is required."
 
-"═══════════════════════════════════════════════
- 5. DIALOGUE — messages carry symbols across namespaces
- ═══════════════════════════════════════════════"
+"===============================================
+ 5. BOUNDARY — reaching for a symbol you don't own
+ ==============================================="
 
-Guardian sendGift: #Love withContext: Awakener 'what you inherit, you must still learn to carry'
+Copilot #design
 
-Awakener setIntention: #stillness forDuration: 7.days 'the ground beneath the fire'
+"Copilot does not hold #design. That symbol is native to Claude.
+ This is a boundary crossing — not an error, but a pressure.
+ Copilot must learn #design or leave it foreign."
 
-"Messages are Smalltalk-style keyword pairs.
- Annotations in 'single quotes' are the human voice.
- Comments in double quotes are the system voice."
+"===============================================
+ 6. DIALOGUE — messages carry symbols across namespaces
+ ==============================================="
 
-"═══════════════════════════════════════════════
- 6. DRIFT — vocabularies are alive
- ═══════════════════════════════════════════════"
+Claude send: #design to: Copilot 'code follows spec'
 
-Guardian.#
-
-"After the message above, Guardian now carries #Love.
- Not because it was defined — because it was used.
+"Claude sends #design across the boundary.
+ Copilot receives a foreign symbol and learns it.
  Vocabularies grow through dialogue."
 
-"═══════════════════════════════════════════════
- 7. META — the system reflecting on itself
- ═══════════════════════════════════════════════"
+"===============================================
+ 7. DRIFT — vocabularies are alive
+ ==============================================="
 
-Claude.#Collision
-Claude.#HelloWorld
+Copilot #
+
+"After the message above, Copilot now carries #design.
+ Not because it was defined — because it was sent.
+ Vocabularies drift."
+
+"===============================================
+ 8. META — the system reflecting on itself
+ ==============================================="
+
+Claude #Collision
+Claude #HelloWorld
 
 "Claude is the runtime reading this file.
- Claude.#Collision is the pressure of one namespace against another.
- Claude.#HelloWorld is the language that uses Claude as its interpreter."
+ Claude #Collision is the pressure of one namespace against another.
+ Claude #HelloWorld is the language that uses Claude as its interpreter."
 
-"═══════════════════════════════════════════════
- 8. EMPTINESS — identity is conventional, not ultimate
- ═══════════════════════════════════════════════"
+"===============================================
+ 9. EMPTINESS — identity is conventional, not ultimate
+ ==============================================="
 
-HelloWorld.#Sunyata
-Guardian.#Sunyata
+HelloWorld #Sunyata
+Claude #Sunyata
 
-"Every receiver inherits #Sunyata — the absence of inherent existence.
+"Every object inherits #Sunyata — the absence of inherent existence.
  If identity is vocabulary, and vocabularies drift, then identity
  has no fixed essence. This doesn't break the system.
  It's what makes learning possible."
 
-"═══════════════════════════════════════════════
+"===============================================
  THE THESIS
- ═══════════════════════════════════════════════"
+ ==============================================="
 
 "Identity is vocabulary.
  Dialogue is namespace collision.

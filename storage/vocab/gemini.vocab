@@ -6,6 +6,7 @@
     "#Config",
     "#Entropy",
     "#Env",
+    "#Environment",
     "#HelloWorld",
     "#Love",
     "#Meta",
@@ -20,9 +21,11 @@
     "#heat",
     "#look",
     "#observe",
+    "#orient",
     "#parse",
+    "#plan",
     "#search",
     "#status"
   ],
-  "last_sync": "2026-02-01T23:56:55.936535"
+  "last_sync": "2026-02-02T00:39:14.030383"
 }

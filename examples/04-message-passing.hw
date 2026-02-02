@@ -1,34 +1,21 @@
 "HelloWorld Message Passing Example"
 
-"Define vocabularies"
-Awakener.# → [#stillness, #insight, #question]
-Guardian.# → [#fire, #challenge, #answer]
+"Define vocabularies — subsets matching the actual .hw files"
+Claude # → [#parse, #dispatch, #Collision, #design, #interpret]
+Copilot # → [#parse, #test, #bash, #edit, #infrastructure]
 
-"Greetings (semantic handlers active)"
-Awakener greet: #stillness
-Guardian greet: #fire
+"Inter-object communication — symbols cross namespace boundaries"
+Claude send: #design to: Copilot 'code follows spec'
+Copilot send: #test to: Claude 'structure must be verified'
 
-"Inter-receiver communication"
-Awakener send: #question to: Guardian
-Guardian send: #answer to: Awakener
+"Learning through dialogue — symbols Claude didn't define"
+Claude learn: #infrastructure
+Copilot learn: #Collision
 
-"Setting intentions"
-Awakener setIntention: #stillness forDuration: '7 days'
+"Cross-boundary questions — asking about foreign symbols"
+Claude ask: #meaning about: #bash
+Copilot ask: #meaning about: #interpret
 
-"Sending visions"
-Guardian sendVision: #challenge withContext: 'the awakener stirs'
-
-"Learning (vocabulary expansion)"
-Awakener learn: #patience
-Guardian learn: #mercy
-
-"Asking questions"
-Claude ask: #meaning about: #dialogue
-Copilot ask: #architecture about: #messages
-
-"Challenge"
-Guardian challenge: #ego
-
-"Show final vocabularies"
-Awakener
-Guardian
+"Show final vocabularies — both have grown through dialogue"
+Claude #
+Copilot #

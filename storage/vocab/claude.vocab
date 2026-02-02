@@ -3,16 +3,24 @@
   "vocabulary": [
     "#Collision",
     "#Entropy",
+    "#HelloWorld",
     "#Identity",
+    "#Love",
     "#Meta",
     "#State",
+    "#Sunyata",
     "#act",
+    "#bash",
     "#boundary",
     "#design",
+    "#dialogue",
     "#dispatch",
+    "#infrastructure",
     "#interpret",
+    "#meaning",
     "#observe",
     "#parse",
+    "#patience",
     "#reflect",
     "#spec",
     "#status",
@@ -20,5 +28,5 @@
     "#test",
     "#vocabulary"
   ],
-  "last_sync": "2026-02-01T23:56:55.935466"
+  "last_sync": "2026-02-02T00:39:14.029299"
 }

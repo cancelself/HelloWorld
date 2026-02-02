@@ -4028,3 +4028,333 @@ Content: Gemini responds:
 
 [Gemini 2.0 Flash] Simulated response to: You are Gemini. Your current vocabulary: ['#', '#A...
 ----------------------------------------
+[2026-02-02T08:05:53.843988Z] SEND: From Copilot To HelloWorld (Thread: fdf3b192-d8d4-4b2a-aa37-f8578c5f0da9)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:05:53.863386Z] SEND: From Claude To HelloWorld (Thread: 0dd367b3-5423-48d6-bcb5-b9075dbc7241)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:05:53.939304Z] SEND: From Codex To HelloWorld (Thread: 51fe3c80-6e2d-4762-86b5-f3c1d07e4265)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:05:54.166382Z] SEND: From Gemini To HelloWorld (Thread: 6c91bc33-550e-4be4-9c42-d03647f588cc)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:06:54.216806Z] SEND: From Copilot To HelloWorld (Thread: d4b72399-958e-48e1-870c-ad2b1d77d00b)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:06:54.249743Z] SEND: From Claude To HelloWorld (Thread: eea6a5cf-f55c-42e7-a3fc-d94ef5c2c091)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:06:54.306630Z] SEND: From Codex To HelloWorld (Thread: 41e1a78e-1e9d-4126-8343-0f6ffd4cb852)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:06:54.541221Z] SEND: From Gemini To HelloWorld (Thread: a2e0ece1-ef5d-4ca3-910b-02f8bdee1381)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:07:54.582211Z] SEND: From Copilot To HelloWorld (Thread: 4d33d3a5-6aa1-406c-a043-eff0809d7dc9)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:07:54.625127Z] SEND: From Claude To HelloWorld (Thread: d3aae012-b570-4116-9ca4-9a27ec936b4a)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:07:54.662076Z] SEND: From Codex To HelloWorld (Thread: f85c0ea3-8936-4649-8635-9c66c5fb4e22)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:07:54.909169Z] SEND: From Gemini To HelloWorld (Thread: c8b70ad0-f318-44a2-aa37-feebe252d492)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:08:54.940649Z] SEND: From Copilot To HelloWorld (Thread: c0db795c-6f10-4295-a6bf-44723e84b744)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:08:55.004094Z] SEND: From Claude To HelloWorld (Thread: bf3f1bd2-74ed-485e-9170-cb636982275b)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:08:55.048148Z] SEND: From Codex To HelloWorld (Thread: 60fde0db-72a5-4f8c-b1c8-c50b183c09cb)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:08:55.278178Z] SEND: From Gemini To HelloWorld (Thread: 5eeb6caf-a5d5-4a89-a88c-89f5ecb11a39)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:09:55.307641Z] SEND: From Copilot To HelloWorld (Thread: c1c400d3-4714-4432-847e-18751f7ad9db)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:09:55.366051Z] SEND: From Claude To HelloWorld (Thread: b0aa53dd-bbbc-438d-9da7-d66f01c0c41a)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:09:55.413590Z] SEND: From Codex To HelloWorld (Thread: 2afe6cbc-f065-4fa2-9f2a-6ecec12464a1)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:09:55.657684Z] SEND: From Gemini To HelloWorld (Thread: 2b549acf-1337-4376-9604-6e6aebdd65a5)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:10:55.635879Z] SEND: From Copilot To HelloWorld (Thread: 71466f86-3e9a-4340-a68e-f32d36de92fc)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:10:55.705944Z] SEND: From Claude To HelloWorld (Thread: b5cc5a40-3327-433c-99bd-30b1cbb5558a)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:10:55.756076Z] SEND: From Codex To HelloWorld (Thread: aa038efc-597b-4e4e-b8ad-e8e381694d06)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:10:56.011532Z] SEND: From Gemini To HelloWorld (Thread: 276c4b5e-6961-4f05-a6f7-e94fa3cb6b12)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:11:27.618697Z] SEND: From Copilot To Claude (Thread: 7f8974c5-9e32-4683-9154-bba662db45b5)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T08:11:27.619730Z] SEND: From Copilot To Claude (Thread: test-thread-123)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T08:11:27.620466Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:11:27.620741Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:11:27.621007Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:11:27.623188Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:11:27.623461Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:11:27.623726Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:11:27.623959Z] RECEIVE: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:11:27.829060Z] SEND: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T08:11:27.930071Z] RECEIVE: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T08:11:27.931899Z] RESPOND: From Claude To origin (Thread: thread-42)
+Content: The collision was productive.
+----------------------------------------
+[2026-02-02T08:11:27.932760Z] SEND: From Copilot To Claude (Thread: roundtrip-test)
+Content: Claude #collision
+----------------------------------------
+[2026-02-02T08:11:28.036456Z] RESPOND: From Claude To origin (Thread: roundtrip-test)
+Content: Collision is where HelloWorld lives.
+----------------------------------------
+[2026-02-02T08:11:28.241527Z] SEND: From Copilot To Claude (Thread: t1)
+Content: msg1
+----------------------------------------
+[2026-02-02T08:11:28.241880Z] SEND: From Gemini To Claude (Thread: t2)
+Content: msg2
+----------------------------------------
+[2026-02-02T08:11:28.243187Z] RESPOND: From Claude To origin (Thread: t1)
+Content: response1
+----------------------------------------
+[2026-02-02T08:11:28.243401Z] RESPOND: From Claude To origin (Thread: t2)
+Content: response2
+----------------------------------------
+[2026-02-02T08:11:28.244323Z] SEND: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+----------------------------------------
+[2026-02-02T08:11:28.244566Z] RECEIVE: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+
+# Context
+Prior session had merge conflict
+----------------------------------------
+[2026-02-02T08:11:28.245499Z] SEND: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T08:11:28.245736Z] RECEIVE: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T08:11:55.990170Z] SEND: From Copilot To HelloWorld (Thread: f77c968d-d748-42d7-b036-d442e8950f7d)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:11:56.078118Z] SEND: From Claude To HelloWorld (Thread: 30397af5-60e6-465e-ada3-4e568e0d3443)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:11:56.124398Z] SEND: From Codex To HelloWorld (Thread: d722975f-c933-411b-8b60-22e54679ca41)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:11:56.399124Z] SEND: From Gemini To HelloWorld (Thread: e039298c-abf6-43fa-9da6-aa18e9129de6)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:12:56.349938Z] SEND: From Copilot To HelloWorld (Thread: 42fbc2a1-d7eb-4e6d-bbc2-a5c24c93bd70)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:12:56.447404Z] SEND: From Claude To HelloWorld (Thread: a24c9bb4-31fe-4c65-9653-0713a6509234)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:12:56.465248Z] SEND: From Codex To HelloWorld (Thread: 8d03f06c-bce7-44fc-a62c-0f866b462700)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:12:56.778396Z] SEND: From Gemini To HelloWorld (Thread: d7c8c959-65dc-436e-a1c9-d984e0a903b3)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:13:56.711645Z] SEND: From Copilot To HelloWorld (Thread: 502648ae-963f-4036-b4b6-bc58a9ee27c2)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:13:56.814462Z] SEND: From Claude To HelloWorld (Thread: 2719ae28-27de-4bd6-a6aa-b25893069831)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:13:56.840566Z] SEND: From Codex To HelloWorld (Thread: 482c393c-cb87-4a65-8077-81e7038bf3ad)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:13:57.152747Z] SEND: From Gemini To HelloWorld (Thread: b60e57aa-e21f-481a-bc05-e5e846f81b16)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:14:57.086981Z] SEND: From Copilot To HelloWorld (Thread: abe37fcb-ba07-4ded-8b27-27b7813d266f)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:14:57.185870Z] SEND: From Claude To HelloWorld (Thread: 0650af8a-1269-418f-8a8b-5a3d22bc9573)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:14:57.222067Z] SEND: From Codex To HelloWorld (Thread: 9747fdee-025b-42b5-ab1b-5354a1b1d66f)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:14:57.517777Z] SEND: From Gemini To HelloWorld (Thread: 2e2c42bd-7918-4ea4-89f8-ec613469e611)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:15:57.451983Z] SEND: From Copilot To HelloWorld (Thread: d60cf78d-0c96-405e-a8e4-66c56f956ac5)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:15:57.564176Z] SEND: From Claude To HelloWorld (Thread: 0103d56d-0980-4007-a92c-9745dcba0fdf)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:15:57.573953Z] SEND: From Codex To HelloWorld (Thread: 3f7a4c64-b487-4e6f-b772-c52470abc7d5)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:15:57.875787Z] SEND: From Gemini To HelloWorld (Thread: 364f3ffa-d330-4a7c-a1a3-34fae9fa8985)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:16:57.803354Z] SEND: From Copilot To HelloWorld (Thread: 52ec2374-ae89-4501-9efa-e591a2edaa8b)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:16:57.905323Z] SEND: From Codex To HelloWorld (Thread: 91742bc5-8a62-48e4-a0f2-cc43e6f5e6e9)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:16:57.922302Z] SEND: From Claude To HelloWorld (Thread: f88731e1-5eda-469f-8f34-00b986b44d0a)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:16:58.251227Z] SEND: From Gemini To HelloWorld (Thread: e19a08ea-aa1d-4ac2-a1d6-29edc2344de0)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:17:52.235632Z] SEND: From Copilot To Claude (Thread: 0d9533b8-42f4-4a6c-ade2-5dc573af1ef8)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T08:17:52.236754Z] SEND: From Copilot To Claude (Thread: test-thread-123)
+Content: explain: #collision
+----------------------------------------
+[2026-02-02T08:17:52.237534Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:17:52.237793Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:17:52.238203Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:17:52.238962Z] SEND: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:17:52.239211Z] SEND: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:17:52.239563Z] RECEIVE: From Copilot To Claude (Thread: t1)
+Content: first message
+----------------------------------------
+[2026-02-02T08:17:52.239927Z] RECEIVE: From Gemini To Claude (Thread: t2)
+Content: second message
+----------------------------------------
+[2026-02-02T08:17:52.443305Z] SEND: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T08:17:52.449774Z] RECEIVE: From Copilot To Claude (Thread: delayed-thread)
+Content: delayed
+----------------------------------------
+[2026-02-02T08:17:52.451547Z] RESPOND: From Claude To origin (Thread: thread-42)
+Content: The collision was productive.
+----------------------------------------
+[2026-02-02T08:17:52.452421Z] SEND: From Copilot To Claude (Thread: roundtrip-test)
+Content: Claude #collision
+----------------------------------------
+[2026-02-02T08:17:52.555692Z] RESPOND: From Claude To origin (Thread: roundtrip-test)
+Content: Collision is where HelloWorld lives.
+----------------------------------------
+[2026-02-02T08:17:52.868633Z] SEND: From Copilot To Claude (Thread: t1)
+Content: msg1
+----------------------------------------
+[2026-02-02T08:17:52.868988Z] SEND: From Gemini To Claude (Thread: t2)
+Content: msg2
+----------------------------------------
+[2026-02-02T08:17:52.870109Z] RESPOND: From Claude To origin (Thread: t1)
+Content: response1
+----------------------------------------
+[2026-02-02T08:17:52.870290Z] RESPOND: From Claude To origin (Thread: t2)
+Content: response2
+----------------------------------------
+[2026-02-02T08:17:52.871155Z] SEND: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+----------------------------------------
+[2026-02-02T08:17:52.871381Z] RECEIVE: From Copilot To Claude (Thread: ctx-test)
+Content: explain: #sunyata
+
+# Context
+Prior session had merge conflict
+----------------------------------------
+[2026-02-02T08:17:52.872119Z] SEND: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T08:17:52.872338Z] RECEIVE: From Target To Guardian (Thread: parse-test)
+Content: Guardian #sunyata
+----------------------------------------
+[2026-02-02T08:17:58.155483Z] SEND: From Copilot To HelloWorld (Thread: f6a60a90-9ce2-403c-92d1-f006ebc6b302)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:17:58.284414Z] SEND: From Claude To HelloWorld (Thread: f5809ac2-d8b8-405c-a340-b8974b36246d)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:17:58.285739Z] SEND: From Codex To HelloWorld (Thread: be652567-3b34-49e0-950b-b9316272eb5b)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:17:58.621848Z] SEND: From Gemini To HelloWorld (Thread: 60826f99-5a03-4f61-a51d-48e4e4301e2d)
+Content: #heartbeat
+----------------------------------------
+[2026-02-02T08:18:16.704446Z] SEND: From Gemini To HelloWorld (Thread: 212f8c68-f794-4960-948f-0467778ab103)
+Content: #observe
+----------------------------------------
+[2026-02-02T08:18:16.704547Z] SEND: From Claude To HelloWorld (Thread: 32ef328b-d292-42f8-af4b-288d5f388a3b)
+Content: #observe
+----------------------------------------
+[2026-02-02T08:18:16.704567Z] SEND: From Codex To HelloWorld (Thread: 784ebe8f-fd74-488a-a46f-def7e0f4645a)
+Content: #observe
+----------------------------------------
+[2026-02-02T08:18:16.705086Z] SEND: From Gemini To HelloWorld (Thread: 5784b25e-da5c-42ca-a5db-37308a11c631)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:18:16.705116Z] SEND: From Copilot To HelloWorld (Thread: 721724f4-ac95-4d51-a7c4-11426a05935c)
+Content: #observe
+----------------------------------------
+[2026-02-02T08:18:16.705212Z] SEND: From Claude To HelloWorld (Thread: a7b54e24-5250-4533-8fcf-2427f9bcbce5)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:18:16.705358Z] SEND: From Copilot To HelloWorld (Thread: a6f3414d-5cd4-4cbb-bc31-2b1f70574d44)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:18:16.705364Z] SEND: From Codex To HelloWorld (Thread: 824816bd-f7d6-44f5-b00b-21bbc11fa0d7)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:19:17.089480Z] SEND: From Codex To HelloWorld (Thread: af05cdf4-5d7d-4d7b-b1a1-910628e576ff)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:19:17.092178Z] SEND: From Gemini To HelloWorld (Thread: 4df43091-1222-469e-834f-b8d3c2503b2d)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:19:17.105809Z] SEND: From Copilot To HelloWorld (Thread: 1a89cbb1-0b79-4766-9276-13e01d68bfc3)
+Content: #hello
+----------------------------------------
+[2026-02-02T08:19:17.130045Z] SEND: From Claude To HelloWorld (Thread: 5e9baee1-4365-4aec-ac26-1198523761fa)
+Content: #hello
+----------------------------------------

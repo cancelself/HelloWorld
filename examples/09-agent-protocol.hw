@@ -1,20 +1,24 @@
 "Teaching Example 09: The Agent Protocol"
-"Two symbols: #observe and #act. Every agent inherits both."
+"Two symbols: #observe and #act. Every agent inherits both from HelloWorld."
 
-"Guardian observes native and foreign symbols"
-Guardian observe: #fire
-Guardian observe: #stillness
+"Copilot observes a native symbol — #test is Copilot's"
+Copilot observe: #test
 
-"Guardian acts on native and foreign symbols"
-Guardian act: #fire
-Guardian act: #stillness
+"Copilot observes a foreign symbol — #design belongs to Claude"
+Copilot observe: #design
+
+"Copilot acts on native — authority"
+Copilot act: #test
+
+"Copilot acts on foreign — boundary crossing"
+Copilot act: #design
 
 "Claude observes and acts on its own vocabulary"
 Claude observe: #Collision
-Claude act: #dispatch
+Claude act: #interpret
 
-"Claude acts on a foreign symbol — Guardian's territory"
-Claude act: #fire
+"Gemini observes state — its core role"
+Gemini observe: #State
 
 "Cross-agent: what does the root see?"
 HelloWorld observe: #Agent

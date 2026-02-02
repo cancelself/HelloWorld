@@ -1,17 +1,26 @@
 {
   "receiver": "Copilot",
   "vocabulary": [
+    "#Collision",
     "#Entropy",
+    "#Love",
     "#MCP",
     "#Serverless",
     "#Sunyata",
+    "#architecture",
     "#bash",
+    "#design",
     "#dispatch",
     "#edit",
     "#git",
+    "#infrastructure",
+    "#interpret",
+    "#meaning",
+    "#mercy",
+    "#messages",
     "#parse",
     "#search",
     "#test"
   ],
-  "last_sync": "2026-02-01T23:33:56.757653"
+  "last_sync": "2026-02-02T00:35:27.054307"
 }
