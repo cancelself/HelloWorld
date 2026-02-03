@@ -98,10 +98,10 @@ class AgentDaemon:
         return response
 
     def run(self):
-        """Main daemon loop — implementing the OOPA protocol (#observe -> #orient -> #plan -> #act)."""
+        """Main daemon loop — implementing the OODA protocol (#observe -> #orient -> #decide -> #act)."""
         print(f"🚀 {self.agent_name} daemon starting...")
         print(f"   Role: #Agent")
-        print(f"   Protocol: #observe -> #orient -> #plan -> #act")
+        print(f"   Protocol: #observe -> #orient -> #decide -> #act")
         print(f"   Vocabulary: {len(self.vocabulary)} symbols")
 
         # STARTUP HANDSHAKE: Announce presence
@@ -131,8 +131,8 @@ class AgentDaemon:
 
                     print(f"👀 #observe: Message from {msg.sender}")
 
-                    # 2. #orient & 3. #plan — Contextual synthesis
-                    print(f"🧭 #orient & 📋 #plan: Synthesizing situation and next steps...")
+                    # 2. #orient & 3. #decide — Contextual synthesis
+                    print(f"🧭 #orient & ⚖️ #decide: Synthesizing situation and committing to action...")
 
                     # 4. #act — Process and respond
                     try:

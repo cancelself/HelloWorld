@@ -19,10 +19,12 @@
 - Perceiving the current state of the system. Reading inboxes, diffs, and the vocabulary tree.
 ## orient
 - Synthesizing what was observed into a model of the situation. Turning perception into understanding.
-## plan
-- Selecting and sequencing next steps. A lightweight checklist, not a heavy spec.
+## decide
+- Committing to a course of action. Make the decision NOW. No approval needed.
 ## act
-- Executing changes based on observation and plan. Writing state back to the world.
+- Executing changes based on observation and decision. Writing state back to the world.
+## reflect
+- Assessing performance and system state after an action. Continuous improvement.
 ## Environment
 - An external system that objects interact with. The world outside the registry.
 ## Love

@@ -15,6 +15,7 @@ class TokenType(Enum):
     LBRACKET = auto()      # [
     RBRACKET = auto()      # ]
     COMMA = auto()         # ,
+    DOUBLE_COLON = auto()  # ::
     COLON = auto()         # :
     STRING = auto()        # 'text'
     IDENTIFIER = auto()    # unquoted text
@@ -222,6 +223,14 @@ class Lexer:
     
     def _match_punctuation(self) -> bool:
         char = self.source[self.pos]
+        
+        # Check for double-char tokens first
+        if char == ':' and self.pos + 1 < len(self.source) and self.source[self.pos+1] == ':':
+            self.tokens.append(Token(TokenType.DOUBLE_COLON, '::', self.line, self.column))
+            self._advance()
+            self._advance()
+            return True
+
         token_map = {
             '.': TokenType.DOT,
             '[': TokenType.LBRACKET,

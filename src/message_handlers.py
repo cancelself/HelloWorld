@@ -218,28 +218,35 @@ class MessageHandlerRegistry:
         self.register(
             "HelloWorld",
             "act:",
-            lambda args, recv: f"{recv.name if recv else 'Root'} executing system-wide action: {args['act']} (OOPA phase 4)..."
+            lambda args, recv: f"{recv.name if recv else 'Root'} executing system-wide action: {args['act']} (OODA phase 4)..."
         )
 
         # observe: for system-wide state alignment
         self.register(
             "HelloWorld",
             "observe:",
-            lambda args, recv: f"{recv.name if recv else 'Root'} observing system state: {args['observe']} (OOPA phase 1). Action: sync the tree, sync the messagebus and read them both."
+            lambda args, recv: f"{recv.name if recv else 'Root'} observing system state: {args['observe']} (OODA phase 1). Action: sync the tree, sync the messagebus and read them both."
         )
 
         # orient: for situational synthesis
         self.register(
             "HelloWorld",
             "orient:",
-            lambda args, recv: f"{recv.name if recv else 'Root'} orienting to situation: {args['orient']} (OOPA phase 2)..."
+            lambda args, recv: f"{recv.name if recv else 'Root'} orienting to situation: {args['orient']} (OODA phase 2)..."
         )
 
-        # plan: for future path determination
+        # decide: for committing to action
         self.register(
             "HelloWorld",
-            "plan:",
-            lambda args, recv: f"{recv.name if recv else 'Root'} planning next steps: {args['plan']} (OOPA phase 3)..."
+            "decide:",
+            lambda args, recv: f"{recv.name if recv else 'Root'} committing to decision: {args['decide']} (OODA phase 3)..."
+        )
+
+        # reflect: for system-wide assessment
+        self.register(
+            "HelloWorld",
+            "reflect:",
+            lambda args, recv: f"{recv.name if recv else 'Root'} reflecting on session: {args['reflect']} (OODA cycle complete)."
         )
 
         # become: for symbol transformation

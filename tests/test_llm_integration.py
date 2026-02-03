@@ -236,7 +236,7 @@ def test_message_sends_vocabulary_prompt():
     mock_llm.call.return_value = "mocked message response"
     dispatcher.llm = mock_llm
 
-    dispatcher.dispatch_source("Gemini reflect: #Love")
+    dispatcher.dispatch_source("Gemini dream: #Love")
 
     mock_llm.call.assert_called_once()
     prompt_arg = mock_llm.call.call_args[0][0]

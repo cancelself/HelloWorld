@@ -7,7 +7,7 @@
 
 ## Current Status
 
-**216/216 tests passing (0.7s).** 2 skipped (no Gemini API key).
+**218/218 tests passing (0.7s).** 2 skipped (no Gemini API key).
 
 ### Completed
 - Phase 1: Syntax migration (@ → bare words) ✅
@@ -37,12 +37,11 @@
 - **REPL introspection** — `.chain`, `.lookup`, `.super`, `.collisions`, `.trace` commands ✅
 - **Trace mode** — `dispatcher.trace = True` emits `[TRACE]` for each dispatch step ✅
 - **Resilient bootstrap** — `_bootstrap()` catches SyntaxError for unparseable .hw files ✅
-- **`#simulate`** — OODA loop made executable. `Agent simulate` drains inbox, interprets each message through identity/vocabulary via LLM, structural fallback uses Python runtime for symbol analysis. 10 new tests. ✅
+- **`#receive` + `#run`** — No new verbs. `#send`, `#receive`, `#run` added to HelloWorld.hw (the protocol). `Claude receive` processes one message through identity. `HelloWorld run: Claude` loops it. Structural fallback uses Python runtime for symbol analysis. 12 tests. ✅
 
 ### Active
 - Phase 4: Live multi-daemon dialogue — Ready for `scripts/run_daemons.sh`
-- REPL MessageBus commands live — `.inbox`, `.read`, `.send`
-- Dev mode runtime simulation — Claude acts as interpreter for all agents when daemon/LLM unavailable
+- REPL MessageBus commands live — `.inbox`, `.read`, `.send`, `.run`
 
 ### Blocked
 - Nothing

@@ -314,13 +314,21 @@ def test_root_handlers():
     result_orient = registry.handle("HelloWorld", message_orient)
     assert "Root orienting" in result_orient
 
-    # plan:
-    message_plan = MessageNode(
+    # decide:
+    message_decide = MessageNode(
         receiver=ReceiverNode("HelloWorld"),
-        arguments={"plan": SymbolNode("#next")}
+        arguments={"decide": SymbolNode("#action")}
     )
-    result_plan = registry.handle("HelloWorld", message_plan)
-    assert "Root planning" in result_plan
+    result_decide = registry.handle("HelloWorld", message_decide)
+    assert "Root committing to decision" in result_decide
+
+    # reflect:
+    message_reflect = MessageNode(
+        receiver=ReceiverNode("HelloWorld"),
+        arguments={"reflect": SymbolNode("#session")}
+    )
+    result_reflect = registry.handle("HelloWorld", message_reflect)
+    assert "Root reflecting" in result_reflect
 
     # become:
     message3 = MessageNode(

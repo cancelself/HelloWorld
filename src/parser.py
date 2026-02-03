@@ -59,9 +59,8 @@ class Parser:
         if self._match(TokenType.LIST_ITEM):
             return DescriptionNode(self._previous().value)
 
-        if self._match(TokenType.RECEIVER):
-            receiver_token = self._previous()
-            receiver = ReceiverNode(receiver_token.value)
+        if self._check(TokenType.RECEIVER):
+            receiver = self._parse_receiver()
 
             # Scoped lookups / queries accept either legacy dot syntax or space-separated form.
             if self._check(TokenType.DOT) or self._check(TokenType.HASH) or self._check(TokenType.SYMBOL):
@@ -79,9 +78,22 @@ class Parser:
             # Bare receiver: Name
             return VocabularyQueryNode(receiver)
 
+        # Bare symbol at top level: #HelloWorld, #Claude, etc.
+        if self._match(TokenType.SYMBOL):
+            return SymbolNode(self._previous().value)
+
         # Skip tokens we don't recognize as starts of statements for now
         self._advance()
         return None
+
+    def _parse_receiver(self) -> ReceiverNode:
+        """Parse a receiver name or a namespace path: HelloWorld::Agent::Claude"""
+        self._consume(TokenType.RECEIVER, "Expect receiver name")
+        name = self._previous().value
+        while self._match(TokenType.DOUBLE_COLON):
+            self._consume(TokenType.RECEIVER, "Expect receiver name after '::'")
+            name += f"::{self._previous().value}"
+        return ReceiverNode(name)
 
     def _parse_heading(self, level: int) -> HeadingNode:
         """Parse a Markdown heading and its children (list items, sub-headings)."""
@@ -173,8 +185,8 @@ class Parser:
     def _parse_value(self) -> Node:
         if self._match(TokenType.SYMBOL):
             return SymbolNode(self._previous().value)
-        if self._match(TokenType.RECEIVER):
-            return ReceiverNode(self._previous().value)
+        if self._check(TokenType.RECEIVER):
+            return self._parse_receiver()
         if self._match(TokenType.NUMBER):
             return LiteralNode(self._previous().value)
         if self._match(TokenType.STRING):

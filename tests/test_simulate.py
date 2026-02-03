@@ -169,3 +169,31 @@ def test_receive_inherited_by_agents():
     for agent in ["Claude", "Copilot", "Gemini", "Codex"]:
         receiver = d.registry[agent]
         assert receiver.has_symbol("#receive"), f"{agent} should inherit #receive"
+
+
+# --- HelloWorld run (all agents) ---
+
+def test_run_all_empty():
+    """HelloWorld run with all inboxes empty."""
+    d = _fresh_dispatcher_with_bus()
+    results = d.dispatch_source("HelloWorld run")
+    assert "All inboxes empty" in results[0]
+
+
+def test_run_all_processes_multiple_agents():
+    """HelloWorld run processes messages across agents."""
+    d = _fresh_dispatcher_with_bus()
+    message_bus.send("Gemini", "Claude", "state update")
+    message_bus.send("Claude", "Copilot", "design spec")
+    results = d.dispatch_source("HelloWorld run")
+    output = results[0]
+    assert "Claude" in output
+    assert "Copilot" in output
+    assert "across all agents" in output
+
+
+def test_run_helloworld_symbol_means_all():
+    """HelloWorld run: #HelloWorld means run all agents."""
+    d = _fresh_dispatcher_with_bus()
+    results = d.dispatch_source("HelloWorld run: #HelloWorld")
+    assert "All inboxes empty" in results[0]

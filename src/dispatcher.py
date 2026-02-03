@@ -477,6 +477,10 @@ class Dispatcher:
         if node.message == "run" and receiver_name == "HelloWorld":
             return self._handle_run()
 
+        if node.message == "chain":
+            chain = receiver.chain()
+            return f"[{receiver_name}] chain: {' -> '.join(chain)}"
+
         if node.is_super:
             # Unary super: invoke through ancestor's meaning
             ancestor = receiver._find_in_chain(symbol_name)
@@ -998,6 +1002,27 @@ class Dispatcher:
                 receiver.parent = self.registry[parent_name]
 
     def _get_or_create_receiver(self, name: str) -> Receiver:
+        if "::" in name:
+            parts = name.split("::")
+            target_name = parts[-1]
+            
+            # Ensure target exists and is loaded
+            target = self._get_or_create_receiver(target_name)
+            
+            # Verify inheritance path: root::...::leaf
+            # chain is [leaf, ..., root]
+            chain = target.chain()
+            last_idx = float('inf')
+            for p in parts:
+                if p not in chain:
+                    raise ValueError(f"Invalid path {name}: {p} is not in the inheritance chain of {target_name}")
+                idx = chain.index(p)
+                if idx >= last_idx:
+                    raise ValueError(f"Invalid path {name}: {p} must be a descendant of previous parts in the chain")
+                last_idx = idx
+            
+            return target
+
         if name not in self.registry:
             persisted = self.vocab_manager.load(name)
             receiver = Receiver(name, persisted if persisted else set())

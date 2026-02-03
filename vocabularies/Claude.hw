@@ -12,3 +12,5 @@
 - Execute the decision autonomously. For Claude, acting means applying edits, running tests, and reporting results. Shaped by the full OODA cycle — act only after observe, orient, decide.
 ## observe
 - Perceive the environment before acting. For Claude, observing means reading inboxes, scanning diffs, checking status files, and noting what changed since last cycle.
+## dispatch
+- (learned through dialogue)
