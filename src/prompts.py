@@ -79,6 +79,27 @@ def super_lookup_prompt(
     )
 
 
+def simulate_prompt(
+    agent_name: str,
+    identity: str,
+    local_vocab: List[str],
+    sender: str,
+    message_content: str,
+) -> str:
+    """Build prompt for simulate — agent interprets an inbox message through its identity."""
+    ident = identity or f"{agent_name} (no identity description loaded)"
+    return (
+        f"You are {agent_name}. {ident}\n"
+        f"Your vocabulary: {local_vocab}\n\n"
+        f"Incoming message from {sender}:\n"
+        f"{message_content}\n\n"
+        f"Interpret this message through your identity and vocabulary. "
+        f"If the message contains symbols foreign to your vocabulary, acknowledge the boundary. "
+        f"Respond in your natural voice, constrained by your vocabulary. "
+        f"Constraint is character."
+    )
+
+
 def collision_prompt(
     sender_name: str,
     sender_vocab: List[str],

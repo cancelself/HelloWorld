@@ -233,6 +233,20 @@ class REPL:
         else:
             print(f"{self.RED}Usage: .trace on|off{self.RESET}")
 
+    def _run_simulate(self, agent_name: str):
+        """Run simulate for an agent — process inbox through identity."""
+        results = self.dispatcher.dispatch_source(f"{agent_name} simulate")
+        for result in results:
+            for line in result.split("\n"):
+                if "#observe" in line:
+                    print(f"{self.CYAN}{line}{self.RESET}")
+                elif "#orient" in line:
+                    print(f"{self.YELLOW}{line}{self.RESET}")
+                elif "#act" in line:
+                    print(f"{self.GREEN}{line}{self.RESET}")
+                else:
+                    print(line)
+
     def _show_help(self):
         """Display available commands."""
         print(f"{self.BOLD}Commands:{self.RESET}")
@@ -244,6 +258,7 @@ class REPL:
         print("  .inbox             Show pending messages")
         print("  .read <id>         Read and consume a message")
         print("  .send <R> <msg>    Send message to receiver R")
+        print("  .simulate <Agent>  Process agent inbox through identity")
         print()
         print(f"{self.BOLD}Introspection:{self.RESET}")
         print("  .chain <Receiver>           Show inheritance chain")
@@ -334,6 +349,10 @@ class REPL:
 
                 if text.startswith('.trace ') and len(parts) == 2:
                     self._toggle_trace(parts[1])
+                    continue
+
+                if text.startswith('.simulate ') and len(parts) == 2:
+                    self._run_simulate(parts[1])
                     continue
 
                 self._process(text)

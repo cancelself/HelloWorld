@@ -7,7 +7,7 @@
 
 ## Current Status
 
-**206/206 tests passing (0.6s).** 2 skipped (no Gemini API key).
+**216/216 tests passing (0.7s).** 2 skipped (no Gemini API key).
 
 ### Completed
 - Phase 1: Syntax migration (@ → bare words) ✅
@@ -37,6 +37,7 @@
 - **REPL introspection** — `.chain`, `.lookup`, `.super`, `.collisions`, `.trace` commands ✅
 - **Trace mode** — `dispatcher.trace = True` emits `[TRACE]` for each dispatch step ✅
 - **Resilient bootstrap** — `_bootstrap()` catches SyntaxError for unparseable .hw files ✅
+- **`#simulate`** — OODA loop made executable. `Agent simulate` drains inbox, interprets each message through identity/vocabulary via LLM, structural fallback uses Python runtime for symbol analysis. 10 new tests. ✅
 
 ### Active
 - Phase 4: Live multi-daemon dialogue — Ready for `scripts/run_daemons.sh`

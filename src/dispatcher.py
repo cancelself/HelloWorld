@@ -34,6 +34,7 @@ from message_handlers import MessageHandlerRegistry
 from prompts import (
     scoped_lookup_prompt, scoped_lookup_prompt_with_descriptions,
     super_lookup_prompt, message_prompt, collision_prompt,
+    simulate_prompt,
 )
 
 
@@ -457,6 +458,9 @@ class Dispatcher:
         symbol_name = f"#{node.message}"
         lookup = receiver.lookup(symbol_name)
 
+        if node.message == "simulate":
+            return self._handle_simulate(receiver_name, receiver)
+
         if node.is_super:
             # Unary super: invoke through ancestor's meaning
             ancestor = receiver._find_in_chain(symbol_name)
@@ -515,6 +519,124 @@ class Dispatcher:
                 f"{receiver_name} {symbol_name} is unknown — "
                 f"cannot act on what is not in the vocabulary."
             )
+
+    def _handle_simulate(self, receiver_name: str, receiver) -> str:
+        """Handle `Agent simulate` — process all pending inbox messages through identity.
+
+        OODA loop made executable:
+        - #observe: read each message from inbox
+        - #orient: load identity + vocabulary
+        - #act: interpret via LLM (or structural fallback), send response back
+        """
+        identity = self.vocab_manager.load_identity(receiver_name)
+        local_vocab = sorted(receiver.local_vocabulary)
+        processed = 0
+        lines = []
+
+        while True:
+            msg = message_bus.receive(receiver_name)
+            if msg is None:
+                break
+
+            # Skip self-messages to avoid loops
+            if msg.sender == receiver_name:
+                continue
+
+            processed += 1
+
+            # #observe
+            lines.append(
+                f"[{receiver_name} #observe] Message from {msg.sender}: "
+                f"\"{msg.content[:120]}\""
+            )
+
+            # #orient
+            lines.append(
+                f"[{receiver_name} #orient] Identity: "
+                f"{(identity or 'none')[:60]}... Vocabulary: {local_vocab}"
+            )
+
+            # #act — LLM interpretation or structural fallback
+            response_text = None
+            if self.llm:
+                prompt = simulate_prompt(
+                    receiver_name, identity, local_vocab,
+                    msg.sender, msg.content,
+                )
+                try:
+                    response_text = self.llm.call(prompt)
+                except Exception:
+                    pass
+
+            if response_text is None:
+                response_text = self._structural_interpret(
+                    receiver_name, receiver, identity, local_vocab, msg.content,
+                )
+
+            lines.append(f"[{receiver_name} #act] {response_text}")
+
+            # Send response back to sender
+            message_bus.send(receiver_name, msg.sender, response_text)
+            lines.append(f"  -> Sent response to {msg.sender}")
+
+        if processed == 0:
+            return f"[{receiver_name} #observe] Inbox empty. Nothing to simulate."
+
+        lines.append(
+            f"[{receiver_name} #observe] Inbox empty. "
+            f"Processed {processed} message(s)."
+        )
+        return "\n".join(lines)
+
+    def _structural_interpret(
+        self,
+        receiver_name: str,
+        receiver,
+        identity: str,
+        local_vocab: List[str],
+        content: str,
+    ) -> str:
+        """Interpret a message structurally through the receiver's vocabulary.
+
+        The Python runtime IS the fallback runtime. It can:
+        - Extract #symbols from the message
+        - Look each up through the receiver's inheritance chain
+        - Pull .hw descriptions for native/inherited symbols
+        - Flag foreign symbols as boundary events
+        """
+        import re
+        symbols = re.findall(r"#\w+", content)
+
+        parts = []
+
+        if symbols:
+            for sym in symbols:
+                lookup = receiver.lookup(sym)
+                bare = sym.lstrip("#") if sym != "#" else "#"
+                desc = self.vocab_manager.load_description(receiver_name, bare)
+
+                if lookup.is_native():
+                    desc_text = f' — "{desc}"' if desc else ""
+                    parts.append(f"{sym}: native{desc_text}")
+                elif lookup.is_inherited():
+                    defined_in = lookup.context.get("defined_in", "parent")
+                    parts.append(f"{sym}: inherited from {defined_in}")
+                else:
+                    parts.append(f"{sym}: foreign to {receiver_name}")
+
+            symbol_report = "; ".join(parts)
+            ident = f" {identity}" if identity else ""
+            return (
+                f"[{receiver_name}]{ident} "
+                f"Symbol analysis: {symbol_report}."
+            )
+
+        # No symbols found — identity-framed acknowledgment
+        ident = identity or receiver_name
+        return (
+            f"[{receiver_name}] {ident} — "
+            f"message acknowledged. Vocabulary: {local_vocab}."
+        )
 
     def _handle_super_lookup(self, node: SuperLookupNode) -> str:
         """Handle typedef super: Receiver #symbol super
