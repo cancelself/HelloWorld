@@ -31,3 +31,5 @@ collisions.log
 venv/
 env/
 ENV/
+runtimes/*/inbox/*.hw
+runtimes/*/archive/
