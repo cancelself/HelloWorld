@@ -6,3 +6,9 @@
 - An entity that holds symbols and responds to messages [HelloWorld]
 ## Agent
 - An object with vocabulary and the capacity for autonomous action [HelloWorld]
+## send
+- Deliver a message to a receiver's inbox [protocol]
+## receive
+- Pull the next message, interpret it through the receiver's identity, respond. Receiving is hearing through who you are. [protocol]
+## run
+- Keep calling receive until the inbox is empty. The protocol running the agent. [protocol]

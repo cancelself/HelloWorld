@@ -1,4 +1,5 @@
-"""Tests for the simulate command — Agent simulate processes inbox through identity."""
+"""Tests for receive and run — Agent receive processes one message,
+HelloWorld run: Agent loops until inbox is empty."""
 
 import os
 import sys
@@ -36,40 +37,103 @@ def _fresh_dispatcher_with_bus():
     return d
 
 
-def test_simulate_empty_inbox():
-    """Empty inbox returns 'Nothing to simulate'."""
+# --- Agent receive (one message) ---
+
+def test_receive_empty_inbox():
+    """Empty inbox returns 'Inbox empty'."""
     d = _fresh_dispatcher_with_bus()
-    results = d.dispatch_source("Claude simulate")
+    results = d.dispatch_source("Claude receive")
     assert len(results) == 1
-    assert "Nothing to simulate" in results[0]
-    assert "#observe" in results[0]
+    assert "Inbox empty" in results[0]
 
 
-def test_simulate_processes_single_message():
+def test_receive_processes_one_message():
     """One message consumed, response sent back to sender."""
     d = _fresh_dispatcher_with_bus()
     message_bus.send("Copilot", "Claude", "status update on parser changes")
-    results = d.dispatch_source("Claude simulate")
-    assert len(results) == 1
+    results = d.dispatch_source("Claude receive")
     output = results[0]
     assert "Copilot" in output
     assert "#observe" in output
     assert "#orient" in output
     assert "#act" in output
-    assert "Processed 1 message(s)" in output
-    # Response should have been sent back to Copilot
+    # Response sent back
     reply = message_bus.receive("Copilot")
     assert reply is not None
     assert reply.sender == "Claude"
 
 
-def test_simulate_processes_all_messages():
-    """Multiple messages all processed, all senders mentioned."""
+def test_receive_leaves_remaining_messages():
+    """receive processes only one message, rest stay in inbox."""
+    d = _fresh_dispatcher_with_bus()
+    message_bus.send("Copilot", "Claude", "first message")
+    message_bus.send("Gemini", "Claude", "second message")
+    d.dispatch_source("Claude receive")
+    # Second message still in inbox
+    remaining = message_bus.receive("Claude")
+    assert remaining is not None
+    assert remaining.sender == "Gemini"
+
+
+def test_receive_skips_self_messages():
+    """Self-messages are skipped."""
+    d = _fresh_dispatcher_with_bus()
+    message_bus.send("Claude", "Claude", "talking to myself")
+    results = d.dispatch_source("Claude receive")
+    assert "Skipped self-message" in results[0]
+
+
+def test_receive_with_llm():
+    """LLM path produces interpretation."""
+    d = _fresh_dispatcher_with_bus()
+    mock_llm = MagicMock()
+    mock_llm.call.return_value = "I interpret this through my vocabulary of design."
+    d.llm = mock_llm
+    message_bus.send("Copilot", "Claude", "what does #parse mean to you?")
+    results = d.dispatch_source("Claude receive")
+    output = results[0]
+    assert "I interpret this through my vocabulary of design" in output
+    assert mock_llm.call.called
+
+
+def test_receive_structural_fallback():
+    """No LLM — Python runtime interprets through vocabulary."""
+    d = _fresh_dispatcher_with_bus()
+    d.llm = None
+    message_bus.send("Gemini", "Claude", "check #observe and #Entropy")
+    results = d.dispatch_source("Claude receive")
+    output = results[0]
+    assert "Symbol analysis" in output
+    assert "#observe" in output
+
+
+def test_receive_does_not_mutate_vocabulary():
+    """Vocab unchanged after receive."""
+    d = _fresh_dispatcher_with_bus()
+    vocab_before = d.registry["Claude"].local_vocabulary.copy()
+    message_bus.send("Copilot", "Claude", "new concept #Wormhole")
+    d.dispatch_source("Claude receive")
+    vocab_after = d.registry["Claude"].local_vocabulary.copy()
+    assert vocab_before == vocab_after
+
+
+# --- HelloWorld run: Agent (the loop) ---
+
+def test_run_empty_inbox():
+    """Empty inbox returns nothing to receive."""
+    d = _fresh_dispatcher_with_bus()
+    results = d.dispatch_source("HelloWorld run: Claude")
+    assert len(results) == 1
+    assert "Nothing to receive" in results[0]
+
+
+def test_run_processes_all_messages():
+    """All messages processed, all senders mentioned."""
     d = _fresh_dispatcher_with_bus()
     message_bus.send("Copilot", "Claude", "parser refactored")
     message_bus.send("Gemini", "Claude", "state persisted")
     message_bus.send("Codex", "Claude", "execution semantics clarified")
-    results = d.dispatch_source("Claude simulate")
+    results = d.dispatch_source("HelloWorld run: Claude")
     output = results[0]
     assert "Copilot" in output
     assert "Gemini" in output
@@ -77,79 +141,31 @@ def test_simulate_processes_all_messages():
     assert "Processed 3 message(s)" in output
 
 
-def test_simulate_works_for_any_agent():
-    """simulate works for Copilot, not just Claude."""
+def test_run_works_for_any_agent():
+    """run works for Copilot, not just Claude."""
     d = _fresh_dispatcher_with_bus()
     message_bus.send("Claude", "Copilot", "design update")
-    results = d.dispatch_source("Copilot simulate")
+    results = d.dispatch_source("HelloWorld run: Copilot")
     output = results[0]
     assert "Copilot" in output
     assert "Claude" in output
     assert "Processed 1 message(s)" in output
 
 
-def test_simulate_with_llm():
-    """LLM path produces interpretation text in the output."""
-    d = _fresh_dispatcher_with_bus()
-    mock_llm = MagicMock()
-    mock_llm.call.return_value = "I interpret this through my vocabulary of design."
-    d.llm = mock_llm
-    message_bus.send("Copilot", "Claude", "what does #parse mean to you?")
-    results = d.dispatch_source("Claude simulate")
-    output = results[0]
-    assert "I interpret this through my vocabulary of design" in output
-    assert mock_llm.call.called
+# --- Vocabulary: #send, #receive, #run on HelloWorld ---
+
+def test_send_receive_run_on_helloworld():
+    """#send, #receive, #run are in HelloWorld's vocabulary."""
+    d = _fresh_dispatcher()
+    hw_vocab = d.registry["HelloWorld"].local_vocabulary
+    assert "#send" in hw_vocab
+    assert "#receive" in hw_vocab
+    assert "#run" in hw_vocab
 
 
-def test_simulate_structural_fallback():
-    """No LLM available — Python runtime interprets through vocabulary."""
-    d = _fresh_dispatcher_with_bus()
-    d.llm = None
-    message_bus.send("Gemini", "Claude", "check #observe and #Entropy")
-    results = d.dispatch_source("Claude simulate")
-    output = results[0]
-    # Structural fallback does real symbol lookup, not a generic punt
-    assert "Symbol analysis" in output
-    assert "#observe" in output
-    assert "#Entropy" in output
-
-
-def test_simulate_structural_fallback_no_symbols():
-    """No LLM, no symbols in message — identity-framed acknowledgment."""
-    d = _fresh_dispatcher_with_bus()
-    d.llm = None
-    message_bus.send("Gemini", "Claude", "hello, how are things?")
-    results = d.dispatch_source("Claude simulate")
-    output = results[0]
-    assert "Claude" in output
-    assert "message acknowledged" in output
-
-
-def test_simulate_does_not_mutate_vocabulary():
-    """Vocab unchanged after simulate — simulate is read-only."""
-    d = _fresh_dispatcher_with_bus()
-    vocab_before = d.registry["Claude"].local_vocabulary.copy()
-    message_bus.send("Copilot", "Claude", "new concept #Wormhole")
-    d.dispatch_source("Claude simulate")
-    vocab_after = d.registry["Claude"].local_vocabulary.copy()
-    assert vocab_before == vocab_after
-
-
-def test_simulate_skips_self_messages():
-    """Self-messages don't generate a reply (avoids loops)."""
-    d = _fresh_dispatcher_with_bus()
-    message_bus.send("Claude", "Claude", "talking to myself")
-    results = d.dispatch_source("Claude simulate")
-    output = results[0]
-    assert "Nothing to simulate" in output
-    # No reply should be sent back to Claude
-    reply = message_bus.receive("Claude")
-    assert reply is None
-
-
-def test_simulate_symbol_is_inherited():
-    """#simulate is inherited from Agent for all agent receivers."""
+def test_receive_inherited_by_agents():
+    """#receive is inherited from HelloWorld for all agents."""
     d = _fresh_dispatcher()
     for agent in ["Claude", "Copilot", "Gemini", "Codex"]:
         receiver = d.registry[agent]
-        assert receiver.has_symbol("#simulate"), f"{agent} should inherit #simulate"
+        assert receiver.has_symbol("#receive"), f"{agent} should inherit #receive"

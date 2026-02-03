@@ -233,9 +233,9 @@ class REPL:
         else:
             print(f"{self.RED}Usage: .trace on|off{self.RESET}")
 
-    def _run_simulate(self, agent_name: str):
-        """Run simulate for an agent — process inbox through identity."""
-        results = self.dispatcher.dispatch_source(f"{agent_name} simulate")
+    def _run_agent(self, agent_name: str):
+        """Run an agent — process all inbox messages through identity."""
+        results = self.dispatcher.dispatch_source(f"HelloWorld run: {agent_name}")
         for result in results:
             for line in result.split("\n"):
                 if "#observe" in line:
@@ -258,7 +258,7 @@ class REPL:
         print("  .inbox             Show pending messages")
         print("  .read <id>         Read and consume a message")
         print("  .send <R> <msg>    Send message to receiver R")
-        print("  .simulate <Agent>  Process agent inbox through identity")
+        print("  .run <Agent>       Run agent (process all inbox through identity)")
         print()
         print(f"{self.BOLD}Introspection:{self.RESET}")
         print("  .chain <Receiver>           Show inheritance chain")
@@ -351,8 +351,8 @@ class REPL:
                     self._toggle_trace(parts[1])
                     continue
 
-                if text.startswith('.simulate ') and len(parts) == 2:
-                    self._run_simulate(parts[1])
+                if text.startswith('.run ') and len(parts) == 2:
+                    self._run_agent(parts[1])
                     continue
 
                 self._process(text)
