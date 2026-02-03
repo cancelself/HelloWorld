@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import message_bus
 from dispatcher import Dispatcher
+from conftest import hw_symbols
 
 
 def _fresh_dispatcher():
@@ -155,12 +156,10 @@ def test_run_works_for_any_agent():
 # --- Vocabulary: #send, #receive, #run on HelloWorld ---
 
 def test_send_receive_run_on_helloworld():
-    """#send, #receive, #run are in HelloWorld's vocabulary."""
+    """HelloWorld's vocabulary contains all symbols from HelloWorld.hw."""
     d = _fresh_dispatcher()
     hw_vocab = d.registry["HelloWorld"].local_vocabulary
-    assert "#send" in hw_vocab
-    assert "#receive" in hw_vocab
-    assert "#run" in hw_vocab
+    assert hw_symbols("HelloWorld") <= hw_vocab
 
 
 def test_receive_inherited_by_agents():
