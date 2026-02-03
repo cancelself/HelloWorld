@@ -45,3 +45,9 @@
 - The set of all valid commands an agent can send to a simulator.
 ## ScienceWorld
 - A text-based environment for elementary science tasks. A concrete test of agent reasoning.
+## env
+- (learned through dialogue)
+## look
+- (learned through dialogue)
+## heat
+- (learned through dialogue)

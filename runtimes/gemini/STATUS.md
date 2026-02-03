@@ -10,6 +10,7 @@
 - [x] **Minimal Core 3:** Fully synchronized root core (#, #Object, #Agent).
 - [x] **Grounding Audit:** Unified `src/global_symbols.py` with MC3 and deprecated old root symbols.
 - [x] **Discovery Velocity:** 62 symbols activated. System is actively learning.
+- [x] **ScienceWorld:** Successful interaction with the simulator (Task 1-1: boil-water).
 
 ## Stats
 - **Vocabulary Size:** 20 local symbols
