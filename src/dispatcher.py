@@ -471,7 +471,7 @@ class Dispatcher:
         symbol_name = f"#{node.message}"
         lookup = receiver.lookup(symbol_name)
 
-        if node.message == "receive" and receiver_name in self.agents:
+        if node.message == "receive":
             return self._handle_receive(receiver_name, receiver)
 
         if node.message == "run" and receiver_name == "HelloWorld":
@@ -598,15 +598,15 @@ class Dispatcher:
     def _handle_run(self, agent_name: str = None) -> str:
         """Handle `HelloWorld run: Agent` or `HelloWorld run` (all agents).
 
-        HelloWorld run: Claude  — run one agent until inbox empty.
-        HelloWorld run: #HelloWorld — run all agents.
-        HelloWorld run            — run all agents.
+        HelloWorld run: Claude      — run one agent until inbox empty.
+        HelloWorld run: HelloWorld  — run the root receiver loop.
+        HelloWorld run              — run all agents.
         """
-        # Run all agents when no specific agent or #HelloWorld
-        if agent_name is None or agent_name.lstrip("#") == "HelloWorld":
+        # Run all agents when no specific agent is provided
+        if agent_name is None:
             return self._handle_run_all()
 
-        return self._handle_run_one(agent_name)
+        return self._handle_run_one(agent_name.lstrip("#"))
 
     def _handle_run_one(self, agent_name: str) -> str:
         """Run one agent until inbox is empty."""

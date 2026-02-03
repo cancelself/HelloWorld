@@ -193,7 +193,8 @@ def test_run_all_processes_multiple_agents():
 
 
 def test_run_helloworld_symbol_means_all():
-    """HelloWorld run: #HelloWorld means run all agents."""
+    """HelloWorld run: HelloWorld runs the root receiver."""
     d = _fresh_dispatcher_with_bus()
-    results = d.dispatch_source("HelloWorld run: #HelloWorld")
-    assert "All inboxes empty" in results[0]
+    results = d.dispatch_source("HelloWorld run: HelloWorld")
+    # Running HelloWorld receiver specifically, not all agents
+    assert "Inbox empty" in results[0]
