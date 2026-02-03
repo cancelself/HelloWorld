@@ -334,8 +334,24 @@ class Dispatcher:
         if isinstance(node, HeadingNode):
             self._trace(f"HeadingNode(level={node.level}, name={node.name})")
             return self._handle_heading(node)
+        if isinstance(node, SymbolNode):
+            return self._handle_bare_symbol(node)
         if isinstance(node, DescriptionNode):
             return None  # standalone descriptions are no-ops
+        return None
+
+    def _handle_bare_symbol(self, node: SymbolNode) -> Optional[str]:
+        """Handle a bare #Symbol at the top level.
+
+        #ReceiverName → ReceiverName # (the symbol yields the vocabulary).
+        The language naming itself shows you what it is.
+        """
+        # Strip # to get potential receiver name
+        name = node.name.lstrip("#")
+        if name in self.registry:
+            self._trace(f"SymbolNode({node.name}) -> VocabularyQuery({name})")
+            receiver = self.registry[name]
+            return str(receiver)
         return None
 
     def _handle_heading(self, node: HeadingNode) -> Optional[str]:
@@ -458,6 +474,9 @@ class Dispatcher:
         if node.message == "receive" and receiver_name in self.agents:
             return self._handle_receive(receiver_name, receiver)
 
+        if node.message == "run" and receiver_name == "HelloWorld":
+            return self._handle_run()
+
         if node.is_super:
             # Unary super: invoke through ancestor's meaning
             ancestor = receiver._find_in_chain(symbol_name)
@@ -572,12 +591,21 @@ class Dispatcher:
 
         return "\n".join(lines)
 
-    def _handle_run(self, agent_name: str) -> str:
-        """Handle `HelloWorld run: Agent` — keep calling receive until inbox is empty.
+    def _handle_run(self, agent_name: str = None) -> str:
+        """Handle `HelloWorld run: Agent` or `HelloWorld run` (all agents).
 
-        The protocol running the agent. HelloWorld owns the loop,
-        the agent owns the interpretation.
+        HelloWorld run: Claude  — run one agent until inbox empty.
+        HelloWorld run: #HelloWorld — run all agents.
+        HelloWorld run            — run all agents.
         """
+        # Run all agents when no specific agent or #HelloWorld
+        if agent_name is None or agent_name.lstrip("#") == "HelloWorld":
+            return self._handle_run_all()
+
+        return self._handle_run_one(agent_name)
+
+    def _handle_run_one(self, agent_name: str) -> str:
+        """Run one agent until inbox is empty."""
         receiver = self._get_or_create_receiver(agent_name)
         processed = 0
         all_lines = []
@@ -595,6 +623,29 @@ class Dispatcher:
             return f"[{agent_name}] Inbox empty. Nothing to receive."
 
         all_lines.append(f"[{agent_name}] Processed {processed} message(s).")
+        return "\n".join(all_lines)
+
+    def _handle_run_all(self) -> str:
+        """Run all agents. The protocol running the whole system."""
+        all_lines = []
+        total = 0
+
+        for agent_name in sorted(self.agents):
+            result = self._handle_run_one(agent_name)
+            if "Nothing to receive" not in result:
+                all_lines.append(result)
+                # Count messages from the result
+                for line in result.split("\n"):
+                    if "Processed" in line and "message(s)" in line:
+                        import re
+                        m = re.search(r"Processed (\d+)", line)
+                        if m:
+                            total += int(m.group(1))
+
+        if total == 0:
+            return "[HelloWorld] All inboxes empty. Nothing to receive."
+
+        all_lines.append(f"[HelloWorld] Processed {total} message(s) across all agents.")
         return "\n".join(all_lines)
 
     def _structural_interpret(
