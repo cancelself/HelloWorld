@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 import pytest
 from message_handlers import MessageHandler, MessageHandlerRegistry
 from ast_nodes import MessageNode, ReceiverNode, SymbolNode, LiteralNode
+from conftest import hw_symbols, any_native_symbol
 
 
 def test_message_handler_pattern_matching():
@@ -167,12 +168,13 @@ def test_vocabulary_aware_handler():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    codex = Receiver("Codex", {"#execute", "#analyze", "#parse", "#runtime", "#Collision"})
+    codex = Receiver("Codex", hw_symbols("Codex"))
+    native_sym = any_native_symbol("Codex")
 
     # observe: with native symbol
     message = MessageNode(
         receiver=ReceiverNode("Codex"),
-        arguments={"observe": SymbolNode("#execute")}
+        arguments={"observe": SymbolNode(native_sym)}
     )
     result = registry.handle("Codex", message, receiver=codex)
     assert "native" in result
@@ -191,14 +193,15 @@ def test_observe_handler_native():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    codex = Receiver("Codex", {"#execute", "#analyze", "#parse", "#runtime", "#Collision"})
+    codex = Receiver("Codex", hw_symbols("Codex"))
+    native_sym = any_native_symbol("Codex")
 
     message = MessageNode(
         receiver=ReceiverNode("Codex"),
-        arguments={"observe": SymbolNode("#execute")}
+        arguments={"observe": SymbolNode(native_sym)}
     )
     result = registry.handle("Codex", message, receiver=codex)
-    assert "Codex observes #execute" in result
+    assert f"Codex observes {native_sym}" in result
     assert "native" in result
 
 
@@ -207,8 +210,8 @@ def test_observe_handler_inherited():
     from dispatcher import Receiver
 
     # Build a mini parent chain: Codex → Agent (holds #observe)
-    agent = Receiver("Agent", {"#observe", "#act"})
-    codex = Receiver("Codex", {"#execute", "#analyze"}, parent=agent)
+    agent = Receiver("Agent", hw_symbols("Agent"))
+    codex = Receiver("Codex", hw_symbols("Codex"), parent=agent)
 
     registry = MessageHandlerRegistry()
 
@@ -226,7 +229,7 @@ def test_observe_handler_collision():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    codex = Receiver("Codex", {"#execute", "#analyze"})
+    codex = Receiver("Codex", hw_symbols("Codex"))
 
     message = MessageNode(
         receiver=ReceiverNode("Codex"),
@@ -242,14 +245,15 @@ def test_act_handler_native():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    claude = Receiver("Claude", {"#parse", "#dispatch", "#State", "#Collision"})
+    claude = Receiver("Claude", hw_symbols("Claude"))
+    native_sym = any_native_symbol("Claude")
 
     message = MessageNode(
         receiver=ReceiverNode("Claude"),
-        arguments={"act": SymbolNode("#dispatch")}
+        arguments={"act": SymbolNode(native_sym)}
     )
     result = registry.handle("Claude", message, receiver=claude)
-    assert "Claude acts on #dispatch" in result
+    assert f"Claude acts on {native_sym}" in result
     assert "authority" in result
 
 
@@ -258,7 +262,7 @@ def test_act_handler_collision():
     from dispatcher import Receiver
 
     registry = MessageHandlerRegistry()
-    claude = Receiver("Claude", {"#parse", "#dispatch"})
+    claude = Receiver("Claude", hw_symbols("Claude"))
 
     message = MessageNode(
         receiver=ReceiverNode("Claude"),

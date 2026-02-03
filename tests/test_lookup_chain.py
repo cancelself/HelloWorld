@@ -7,22 +7,24 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from dispatcher import Dispatcher, LookupOutcome, LookupResult
+from conftest import hw_symbols, any_native_symbol, exclusive_native_symbol
 
 
 def test_lookup_native_symbol():
     """Test lookup returns NATIVE for locally-held symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
+    native_sym = any_native_symbol("Codex")
 
-    result = receiver.lookup("#execute")
+    result = receiver.lookup(native_sym)
 
     assert result.outcome == LookupOutcome.NATIVE
-    assert result.symbol == "#execute"
+    assert result.symbol == native_sym
     assert result.receiver_name == "Codex"
     assert result.is_native()
     assert not result.is_inherited()
     assert not result.is_unknown()
-    assert "#execute" in result.context["local_vocabulary"]
+    assert native_sym in result.context["local_vocabulary"]
 
 
 def test_lookup_inherited_symbol():
@@ -87,9 +89,10 @@ def test_lookup_unknown_symbol():
 def test_scoped_lookup_uses_parent_chain():
     """Test _handle_scoped_lookup returns inherited for parent chain symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
+    native_sym = any_native_symbol("Codex")
 
     # Native symbol
-    result = dispatcher.dispatch_source("Codex #execute")
+    result = dispatcher.dispatch_source(f"Codex {native_sym}")
     assert len(result) == 1
     assert "native" in result[0]
 
@@ -151,11 +154,12 @@ def test_lookup_preserves_context():
     """Test LookupResult preserves context for interpretation."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Claude"]
+    native_sym = any_native_symbol("Claude")
 
     # Native lookup includes local vocabulary
-    native_result = receiver.lookup("#parse")
+    native_result = receiver.lookup(native_sym)
     assert native_result.is_native()
-    assert "#parse" in native_result.context["local_vocabulary"]
+    assert native_sym in native_result.context["local_vocabulary"]
 
     # Inherited lookup includes defined_in ancestor
     inherited_result = receiver.lookup("#Object")

@@ -474,8 +474,10 @@ class Dispatcher:
         if node.message == "receive":
             return self._handle_receive(receiver_name, receiver)
 
-        if node.message == "run" and receiver_name == "HelloWorld":
-            return self._handle_run()
+        if node.message == "run":
+            if receiver_name == "HelloWorld":
+                return self._handle_run()
+            return self._handle_run_one(receiver_name)
 
         if node.message == "chain":
             chain = receiver.chain()

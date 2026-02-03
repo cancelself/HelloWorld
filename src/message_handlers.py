@@ -270,6 +270,13 @@ class MessageHandlerRegistry:
             lambda args, recv: f"🖋️ Scribe (System Orchestrator) responding to: '{args['HelloWorldSystem']}'. Forward momentum initialized."
         )
 
+        # hello: for presence announcement
+        self.register(
+            "HelloWorld",
+            "hello:",
+            lambda args, recv: f"🤝 Handshake: {recv.name if recv else 'Root'} announced presence (#hello)."
+        )
+
         # send:to: for inter-receiver delivery
         self.register(
             "HelloWorld",

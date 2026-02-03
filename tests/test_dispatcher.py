@@ -8,6 +8,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from parser import Parser
 from dispatcher import Dispatcher
+from conftest import (
+    hw_symbols, any_native_symbol, shared_native_symbol, exclusive_native_symbol,
+)
 
 
 def _fresh_dispatcher_with_dir():
@@ -27,31 +30,34 @@ def _fresh_dispatcher():
 def test_dispatcher_bootstrap():
     dispatcher = _fresh_dispatcher()
     assert "Codex" in dispatcher.registry
-    assert "#execute" in dispatcher.registry["Codex"].vocabulary
+    assert hw_symbols("Codex") <= dispatcher.registry["Codex"].vocabulary
     assert "Copilot" in dispatcher.registry
     assert "Claude" in dispatcher.registry
 
 
 def test_dispatch_query():
     dispatcher = _fresh_dispatcher()
+    native_sym = any_native_symbol("Codex")
     stmts = Parser.from_source("Codex").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "Codex" in results[0]
-    assert "#execute" in results[0]
+    assert native_sym in results[0]
 
 
 def test_dispatch_query_explicit():
     dispatcher = _fresh_dispatcher()
+    native_sym = any_native_symbol("Codex")
     stmts = Parser.from_source("Codex #").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "#execute" in results[0]
+    assert native_sym in results[0]
 
 
 def test_dispatch_scoped_lookup_native():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Codex #execute").parse()
+    native_sym = any_native_symbol("Codex")
+    stmts = Parser.from_source(f"Codex {native_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -59,7 +65,8 @@ def test_dispatch_scoped_lookup_native():
 
 def test_dispatch_scoped_lookup_foreign():
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Copilot #execute").parse()
+    foreign_sym = exclusive_native_symbol("Codex", "Copilot")
+    stmts = Parser.from_source(f"Copilot {foreign_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "unknown" in results[0] or "research" in results[0]
@@ -128,9 +135,10 @@ def test_dispatch_bootstrap_hw():
 
 
 def test_dispatch_meta_receiver():
-    """Claude #parse is native to Claude (defined in Claude.hw)."""
+    """A native Claude symbol is native to Claude (defined in Claude.hw)."""
     dispatcher = _fresh_dispatcher()
-    stmts = Parser.from_source("Claude #parse").parse()
+    native_sym = any_native_symbol("Claude")
+    stmts = Parser.from_source(f"Claude {native_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -153,10 +161,9 @@ def test_root_receiver_bootstrap():
     assert "HelloWorld" in dispatcher.registry
     # Self-hosting: HelloWorld.hw now defines all global symbols
     root = dispatcher.registry["HelloWorld"]
-    assert len(root.vocabulary) >= 3  # core symbols from HelloWorld.hw
-    assert "#" in root.vocabulary
-    assert "#Object" in root.vocabulary
-    assert "#Agent" in root.vocabulary
+    hw_syms = hw_symbols("HelloWorld")
+    assert len(root.vocabulary) >= len(hw_syms)
+    assert hw_syms <= root.vocabulary
 
 
 def test_dispatch_root_lookup_sequence():
@@ -237,9 +244,10 @@ def test_root_vocab_query():
 
 def test_collision_for_non_global():
     dispatcher = _fresh_dispatcher()
-    # #execute is native to Codex, not to Copilot, and not global
+    # A symbol native to Codex but not to Copilot, and not global
     # This is "unknown" — Copilot doesn't have it
-    stmts = Parser.from_source("Copilot #execute").parse()
+    foreign_sym = exclusive_native_symbol("Codex", "Copilot")
+    stmts = Parser.from_source(f"Copilot {foreign_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "unknown" in results[0]
@@ -252,8 +260,10 @@ def test_save_persists_local_only():
     path = Path(tmpdir) / "Codex.hw"
     assert path.exists()
     content = path.read_text()
-    # #execute is local — appears as ## heading in .hw file
-    assert "execute" in content
+    # Native symbols appear as ## headings in .hw file
+    native_sym = any_native_symbol("Codex")
+    bare_name = native_sym.lstrip("#")
+    assert bare_name in content
     # #Object is inherited (global), should NOT be persisted
     assert "Object" not in content
 
@@ -335,8 +345,8 @@ def test_cross_receiver_send_native():
     """Verify send:to: with a symbol both receivers hold natively triggers collision."""
     dispatcher = _fresh_dispatcher()
 
-    # #parse is native to both Claude and Codex — TRUE COLLISION
-    results = dispatcher.dispatch_source("Claude send: #parse to: Codex")
+    shared_sym = shared_native_symbol("Claude", "Codex")
+    results = dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Codex")
     assert len(results) == 1
     assert "COLLISION" in results[0]
     assert "Claude" in results[0] and "Codex" in results[0]
@@ -355,23 +365,24 @@ def test_cross_receiver_send_inherited():
 def test_collision_synthesis_both_native():
     """TRUE COLLISION: both receivers hold the symbol natively.
 
-    Claude send: #parse to: Codex → both native, meanings diverge → synthesis.
+    Both native, meanings diverge → synthesis.
     Without LLM, synthesis falls back to structural detection.
     """
     dispatcher = _fresh_dispatcher()
+    shared_sym = shared_native_symbol("Claude", "Codex")
 
-    # Verify both receivers hold #parse natively
-    assert dispatcher.registry["Claude"].is_native("#parse")
-    assert dispatcher.registry["Codex"].is_native("#parse")
+    # Verify both receivers hold the symbol natively
+    assert dispatcher.registry["Claude"].is_native(shared_sym)
+    assert dispatcher.registry["Codex"].is_native(shared_sym)
 
-    results = dispatcher.dispatch_source("Claude send: #parse to: Codex")
+    results = dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Codex")
     assert len(results) == 1
     result = results[0]
 
     # Must detect the collision
     assert "COLLISION" in result
     assert "Claude" in result and "Codex" in result
-    assert "#parse" in result
+    assert shared_sym in result
 
     # Must present both vocabularies
     assert "vocabulary" in result.lower()
@@ -387,11 +398,11 @@ def test_collision_synthesis_with_llm():
     from llm import GeminiModel
     dispatcher.llm = GeminiModel()
 
-    # Both hold #parse natively
-    assert dispatcher.registry["Claude"].is_native("#parse")
-    assert dispatcher.registry["Gemini"].is_native("#parse")
+    shared_sym = shared_native_symbol("Claude", "Gemini")
+    assert dispatcher.registry["Claude"].is_native(shared_sym)
+    assert dispatcher.registry["Gemini"].is_native(shared_sym)
 
-    results = dispatcher.dispatch_source("Claude send: #parse to: Gemini")
+    results = dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Gemini")
     assert len(results) == 1
     result = results[0]
 
@@ -402,17 +413,18 @@ def test_collision_synthesis_with_llm():
 def test_no_collision_when_only_sender_native():
     """FOREIGN: only the sender holds the symbol — this is learning, not collision.
 
-    Codex send: #execute to: Copilot → only Codex has it → Copilot learns.
+    Sender has the symbol, target doesn't → target learns.
     """
     dispatcher = _fresh_dispatcher()
+    exclusive_sym = exclusive_native_symbol("Codex", "Copilot")
 
     codex = dispatcher.registry["Codex"]
     copilot = dispatcher.registry["Copilot"]
 
-    assert codex.is_native("#execute")
-    assert not copilot.is_native("#execute")
+    assert codex.is_native(exclusive_sym)
+    assert not copilot.is_native(exclusive_sym)
 
-    results = dispatcher.dispatch_source("Codex send: #execute to: Copilot")
+    results = dispatcher.dispatch_source(f"Codex send: {exclusive_sym} to: Copilot")
     assert len(results) == 1
     result = results[0]
 
@@ -420,26 +432,27 @@ def test_no_collision_when_only_sender_native():
     assert "COLLISION: both" not in result
     # Copilot should learn the symbol
     assert "foreign" in result or "learns" in result
-    assert copilot.is_native("#execute")
+    assert copilot.is_native(exclusive_sym)
 
 
 def test_collision_logs_event():
     """Verify collision is logged with context."""
     dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    shared_sym = shared_native_symbol("Claude", "Codex")
 
     # Clear collision log
     log_path = Path(dispatcher.log_file)
     if log_path.exists():
         log_path.unlink()
 
-    # Both hold #parse natively → collision
-    dispatcher.dispatch_source("Claude send: #parse to: Codex")
+    # Both hold the symbol natively → collision
+    dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Codex")
 
     assert log_path.exists()
     log_text = log_path.read_text()
     assert "COLLISION" in log_text
     assert "Codex" in log_text
-    assert "#parse" in log_text
+    assert shared_sym in log_text
 
 
 def test_bootstrap_from_markdown():
@@ -448,9 +461,7 @@ def test_bootstrap_from_markdown():
     # Claude.hw is in Markdown format — should bootstrap correctly
     assert "Claude" in dispatcher.registry
     claude = dispatcher.registry["Claude"]
-    assert "#parse" in claude.vocabulary
-    assert "#synthesize" in claude.vocabulary
-    assert "#vocabulary" in claude.vocabulary
+    assert hw_symbols("Claude") <= claude.vocabulary
 
 
 def test_markdown_receiver_definition():
@@ -470,10 +481,9 @@ def test_markdown_self_hosting():
     hw_path = Path(__file__).parent.parent / "vocabularies" / "HelloWorld.hw"
     results = dispatcher.dispatch_source(hw_path.read_text())
     hw = dispatcher.registry["HelloWorld"]
-    assert "#" in hw.vocabulary
-    assert "#Object" in hw.vocabulary
-    assert "#Agent" in hw.vocabulary
-    assert len(hw.vocabulary) >= 3  # core symbols from HelloWorld.hw
+    hw_syms = hw_symbols("HelloWorld")
+    assert hw_syms <= hw.vocabulary
+    assert len(hw.vocabulary) >= len(hw_syms)
 
 
 def test_markdown_and_smalltalk_bootstrap():
@@ -499,9 +509,7 @@ def test_markdown_hw_receiver_added():
     dispatcher = _fresh_dispatcher()
     assert "Markdown" in dispatcher.registry
     md = dispatcher.registry["Markdown"]
-    assert "#heading" in md.vocabulary
-    assert "#list" in md.vocabulary
-    assert "#comment" in md.vocabulary
+    assert hw_symbols("Markdown") <= md.vocabulary
 
 
 def test_parent_chain_bootstrap():
