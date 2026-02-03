@@ -103,10 +103,10 @@ def test_dispatch_message():
 
 def test_dispatch_message_learning():
     dispatcher = _fresh_dispatcher()
-    source = "Codex analyze: #Sunyata"
+    source = "Codex analyze: #unknownSymbol"
     stmts = Parser.from_source(source).parse()
     dispatcher.dispatch(stmts)
-    assert "#Sunyata" in dispatcher.registry["Codex"].vocabulary
+    assert "#unknownSymbol" in dispatcher.registry["Codex"].vocabulary
 
 
 def test_dispatch_unknown_receiver():
