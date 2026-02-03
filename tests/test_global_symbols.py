@@ -10,6 +10,7 @@ from global_symbols import (
     GlobalVocabulary, GlobalSymbol, GLOBAL_SYMBOLS,
     _load_from_hw, _parse_description, _fallback_symbols, reload_symbols,
 )
+from conftest import hw_symbols
 
 
 class TestHWLoading:
@@ -17,7 +18,10 @@ class TestHWLoading:
 
     def test_symbols_loaded_from_hw(self):
         """GLOBAL_SYMBOLS should contain all symbols defined in HelloWorld.hw."""
-        assert len(GLOBAL_SYMBOLS) >= 3, f"Expected >=3 symbols, got {len(GLOBAL_SYMBOLS)}"
+        hw_syms = hw_symbols("HelloWorld")
+        assert len(GLOBAL_SYMBOLS) >= len(hw_syms), (
+            f"Expected >={len(hw_syms)} symbols, got {len(GLOBAL_SYMBOLS)}"
+        )
 
     def test_root_symbol_present(self):
         """The # symbol (bare hash) should be loaded."""
@@ -28,9 +32,9 @@ class TestHWLoading:
         assert "#HelloWorld" in GLOBAL_SYMBOLS
 
     def test_all_expected_symbols_present(self):
-        """All root symbols from HelloWorld.hw are present."""
-        expected = ["#", "#HelloWorld", "#Object", "#Agent"]
-        for sym in expected:
+        """All symbols from HelloWorld.hw are present in GLOBAL_SYMBOLS."""
+        hw_syms = hw_symbols("HelloWorld")
+        for sym in hw_syms:
             assert sym in GLOBAL_SYMBOLS, f"Missing symbol: {sym}"
 
 
