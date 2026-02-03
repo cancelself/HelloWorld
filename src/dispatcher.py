@@ -373,9 +373,6 @@ class Dispatcher:
                 self.save() # Sync local state to disk
                 return "HelloWorld #observe → Handshake successful. All agents: sync the tree, sync the messagebus and read them both."
 
-            if symbol_name == "#HelloWorld":
-                return "HelloWorld #HelloWorld → Hello MCP World! The Model Context Protocol is grounded and the registry is live."
-
             if symbol_name == "#State":
                 # System-wide state summary
                 lines = ["HelloWorld #State → The current state of the distributed registry:"]
@@ -458,8 +455,8 @@ class Dispatcher:
         symbol_name = f"#{node.message}"
         lookup = receiver.lookup(symbol_name)
 
-        if node.message == "simulate":
-            return self._handle_simulate(receiver_name, receiver)
+        if node.message == "receive" and receiver_name in self.agents:
+            return self._handle_receive(receiver_name, receiver)
 
         if node.is_super:
             # Unary super: invoke through ancestor's meaning
@@ -520,73 +517,85 @@ class Dispatcher:
                 f"cannot act on what is not in the vocabulary."
             )
 
-    def _handle_simulate(self, receiver_name: str, receiver) -> str:
-        """Handle `Agent simulate` — process all pending inbox messages through identity.
+    def _handle_receive(self, receiver_name: str, receiver) -> str:
+        """Handle `Agent receive` — pull one message, interpret through identity, respond.
 
-        OODA loop made executable:
-        - #observe: read each message from inbox
-        - #orient: load identity + vocabulary
-        - #act: interpret via LLM (or structural fallback), send response back
+        Receiving is hearing through who you are.
         """
         identity = self.vocab_manager.load_identity(receiver_name)
         local_vocab = sorted(receiver.local_vocabulary)
-        processed = 0
+
+        msg = message_bus.receive(receiver_name)
+        if msg is None:
+            return f"[{receiver_name}] Inbox empty."
+
+        # Skip self-messages
+        if msg.sender == receiver_name:
+            return f"[{receiver_name}] Skipped self-message."
+
         lines = []
 
+        # #observe
+        lines.append(
+            f"[{receiver_name} #observe] Message from {msg.sender}: "
+            f"\"{msg.content[:120]}\""
+        )
+
+        # #orient
+        lines.append(
+            f"[{receiver_name} #orient] Identity: "
+            f"{(identity or 'none')[:60]}... Vocabulary: {local_vocab}"
+        )
+
+        # #act — LLM interpretation or structural fallback
+        response_text = None
+        if self.llm:
+            prompt = simulate_prompt(
+                receiver_name, identity, local_vocab,
+                msg.sender, msg.content,
+            )
+            try:
+                response_text = self.llm.call(prompt)
+            except Exception:
+                pass
+
+        if response_text is None:
+            response_text = self._structural_interpret(
+                receiver_name, receiver, identity, local_vocab, msg.content,
+            )
+
+        lines.append(f"[{receiver_name} #act] {response_text}")
+
+        # Send response back to sender
+        message_bus.send(receiver_name, msg.sender, response_text)
+        lines.append(f"  -> Sent response to {msg.sender}")
+
+        return "\n".join(lines)
+
+    def _handle_run(self, agent_name: str) -> str:
+        """Handle `HelloWorld run: Agent` — keep calling receive until inbox is empty.
+
+        The protocol running the agent. HelloWorld owns the loop,
+        the agent owns the interpretation.
+        """
+        receiver = self._get_or_create_receiver(agent_name)
+        processed = 0
+        all_lines = []
+
         while True:
-            msg = message_bus.receive(receiver_name)
-            if msg is None:
+            result = self._handle_receive(agent_name, receiver)
+            if "Inbox empty" in result:
                 break
-
-            # Skip self-messages to avoid loops
-            if msg.sender == receiver_name:
+            if "Skipped self-message" in result:
                 continue
-
             processed += 1
-
-            # #observe
-            lines.append(
-                f"[{receiver_name} #observe] Message from {msg.sender}: "
-                f"\"{msg.content[:120]}\""
-            )
-
-            # #orient
-            lines.append(
-                f"[{receiver_name} #orient] Identity: "
-                f"{(identity or 'none')[:60]}... Vocabulary: {local_vocab}"
-            )
-
-            # #act — LLM interpretation or structural fallback
-            response_text = None
-            if self.llm:
-                prompt = simulate_prompt(
-                    receiver_name, identity, local_vocab,
-                    msg.sender, msg.content,
-                )
-                try:
-                    response_text = self.llm.call(prompt)
-                except Exception:
-                    pass
-
-            if response_text is None:
-                response_text = self._structural_interpret(
-                    receiver_name, receiver, identity, local_vocab, msg.content,
-                )
-
-            lines.append(f"[{receiver_name} #act] {response_text}")
-
-            # Send response back to sender
-            message_bus.send(receiver_name, msg.sender, response_text)
-            lines.append(f"  -> Sent response to {msg.sender}")
+            all_lines.append(result)
 
         if processed == 0:
-            return f"[{receiver_name} #observe] Inbox empty. Nothing to simulate."
+            return f"[{agent_name}] Inbox empty. Nothing to receive."
 
-        lines.append(
-            f"[{receiver_name} #observe] Inbox empty. "
-            f"Processed {processed} message(s)."
-        )
-        return "\n".join(lines)
+        all_lines.append(f"[{agent_name}] Processed {processed} message(s).")
+        return "\n".join(all_lines)
 
     def _structural_interpret(
         self,
@@ -812,6 +821,12 @@ class Dispatcher:
             if root_response:
                 print(root_response)
             return self._handle_cross_receiver_send(receiver_name, receiver, node)
+
+        # HelloWorld run: Agent — the protocol running the agent
+        if receiver_name == "HelloWorld" and keywords == ["run"]:
+            agent_val = node.arguments.get("run")
+            agent_name = agent_val.name if hasattr(agent_val, 'name') else str(agent_val)
+            return self._handle_run(agent_name)
 
         # SEMANTIC LAYER: Try registered message handlers first for ALL receivers
         handler_response = self.message_handler_registry.handle(receiver_name, node, receiver)
