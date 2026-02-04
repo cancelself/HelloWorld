@@ -13,14 +13,14 @@ from conftest import hw_symbols, any_native_symbol, exclusive_native_symbol
 def test_lookup_native_symbol():
     """Test lookup returns NATIVE for locally-held symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    receiver = dispatcher.registry["Codex"]
-    native_sym = any_native_symbol("Codex")
+    receiver = dispatcher.registry["Agent"]
+    native_sym = any_native_symbol("Agent")
 
     result = receiver.lookup(native_sym)
 
     assert result.outcome == LookupOutcome.NATIVE
     assert result.symbol == native_sym
-    assert result.receiver_name == "Codex"
+    assert result.receiver_name == "Agent"
     assert result.is_native()
     assert not result.is_inherited()
     assert not result.is_unknown()
@@ -32,18 +32,18 @@ def test_lookup_inherited_symbol():
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
 
-    # #Object is in HelloWorld (root), inherited via Codex → Agent → Object → HelloWorld
-    result = receiver.lookup("#Object")
+    # #synthesize is in Object, inherited via Codex → Agent → Object
+    result = receiver.lookup("#synthesize")
 
     assert result.outcome == LookupOutcome.INHERITED
-    assert result.symbol == "#Object"
+    assert result.symbol == "#synthesize"
     assert result.receiver_name == "Codex"
     assert result.is_inherited()
     assert result.is_inherited()
     assert not result.is_native()
     assert not result.is_unknown()
     assert "defined_in" in result.context
-    assert result.context["defined_in"] == "HelloWorld"
+    assert result.context["defined_in"] == "Object"
 
 
 def test_lookup_inherited_from_agent():
@@ -89,20 +89,20 @@ def test_lookup_unknown_symbol():
 def test_scoped_lookup_uses_parent_chain():
     """Test _handle_scoped_lookup returns inherited for parent chain symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    native_sym = any_native_symbol("Codex")
+    native_sym = any_native_symbol("Agent")
 
-    # Native symbol
-    result = dispatcher.dispatch_source(f"Codex {native_sym}")
+    # Native symbol on the receiver that owns it
+    result = dispatcher.dispatch_source(f"Agent {native_sym}")
     assert len(result) == 1
     assert "native" in result[0]
 
     # Inherited symbol — stays inherited, no promotion
     codex = dispatcher.registry["Codex"]
-    assert codex.is_inherited("#Object")
-    result = dispatcher.dispatch_source("Codex #Object")
+    assert codex.is_inherited("#synthesize")
+    result = dispatcher.dispatch_source("Codex #synthesize")
     assert len(result) == 1
     assert "inherited" in result[0]
-    assert "#Object" not in codex.vocabulary  # Not promoted to local
+    assert "#synthesize" not in codex.vocabulary  # Not promoted to local
 
     # Unknown symbol
     result = dispatcher.dispatch_source("Codex #newSymbol")
@@ -153,8 +153,8 @@ def test_manual_symbol_addition():
 def test_lookup_preserves_context():
     """Test LookupResult preserves context for interpretation."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
-    receiver = dispatcher.registry["Claude"]
-    native_sym = any_native_symbol("Claude")
+    receiver = dispatcher.registry["Agent"]
+    native_sym = any_native_symbol("Agent")
 
     # Native lookup includes local vocabulary
     native_result = receiver.lookup(native_sym)
@@ -162,10 +162,10 @@ def test_lookup_preserves_context():
     assert native_sym in native_result.context["local_vocabulary"]
 
     # Inherited lookup includes defined_in ancestor
-    inherited_result = receiver.lookup("#Object")
+    inherited_result = receiver.lookup("#synthesize")
     assert inherited_result.is_inherited()
     assert "defined_in" in inherited_result.context
-    assert inherited_result.context["defined_in"] == "HelloWorld"
+    assert inherited_result.context["defined_in"] == "Object"
 
     # Unknown lookup includes local vocabulary for research context
     unknown_result = receiver.lookup("#brandNewSymbol")
@@ -179,7 +179,7 @@ def test_receiver_chain():
 
     assert dispatcher.registry["Claude"].chain() == ["Claude", "Agent", "Object", "HelloWorld"]
     assert dispatcher.registry["Codex"].chain() == ["Codex", "Agent", "Object", "HelloWorld"]
-    assert dispatcher.registry["Markdown"].chain() == ["Markdown", "Object", "HelloWorld"]
+    assert dispatcher.registry["Object"].chain() == ["Object", "HelloWorld"]
     assert dispatcher.registry["HelloWorld"].chain() == ["HelloWorld"]
 
 

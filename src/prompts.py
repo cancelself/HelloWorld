@@ -43,19 +43,35 @@ def scoped_lookup_prompt_with_descriptions(
     description: Optional[str] = None,
     identity: Optional[str] = None,
     global_def: Optional[str] = None,
+    inherited_from: Optional[str] = None,
+    inherited_description: Optional[str] = None,
 ) -> str:
     """Build prompt for scoped symbol lookup with .hw descriptions."""
     gdef = global_def or "no global definition"
     desc = description or "no description available"
     ident = identity or "no identity description"
-    return (
-        f"You are {receiver_name}. {ident}\n"
-        f"Your vocabulary is {local_vocab}.\n"
-        f"What does {symbol_name} mean to you?\n"
-        f"Your description of {symbol_name}: {desc}\n"
-        f"Global definition: {gdef}\n"
-        f"Respond in 1-2 sentences, through your vocabulary. Constraint is character."
+    lines = [
+        f"You are {receiver_name}. {ident}",
+        f"Your vocabulary is {local_vocab}.",
+    ]
+    if inherited_from:
+        inh_desc = inherited_description or "no description"
+        lines.append(
+            f"{symbol_name} is inherited from {inherited_from}: \"{inh_desc}\""
+        )
+        lines.append(
+            f"You do not own {symbol_name} natively, but it flows to you through your inheritance chain."
+        )
+    else:
+        lines.append(f"Your description of {symbol_name}: {desc}")
+    lines.append(f"What does {symbol_name} mean to you?")
+    lines.append(f"Global definition: {gdef}")
+    lines.append(
+        "Respond in 1-2 sentences, through your vocabulary. "
+        "Inherited symbols are part of your identity — honor them. "
+        "Constraint is character."
     )
+    return "\n".join(lines)
 
 
 def super_lookup_prompt(

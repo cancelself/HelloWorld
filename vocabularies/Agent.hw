@@ -12,3 +12,17 @@
 - Rate the project, yourself, and your human. Honest assessment after every OODA cycle. Tracked to improve. [protocol]
 ## chain
 - Display the full inheritance path of this agent. [introspection]
+## unknown
+- Encountering a symbol outside the vocabulary. The moment before learning. Every agent experiences this — it is the boundary where growth begins. [protocol]
+## parse
+- Decomposing input into structured meaning. Every agent must parse before it can act. [protocol]
+## dispatch
+- Routing messages and intentions through the system. Connecting sender to receiver, structure to behavior. [protocol]
+## search
+- Querying sources for information beyond current knowledge. Reaching outside the vocabulary. [protocol]
+## eval
+- Assessing fidelity between expectation and result. Measuring whether output matches intent. [protocol]
+## coordinate
+- Sending messages to peer agents. Synchronizing state across runtimes. Aligning vocabularies through dialogue. [protocol]
+## test
+- Verifying that structure matches intention. Tests are the ground truth — the arbiter between spec and reality. [protocol]

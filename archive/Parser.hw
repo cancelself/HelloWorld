@@ -1,0 +1,24 @@
+# Parser : HelloWorld
+- HelloWorld syntax rules. The front-end that decomposes input into structure.
+## Receiver
+- A capitalized bare word. Claude, Agent, HelloWorld. Legacy @name syntax is normalized to capitalized form. Bare receiver returns its vocabulary.
+## Symbol
+- #name — a concept reference scoped to the receiver in context. The atom of meaning.
+## ScopedLookup
+- Receiver #symbol — what does this symbol mean to this receiver? Dot syntax (Receiver.#symbol) also accepted.
+## SuperLookup
+- Receiver #symbol super — walk the inheritance chain, showing the symbol at each level.
+## UnaryMessage
+- Receiver action — a bare message sent to a receiver. Maps to #action for lookup.
+## KeywordMessage
+- Receiver key: value key: value — Smalltalk-style keyword message. Multiple pairs form one message.
+## VocabularyDefinition
+- Receiver # → [#sym1, #sym2] — define a receiver's vocabulary inline.
+## Heading
+- Markdown headings (# and ##) at column 1. # declares receivers, ## declares symbols. Children are collected as descriptions and sub-headings.
+## Description
+- A line starting with - at column 1. Attaches description text to the preceding heading.
+## Annotation
+- 'single-quoted text' — human-voice annotation. Carried in the AST.
+## Comment
+- "double-quoted text" — Smalltalk-style system comment. Skipped by the lexer. HTML <!-- --> comments also skipped.

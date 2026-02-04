@@ -252,10 +252,13 @@ def test_collision_sends_vocabulary_prompt():
     mock_llm.call.return_value = "mocked collision synthesis"
     dispatcher.llm = mock_llm
 
-    dispatcher.dispatch_source("Claude send: #parse to: Codex")
+    # Create test receivers that share a native symbol for collision
+    dispatcher.dispatch_source("CollA # → [#spark, #dark]")
+    dispatcher.dispatch_source("CollB # → [#spark, #glow]")
+    dispatcher.dispatch_source("CollA send: #spark to: CollB")
 
     mock_llm.call.assert_called_once()
     prompt_arg = mock_llm.call.call_args[0][0]
     assert "collision" in prompt_arg.lower()
-    assert "#parse" in prompt_arg
+    assert "#spark" in prompt_arg
     assert "synthesize" in prompt_arg.lower()

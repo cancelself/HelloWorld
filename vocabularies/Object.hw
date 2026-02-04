@@ -1,6 +1,10 @@
 # Object : HelloWorld
-- An entity that holds symbols and responds to messages. The primitive of HelloWorld.
+- An entity that holds symbols and responds to messages.
 ## send
-- Deliver a message to another object's inbox [protocol]
+- Deliver a message to another object's inbox.
 ## receive
-- Check inbox for pending messages [protocol]
+- Pull the next message, interpret it through identity, respond.
+## become
+- Transformation. An object adopting new symbols and shedding old ones. Identity in motion.
+## synthesize
+- Combining observations into coherent understanding. Turning parts into wholes.

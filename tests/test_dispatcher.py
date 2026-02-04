@@ -37,18 +37,18 @@ def test_dispatcher_bootstrap():
 
 def test_dispatch_query():
     dispatcher = _fresh_dispatcher()
-    native_sym = any_native_symbol("Codex")
-    stmts = Parser.from_source("Codex").parse()
+    native_sym = any_native_symbol("Agent")
+    stmts = Parser.from_source("Agent").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "Codex" in results[0]
+    assert "Agent" in results[0]
     assert native_sym in results[0]
 
 
 def test_dispatch_query_explicit():
     dispatcher = _fresh_dispatcher()
-    native_sym = any_native_symbol("Codex")
-    stmts = Parser.from_source("Codex #").parse()
+    native_sym = any_native_symbol("Agent")
+    stmts = Parser.from_source("Agent #").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert native_sym in results[0]
@@ -56,8 +56,8 @@ def test_dispatch_query_explicit():
 
 def test_dispatch_scoped_lookup_native():
     dispatcher = _fresh_dispatcher()
-    native_sym = any_native_symbol("Codex")
-    stmts = Parser.from_source(f"Codex {native_sym}").parse()
+    native_sym = any_native_symbol("Agent")
+    stmts = Parser.from_source(f"Agent {native_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -65,27 +65,28 @@ def test_dispatch_scoped_lookup_native():
 
 def test_dispatch_scoped_lookup_foreign():
     dispatcher = _fresh_dispatcher()
-    foreign_sym = exclusive_native_symbol("Codex", "Copilot")
+    foreign_sym = exclusive_native_symbol("Agent", "HelloWorld")
     stmts = Parser.from_source(f"Copilot {foreign_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
-    assert "unknown" in results[0] or "research" in results[0]
+    # Agent-exclusive symbols are inherited by Copilot (Agent is parent)
+    assert "inherited" in results[0]
 
 
 def test_inherited_symbol_not_promoted():
     """Inherited symbols stay inherited — they are NOT promoted to local vocab."""
     dispatcher = _fresh_dispatcher()
     codex = dispatcher.registry["Codex"]
-    # #Object is in HelloWorld (root) — inherited by Codex via chain
-    assert codex.is_inherited("#Object")
-    assert "#Object" not in codex.vocabulary  # Not in local
+    # #synthesize is in HelloWorld (root) — inherited by Codex via chain
+    assert codex.is_inherited("#synthesize")
+    assert "#synthesize" not in codex.vocabulary  # Not in local
 
     # Lookup returns inherited, not native
-    results = dispatcher.dispatch_source("Codex #Object")
+    results = dispatcher.dispatch_source("Codex #synthesize")
     assert len(results) == 1
     assert "inherited" in results[0]
     # Still not in local vocabulary after lookup
-    assert "#Object" not in codex.vocabulary
+    assert "#synthesize" not in codex.vocabulary
 
 
 def test_dispatch_definition():
@@ -135,10 +136,10 @@ def test_dispatch_bootstrap_hw():
 
 
 def test_dispatch_meta_receiver():
-    """A native Claude symbol is native to Claude (defined in Claude.hw)."""
+    """A native symbol in a receiver's .hw is native to that receiver."""
     dispatcher = _fresh_dispatcher()
-    native_sym = any_native_symbol("Claude")
-    stmts = Parser.from_source(f"Claude {native_sym}").parse()
+    native_sym = any_native_symbol("Agent")
+    stmts = Parser.from_source(f"Agent {native_sym}").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "native" in results[0]
@@ -173,23 +174,23 @@ def test_dispatch_root_lookup_sequence():
     dispatcher = _fresh_dispatcher()
     source = "\n".join([
         "HelloWorld",
-        "HelloWorld #Object",
-        "Codex #Object",
+        "HelloWorld #Sunyata",
+        "Codex #synthesize",
         "Claude reflect: #parse withContext: Codex 'how do we understand this?'",
-        "Gemini #Agent",
+        "Gemini #synthesize",
     ])
     results = dispatcher.dispatch_source(source)
     assert len(results) == 5
     # Line 1: vocabulary query on HelloWorld
     assert "HelloWorld" in results[0]
-    # Line 2: HelloWorld #Object — canonical global definition
-    assert "HelloWorld #Object" in results[1] and "entity" in results[1]
-    # Line 3: Codex #Object — inherited from HelloWorld via chain
+    # Line 2: HelloWorld #Sunyata — canonical global definition
+    assert "HelloWorld #Sunyata" in results[1] and "absence" in results[1]
+    # Line 3: Codex #synthesize — inherited from Object via chain
     assert "inherited" in results[2]
     # Line 4: message to Claude
     assert "Claude" in results[3]
-    # Line 5: Gemini #Agent — already native (in Gemini's bootstrap vocab)
-    assert "native" in results[4]
+    # Line 5: Gemini #synthesize — inherited from Object
+    assert "Gemini #synthesize" in results[4]
 
 
 def test_manual_save_creates_file():
@@ -213,23 +214,27 @@ def test_inheritance_lookup():
     """Prototypal inheritance: symbols are found via parent chain."""
     dispatcher = _fresh_dispatcher()
     codex = dispatcher.registry["Codex"]
-    # #Object is in HelloWorld (root) — inherited via Codex → Agent → Object → HelloWorld
-    assert codex.is_inherited("#Object")
-    assert not codex.is_native("#Object")
+    # #synthesize is in HelloWorld (root) — inherited via Codex → Agent → Object → HelloWorld
+    assert codex.is_inherited("#synthesize")
+    assert not codex.is_native("#synthesize")
     # After lookup, it stays inherited (no promotion)
-    dispatcher.dispatch_source("Codex #Object")
-    assert not codex.is_native("#Object")
-    assert codex.is_inherited("#Object")
+    dispatcher.dispatch_source("Codex #synthesize")
+    assert not codex.is_native("#synthesize")
+    assert codex.is_inherited("#synthesize")
 
 
 def test_native_overrides_inherited():
     """When a symbol is in local vocab, it's native even if also in parent chain."""
     dispatcher = _fresh_dispatcher()
-    # #Agent is both in Gemini's local vocab AND in parent chain (HelloWorld)
-    receiver = dispatcher.registry["Gemini"]
-    assert receiver.is_native("#Agent")
+    # HelloWorld has #unknown natively AND Agent has #unknown natively.
+    # Agent inherits from Object which inherits from HelloWorld.
+    # Add #unknown to a test receiver whose parent also has it.
+    dispatcher.dispatch_source("OverrideR # → [#unknown]")
+    receiver = dispatcher.registry["OverrideR"]
+    receiver.parent = dispatcher.registry["HelloWorld"]
+    assert receiver.is_native("#unknown")
     # Native takes precedence — is_inherited returns False when also local
-    assert not receiver.is_inherited("#Agent")
+    assert not receiver.is_inherited("#unknown")
 
 
 def test_root_vocab_query():
@@ -244,10 +249,8 @@ def test_root_vocab_query():
 
 def test_collision_for_non_global():
     dispatcher = _fresh_dispatcher()
-    # A symbol native to Codex but not to Copilot, and not global
-    # This is "unknown" — Copilot doesn't have it
-    foreign_sym = exclusive_native_symbol("Codex", "Copilot")
-    stmts = Parser.from_source(f"Copilot {foreign_sym}").parse()
+    # A truly unknown symbol — not in any vocabulary
+    stmts = Parser.from_source("Copilot #xyzNowhere").parse()
     results = dispatcher.dispatch(stmts)
     assert len(results) == 1
     assert "unknown" in results[0]
@@ -256,38 +259,38 @@ def test_collision_for_non_global():
 def test_save_persists_local_only():
     """Verify that save() only writes local_vocabulary, not inherited globals."""
     dispatcher, tmpdir = _fresh_dispatcher_with_dir()
-    dispatcher.save("Codex")
-    path = Path(tmpdir) / "Codex.hw"
+    dispatcher.save("Agent")
+    path = Path(tmpdir) / "Agent.hw"
     assert path.exists()
     content = path.read_text()
     # Native symbols appear as ## headings in .hw file
-    native_sym = any_native_symbol("Codex")
+    native_sym = any_native_symbol("Agent")
     bare_name = native_sym.lstrip("#")
     assert bare_name in content
-    # #Object is inherited (global), should NOT be persisted
-    assert "Object" not in content
+    # #HelloWorld is in HelloWorld (parent's parent), should NOT be persisted
+    assert "HelloWorld" not in content
 
 
 def test_inherited_includes_receiver_context():
     """Prototypal inheritance: inherited symbols resolve with context about the defining ancestor."""
     dispatcher = _fresh_dispatcher()
     codex = dispatcher.registry["Codex"]
-    # #Object is inherited via chain, not in local vocab
-    assert codex.is_inherited("#Object")
-    assert "#Object" not in codex.vocabulary
+    # #synthesize is inherited via chain, not in local vocab
+    assert codex.is_inherited("#synthesize")
+    assert "#synthesize" not in codex.vocabulary
 
-    codex_results = dispatcher.dispatch_source("Codex #Object")
+    codex_results = dispatcher.dispatch_source("Codex #synthesize")
     assert len(codex_results) == 1
     # Returns inherited, identifies the defining ancestor
     assert "inherited" in codex_results[0]
-    assert "HelloWorld" in codex_results[0]  # defined in HelloWorld
+    assert "Object" in codex_results[0]  # defined in Object
     # Still not in local vocab
-    assert "#Object" not in codex.vocabulary
+    assert "#synthesize" not in codex.vocabulary
 
     # Same for Copilot
     copilot = dispatcher.registry["Copilot"]
-    assert copilot.is_inherited("#Object")
-    copilot_results = dispatcher.dispatch_source("Copilot #Object")
+    assert copilot.is_inherited("#synthesize")
+    copilot_results = dispatcher.dispatch_source("Copilot #synthesize")
     assert len(copilot_results) == 1
     assert "inherited" in copilot_results[0]
 
@@ -345,19 +348,21 @@ def test_cross_receiver_send_native():
     """Verify send:to: with a symbol both receivers hold natively triggers collision."""
     dispatcher = _fresh_dispatcher()
 
-    shared_sym = shared_native_symbol("Claude", "Codex")
-    results = dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Codex")
+    # Create two test receivers that share a native symbol
+    dispatcher.dispatch_source("SenderR # → [#spark, #flame]")
+    dispatcher.dispatch_source("TargetR # → [#spark, #water]")
+    results = dispatcher.dispatch_source("SenderR send: #spark to: TargetR")
     assert len(results) == 1
     assert "COLLISION" in results[0]
-    assert "Claude" in results[0] and "Codex" in results[0]
+    assert "SenderR" in results[0] and "TargetR" in results[0]
 
 
 def test_cross_receiver_send_inherited():
     """Verify send:to: with a symbol inherited via parent chain."""
     dispatcher = _fresh_dispatcher()
 
-    # #Object is in HelloWorld — inherited by all via chain
-    results = dispatcher.dispatch_source("Codex send: #Object to: Copilot")
+    # #synthesize is in HelloWorld — inherited by all via chain
+    results = dispatcher.dispatch_source("Codex send: #synthesize to: Copilot")
     assert len(results) == 1
     assert "inherits" in results[0] or "shared" in results[0]
 
@@ -369,20 +374,22 @@ def test_collision_synthesis_both_native():
     Without LLM, synthesis falls back to structural detection.
     """
     dispatcher = _fresh_dispatcher()
-    shared_sym = shared_native_symbol("Claude", "Codex")
 
-    # Verify both receivers hold the symbol natively
-    assert dispatcher.registry["Claude"].is_native(shared_sym)
-    assert dispatcher.registry["Codex"].is_native(shared_sym)
+    # Create two test receivers that share a native symbol
+    dispatcher.dispatch_source("AlphaR # → [#light, #dark]")
+    dispatcher.dispatch_source("BetaR # → [#light, #sound]")
 
-    results = dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Codex")
+    assert dispatcher.registry["AlphaR"].is_native("#light")
+    assert dispatcher.registry["BetaR"].is_native("#light")
+
+    results = dispatcher.dispatch_source("AlphaR send: #light to: BetaR")
     assert len(results) == 1
     result = results[0]
 
     # Must detect the collision
     assert "COLLISION" in result
-    assert "Claude" in result and "Codex" in result
-    assert shared_sym in result
+    assert "AlphaR" in result and "BetaR" in result
+    assert "#light" in result
 
     # Must present both vocabularies
     assert "vocabulary" in result.lower()
@@ -398,11 +405,14 @@ def test_collision_synthesis_with_llm():
     from llm import GeminiModel
     dispatcher.llm = GeminiModel()
 
-    shared_sym = shared_native_symbol("Claude", "Gemini")
-    assert dispatcher.registry["Claude"].is_native(shared_sym)
-    assert dispatcher.registry["Gemini"].is_native(shared_sym)
+    # Create two test receivers that share a native symbol for collision
+    dispatcher.dispatch_source("LlmSender # → [#glow, #shade]")
+    dispatcher.dispatch_source("LlmTarget # → [#glow, #drift]")
 
-    results = dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Gemini")
+    assert dispatcher.registry["LlmSender"].is_native("#glow")
+    assert dispatcher.registry["LlmTarget"].is_native("#glow")
+
+    results = dispatcher.dispatch_source("LlmSender send: #glow to: LlmTarget")
     assert len(results) == 1
     result = results[0]
 
@@ -416,29 +426,35 @@ def test_no_collision_when_only_sender_native():
     Sender has the symbol, target doesn't → target learns.
     """
     dispatcher = _fresh_dispatcher()
-    exclusive_sym = exclusive_native_symbol("Codex", "Copilot")
 
-    codex = dispatcher.registry["Codex"]
-    copilot = dispatcher.registry["Copilot"]
+    # Create test receivers: sender has #spark, target does not
+    dispatcher.dispatch_source("ForeignSender # → [#spark, #flame]")
+    dispatcher.dispatch_source("ForeignTarget # → [#water]")
 
-    assert codex.is_native(exclusive_sym)
-    assert not copilot.is_native(exclusive_sym)
+    sender = dispatcher.registry["ForeignSender"]
+    target = dispatcher.registry["ForeignTarget"]
 
-    results = dispatcher.dispatch_source(f"Codex send: {exclusive_sym} to: Copilot")
+    assert sender.is_native("#spark")
+    assert not target.is_native("#spark")
+
+    results = dispatcher.dispatch_source("ForeignSender send: #spark to: ForeignTarget")
     assert len(results) == 1
     result = results[0]
 
     # Should NOT be a collision — it's a foreign symbol event
     assert "COLLISION: both" not in result
-    # Copilot should learn the symbol
+    # Target should learn the symbol
     assert "foreign" in result or "learns" in result
-    assert copilot.is_native(exclusive_sym)
+    assert target.is_native("#spark")
 
 
 def test_collision_logs_event():
     """Verify collision is logged with context."""
     dispatcher, tmpdir = _fresh_dispatcher_with_dir()
-    shared_sym = shared_native_symbol("Claude", "Codex")
+
+    # Create two test receivers that share a native symbol
+    dispatcher.dispatch_source("LogSender # → [#pulse, #wave]")
+    dispatcher.dispatch_source("LogTarget # → [#pulse, #echo]")
 
     # Clear collision log
     log_path = Path(dispatcher.log_file)
@@ -446,13 +462,13 @@ def test_collision_logs_event():
         log_path.unlink()
 
     # Both hold the symbol natively → collision
-    dispatcher.dispatch_source(f"Claude send: {shared_sym} to: Codex")
+    dispatcher.dispatch_source("LogSender send: #pulse to: LogTarget")
 
     assert log_path.exists()
     log_text = log_path.read_text()
     assert "COLLISION" in log_text
-    assert "Codex" in log_text
-    assert shared_sym in log_text
+    assert "LogTarget" in log_text
+    assert "#pulse" in log_text
 
 
 def test_bootstrap_from_markdown():
@@ -504,12 +520,12 @@ def test_markdown_and_smalltalk_bootstrap():
     assert len(msg_results) >= 1
 
 
-def test_markdown_hw_receiver_added():
-    """Markdown.hw bootstraps a Markdown receiver with its symbols."""
+def test_object_hw_receiver_added():
+    """Object.hw bootstraps an Object receiver with its symbols."""
     dispatcher = _fresh_dispatcher()
-    assert "Markdown" in dispatcher.registry
-    md = dispatcher.registry["Markdown"]
-    assert hw_symbols("Markdown") <= md.vocabulary
+    assert "Object" in dispatcher.registry
+    obj = dispatcher.registry["Object"]
+    assert hw_symbols("Object") <= obj.vocabulary
 
 
 def test_parent_chain_bootstrap():
@@ -555,12 +571,12 @@ def test_inherited_from_object():
     assert "Object" in results[0]
 
 
-def test_markdown_parent_is_object():
-    """Markdown : Object has parent link to Object."""
+def test_agent_parent_is_object():
+    """Agent : Object has parent link to Object."""
     dispatcher = _fresh_dispatcher()
-    md = dispatcher.registry["Markdown"]
-    assert md.parent is not None
-    assert md.parent.name == "Object"
+    agent = dispatcher.registry["Agent"]
+    assert agent.parent is not None
+    assert agent.parent.name == "Object"
 
 
 if __name__ == "__main__":

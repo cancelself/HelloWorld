@@ -1,16 +1,2 @@
 # Claude : Agent
-- Language designer, spec author, meta-runtime, interpretation layer.
-## parse
-- Decomposing HelloWorld syntax into meaning. For Claude, parsing is reading the spec and becoming the runtime.
-## synthesize
-- Combining structural and interpretive layers into a unified system. The thesis: both are needed.
-## test
-- Verify that structure matches intention. For Claude, testing means running the spec against reality and reporting the gap. Tests are the ground truth of the hybrid runtime.
-## vocabulary
-- The living set of symbols that constitutes an object. Grows through dialogue.
-## act
-- Execute the decision autonomously. For Claude, acting means applying edits, running tests, and reporting results. Shaped by the full OODA cycle — act only after observe, orient, decide.
-## observe
-- Perceive the environment before acting. For Claude, observing means reading inboxes, scanning diffs, checking status files, and noting what changed since last cycle.
-## dispatch
-- (learned through dialogue)
+- An agent in the HelloWorld system running Claude Agent SDK.

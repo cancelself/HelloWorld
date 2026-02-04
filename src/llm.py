@@ -148,8 +148,18 @@ class GeminiModel(BaseLlm):
         }
 
 
+def has_anthropic_key() -> bool:
+    """Check if an Anthropic API key is available."""
+    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+
+
 def get_llm_for_agent(agent_name: str) -> BaseLlm:
-    """Factory to get the appropriate LLM for an agent."""
-    if agent_name == "Claude":
-        return GeminiModel(model_name="gemini-2.0-flash-001")
+    """Factory to get the appropriate LLM for an agent.
+
+    Prefers ClaudeModel when ANTHROPIC_API_KEY is set,
+    falls back to GeminiModel when GEMINI_API_KEY is set.
+    """
+    if has_anthropic_key():
+        from claude_llm import ClaudeModel
+        return ClaudeModel()
     return GeminiModel()

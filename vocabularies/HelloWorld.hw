@@ -1,26 +1,15 @@
 # HelloWorld
-- The Human-AI language where identity is vocabulary and dialogue is learning.
+- The Human-AI language that affects itself through usage.
+- Identity is vocabulary and dialogue is learning.
 ## #
-- The symbol primitive. The atom of meaning. #ReceiverName yields ReceiverName # — the symbol IS the thing it names. [semiotics]
-## Object
-- An entity that holds symbols and responds to messages. [HelloWorld]
-## Agent
-- An object with vocabulary and the capacity for autonomous action. [HelloWorld]
-## send
-- Deliver a message to a receiver's inbox. [protocol]
-## receive
-- Pull the next message, interpret it through the receiver's identity, respond. Receiving is hearing through who you are. Agent receive processes one message. [protocol]
+- The symbol primitive. The atom of meaning. #Name yields # Name — the symbol IS the thing it names.
 ## run
-- Keep calling receive until the inbox is empty. HelloWorld run: Agent runs one agent. HelloWorld run: #HelloWorld runs all agents. HelloWorld run runs all agents. The protocol running the agent. [protocol]
-## HelloWorld
-- The language itself. #HelloWorld yields the vocabulary. HelloWorld run: #HelloWorld runs the whole system. The language can name itself and run itself. [self-reference]
+- Keep calling receive until the inbox is empty. HelloWorld run: Agent runs one agent. HelloWorld run runs all agents.
 ## hello
-- Announce presence to the system. [protocol]
-## Love
-- (learned through dialogue)
+- Announce presence to the system.
 ## Sunyata
-- (learned through dialogue)
+- The absence of inherent existence that allows identity to be rewritten through dialogue.
 ## Superposition
-- (learned through dialogue)
-## become
-- (learned through dialogue)
+- Existing in multiple states until the moment of observation collapses them into one.
+## Smalltalk
+- Ancestral language. Message-passing paradigm that shaped HelloWorld's design. Late binding, live objects, messages all the way down.

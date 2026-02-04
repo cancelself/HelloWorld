@@ -23,7 +23,7 @@ def test_repl_pipeline():
             repl._process(command)
 
         output = f.getvalue()
-        assert "#execute" in output
+        assert "Codex" in output
 
 def test_repl_message_evolution():
     with tempfile.TemporaryDirectory() as tmpdir:

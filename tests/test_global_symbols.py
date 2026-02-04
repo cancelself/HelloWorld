@@ -43,13 +43,13 @@ class TestDefinitions:
 
     def test_definition_text(self):
         """Definition should contain the description without metadata."""
-        defn = GlobalVocabulary.definition("#Object")
-        assert "entity" in defn
+        defn = GlobalVocabulary.definition("#Sunyata")
+        assert "absence" in defn
 
-    def test_definition_includes_domain(self):
-        """str(GlobalSymbol) includes domain in brackets."""
-        defn = GlobalVocabulary.definition("#Object")
-        assert "[HelloWorld]" in defn
+    def test_definition_includes_description(self):
+        """Definition includes the .hw description text."""
+        defn = GlobalVocabulary.definition("#Sunyata")
+        assert "rewritten through dialogue" in defn
 
     def test_unknown_symbol_message(self):
         """Unknown symbols return an error message."""
@@ -62,7 +62,7 @@ class TestWikidataMetadata:
 
     def test_no_wikidata_for_root_symbols(self):
         """Root symbols are HelloWorld concepts, not Wikipedia entries."""
-        sym = GlobalVocabulary.get("#Object")
+        sym = GlobalVocabulary.get("#Sunyata")
         assert sym is not None
         assert sym.wikidata_id is None
 
@@ -151,13 +151,13 @@ class TestGlobalVocabularyAPI:
     def test_all_symbols_returns_set(self):
         syms = GlobalVocabulary.all_symbols()
         assert isinstance(syms, set)
-        assert "#Object" in syms
+        assert "#Sunyata" in syms
 
     def test_has_symbol(self):
-        assert GlobalVocabulary.has("#Agent")
+        assert GlobalVocabulary.has("#Sunyata")
         assert not GlobalVocabulary.has("#nonexistent_xyz")
 
     def test_get_returns_global_symbol(self):
-        sym = GlobalVocabulary.get("#Agent")
+        sym = GlobalVocabulary.get("#Sunyata")
         assert isinstance(sym, GlobalSymbol)
-        assert sym.name == "#Agent"
+        assert sym.name == "#Sunyata"

@@ -14,11 +14,14 @@ class VocabularyManager:
         if not os.path.exists(self.storage_dir):
             os.makedirs(self.storage_dir)
 
-    def save(self, receiver_name: str, vocabulary: Set[str], parent: str = None):
+    def save(self, receiver_name: str, vocabulary: Set[str], parent: str = None,
+             descriptions: dict = None):
         """Persist a receiver's vocabulary to its .hw file.
 
         Preserves existing content and descriptions. Appends only
         symbols that are new (learned through dialogue).
+        If descriptions dict is provided, writes actual descriptions
+        instead of the generic placeholder.
         """
         path = self._get_path(receiver_name)
         existing_symbols = self._read_symbols(path)
@@ -31,6 +34,9 @@ class VocabularyManager:
             for sym in sorted(vocabulary):
                 heading = sym.lstrip("#") if sym != "#" else "#"
                 lines.append(f"## {heading}\n")
+                desc = descriptions.get(sym) if descriptions else None
+                if desc:
+                    lines.append(f"- {desc}\n")
             with open(path, "w") as f:
                 f.writelines(lines)
         elif new_symbols:
@@ -39,7 +45,11 @@ class VocabularyManager:
                 for sym in sorted(new_symbols):
                     heading = sym.lstrip("#") if sym != "#" else "#"
                     f.write(f"## {heading}\n")
-                    f.write("- (learned through dialogue)\n")
+                    desc = descriptions.get(sym) if descriptions else None
+                    if desc:
+                        f.write(f"- {desc}\n")
+                    else:
+                        f.write("- (learned through dialogue)\n")
 
     def load(self, receiver_name: str) -> Optional[Set[str]]:
         """Load a receiver's vocabulary from its .hw file."""

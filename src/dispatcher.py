@@ -77,6 +77,8 @@ class Receiver:
         self.local_vocabulary = vocabulary if vocabulary is not None else set()
         self.parent: Optional['Receiver'] = parent
         self._parent_name: Optional[str] = None
+        self.descriptions: Dict[str, str] = {}   # "#symbol" → description text
+        self.identity: Optional[str] = None       # receiver identity from H1 description
 
     @property
     def vocabulary(self) -> Set[str]:
@@ -104,9 +106,15 @@ class Receiver:
         """Check if symbol is inherited from parent chain (not local)."""
         return not self.is_native(symbol) and self._find_in_chain(symbol) is not None
 
-    def add_symbol(self, symbol: str):
-        """Add symbol to local vocabulary."""
+    def add_symbol(self, symbol: str, description: str = None):
+        """Add symbol to local vocabulary, optionally with a description."""
         self.local_vocabulary.add(symbol)
+        if description:
+            self.descriptions[symbol] = description
+
+    def description_of(self, symbol: str) -> Optional[str]:
+        """Return description for a symbol, or None."""
+        return self.descriptions.get(symbol)
 
     def lookup(self, symbol: str) -> LookupResult:
         """Perform symbol lookup via prototypal inheritance chain.
@@ -121,18 +129,23 @@ class Receiver:
                 outcome=LookupOutcome.NATIVE,
                 symbol=symbol,
                 receiver_name=self.name,
-                context={"local_vocabulary": sorted(self.local_vocabulary)}
+                context={
+                    "local_vocabulary": sorted(self.local_vocabulary),
+                    "description": self.descriptions.get(symbol),
+                }
             )
 
         ancestor = self._find_in_chain(symbol)
         if ancestor:
+            ancestor_desc = ancestor.descriptions.get(symbol)
             return LookupResult(
                 outcome=LookupOutcome.INHERITED,
                 symbol=symbol,
                 receiver_name=self.name,
                 context={
                     "defined_in": ancestor.name,
-                    "local_vocabulary": sorted(self.local_vocabulary)
+                    "local_vocabulary": sorted(self.local_vocabulary),
+                    "description": ancestor_desc,
                 }
             )
 
@@ -156,6 +169,8 @@ class Receiver:
         local = sorted(self.local_vocabulary)
         chain = self.chain()
         parent_name = chain[1] if len(chain) > 1 else "root"
+        if self.identity:
+            return f"{self.name} : {parent_name} — {self.identity}\n  # → {local}"
         return f"{self.name} : {parent_name} # → {local}"
 
 
@@ -182,11 +197,19 @@ class Dispatcher:
         self._bootstrap()
 
     def _get_llm(self):
-        """Lazy-load the LLM on first use. Returns GeminiModel if API key exists, None otherwise."""
+        """Lazy-load the LLM on first use.
+
+        Prefers ClaudeModel (ANTHROPIC_API_KEY), falls back to GeminiModel (GEMINI_API_KEY).
+        Returns None when no API key is available.
+        """
         if not self._llm_checked:
             self._llm_checked = True
-            from llm import has_api_key, GeminiModel
-            if has_api_key():
+            from llm import has_anthropic_key, has_api_key
+            if has_anthropic_key():
+                from claude_llm import ClaudeModel
+                self._llm = ClaudeModel()
+            elif has_api_key():
+                from llm import GeminiModel
                 self._llm = GeminiModel()
         return self._llm
 
@@ -199,8 +222,13 @@ class Dispatcher:
     def use_llm(self, value):
         """Allow tests to set use_llm for backward compatibility."""
         if value:
-            from llm import GeminiModel
-            self._llm = GeminiModel()
+            from llm import has_anthropic_key
+            if has_anthropic_key():
+                from claude_llm import ClaudeModel
+                self._llm = ClaudeModel()
+            else:
+                from llm import GeminiModel
+                self._llm = GeminiModel()
             self._llm_checked = True
         else:
             self._llm = None
@@ -260,8 +288,9 @@ class Dispatcher:
             # _get_or_create_receiver handles loading from .hw
             receiver = self._get_or_create_receiver(name)
 
-            # If receiver is empty and a .hw file exists, load from .hw
-            if not receiver.local_vocabulary and name in hw_files:
+            # Always dispatch .hw file to populate descriptions and identity.
+            # Symbols are idempotent (set.add is a no-op for existing symbols).
+            if name in hw_files:
                 try:
                     self.dispatch_source(hw_files[name].read_text())
                 except SyntaxError:
@@ -301,10 +330,10 @@ class Dispatcher:
         """Persist vocabularies for one receiver or all receivers."""
         if receiver:
             rec = self._get_or_create_receiver(receiver)
-            self.vocab_manager.save(receiver, rec.local_vocabulary)
+            self.vocab_manager.save(receiver, rec.local_vocabulary, descriptions=rec.descriptions)
             return
         for name, rec in self.registry.items():
-            self.vocab_manager.save(name, rec.local_vocabulary)
+            self.vocab_manager.save(name, rec.local_vocabulary, descriptions=rec.descriptions)
 
     def _trace(self, msg: str):
         """Emit trace output if tracing is enabled."""
@@ -358,6 +387,8 @@ class Dispatcher:
         """Handle Markdown heading nodes.
 
         HEADING1 declares a receiver and defines its symbols from child HEADING2 nodes.
+        Extracts identity from DescriptionNode children before first H2.
+        Extracts symbol descriptions from DescriptionNode children of H2 nodes.
         Stores parent name for later resolution via _resolve_parents().
         HEADING2 at top level is a standalone symbol reference (no receiver context).
         """
@@ -365,12 +396,23 @@ class Dispatcher:
             receiver = self._get_or_create_receiver(node.name)
             if node.parent:
                 receiver._parent_name = node.parent
+            # Extract identity from DescriptionNode children before first H2
+            identity_parts = []
             for child in node.children:
                 if isinstance(child, HeadingNode) and child.level == 2:
-                    # If name already starts with #, use as-is (e.g., ## # → "#")
+                    break  # Identity stops at first H2
+                if isinstance(child, DescriptionNode):
+                    identity_parts.append(child.text)
+            if identity_parts:
+                receiver.identity = " ".join(identity_parts)
+            # Extract symbols with descriptions from H2 children
+            for child in node.children:
+                if isinstance(child, HeadingNode) and child.level == 2:
                     symbol = child.name if child.name.startswith("#") else f"#{child.name}"
-                    receiver.add_symbol(symbol)
-            self.vocab_manager.save(receiver.name, receiver.local_vocabulary)
+                    desc_parts = [gc.text for gc in child.children if isinstance(gc, DescriptionNode)]
+                    desc = " ".join(desc_parts) if desc_parts else None
+                    receiver.add_symbol(symbol, desc)
+            self.vocab_manager.save(receiver.name, receiver.local_vocabulary, descriptions=receiver.descriptions)
             return f"Defined {node.name} with {len(receiver.vocabulary)} symbols."
         return None
 
@@ -447,16 +489,21 @@ class Dispatcher:
         if lookup.is_native():
             # Super lookup: check if symbol also lives in the parent chain
             ancestor = receiver._find_in_chain(symbol_name)
+            desc = receiver.description_of(symbol_name)
+            base = f"{receiver_name} {symbol_name} is native to this identity."
             if ancestor:
-                return (
-                    f"{receiver_name} {symbol_name} is native to this identity.\n"
-                    f"  super: {ancestor.name} also holds {symbol_name} — "
-                    f"inherited meaning shapes the local one."
-                )
-            return f"{receiver_name} {symbol_name} is native to this identity."
+                base += (f"\n  super: {ancestor.name} also holds {symbol_name} — "
+                         f"inherited meaning shapes the local one.")
+            if desc:
+                base += f"\n  {desc}"
+            return base
         elif lookup.is_inherited():
             defined_in = lookup.context.get("defined_in", "parent")
-            return f"{receiver_name} {symbol_name} is inherited from {defined_in}."
+            desc = lookup.context.get("description")
+            base = f"{receiver_name} {symbol_name} is inherited from {defined_in}."
+            if desc:
+                base += f"\n  {desc}"
+            return base
         else:
             return self._handle_unknown_symbol(receiver_name, receiver, symbol_name, lookup)
 
@@ -523,8 +570,20 @@ class Dispatcher:
                 desc = self.vocab_manager.load_description(receiver_name, node.message)
                 from prompts import scoped_lookup_prompt_with_descriptions
                 identity = self.vocab_manager.load_identity(receiver_name)
+                # When inherited, load the ancestor's description so the
+                # LLM knows the symbol flows through the inheritance chain.
+                inherited_from = None
+                inherited_description = None
+                if lookup.is_inherited():
+                    inherited_from = lookup.context.get("defined_in")
+                    if inherited_from:
+                        inherited_description = self.vocab_manager.load_description(
+                            inherited_from, node.message,
+                        )
                 prompt = scoped_lookup_prompt_with_descriptions(
                     receiver_name, symbol_name, local_vocab, desc, identity,
+                    inherited_from=inherited_from,
+                    inherited_description=inherited_description,
                 )
                 try:
                     llm_response = self.llm.call(prompt)
@@ -787,7 +846,7 @@ class Dispatcher:
             # Foreign — the symbol is foreign to the target
             self._log_collision(target_name, symbol_name)
             target.add_symbol(symbol_name)
-            self.vocab_manager.save(target_name, target.local_vocabulary)
+            self.vocab_manager.save(target_name, target.local_vocabulary, descriptions=target.descriptions)
             lines.append(f"  {symbol_name} is foreign to {target_name} — boundary collision")
             lines.append(f"  {target_name} learns {symbol_name} (vocabulary drift)")
             lines.append(f"  [{target_name} # = {sorted(target.local_vocabulary)}]")
@@ -834,7 +893,7 @@ class Dispatcher:
         receiver = self._get_or_create_receiver(node.receiver.name)
         for sym in node.symbols:
             receiver.add_symbol(sym.name)
-        self.vocab_manager.save(receiver.name, receiver.local_vocabulary)
+        self.vocab_manager.save(receiver.name, receiver.local_vocabulary, descriptions=receiver.descriptions)
         return f"Updated {receiver.name} vocabulary."
 
     def _learn_symbols_from_message(self, receiver_name: str, receiver, node: MessageNode):
@@ -857,7 +916,7 @@ class Dispatcher:
                     learned = True
 
         if learned:
-            self.vocab_manager.save(receiver_name, receiver.local_vocabulary)
+            self.vocab_manager.save(receiver_name, receiver.local_vocabulary, descriptions=receiver.descriptions)
 
     def _handle_message(self, node: MessageNode) -> str:
         receiver_name = node.receiver.name

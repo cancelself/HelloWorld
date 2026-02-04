@@ -66,6 +66,21 @@ def exclusive_native_symbol(has_it: str, lacks_it: str) -> str:
 
 # --- Fixtures ---
 
+@pytest.fixture(autouse=True)
+def _no_llm_keys(monkeypatch):
+    """Strip LLM/SDK API keys from the environment during tests.
+
+    Existing tests verify structural dispatch behavior (native/inherited/unknown).
+    LLM keys in the environment would activate the interpretive path and break
+    assertions on structural output. Tests that need a real or mock LLM should
+    set the key explicitly or inject a mock via dispatcher.llm.
+    """
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("GITHUB_COPILOT_TOKEN", raising=False)
+
+
 @pytest.fixture
 def fresh_dispatcher():
     """Create a dispatcher with a temp vocab dir so tests start clean.

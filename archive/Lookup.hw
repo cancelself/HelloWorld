@@ -1,0 +1,14 @@
+# Lookup : HelloWorld
+- Symbol resolution outcomes. The three-outcome model for what happens when a receiver encounters a symbol.
+## native
+- The receiver owns this symbol in its local vocabulary. The symbol is part of this identity.
+## inherited
+- The symbol was found in the receiver's parent chain, not in local vocabulary. Shared ground.
+## unknown
+- The symbol is not in local vocabulary or parent chain. Truly new. Triggers learning.
+## global
+- The symbol is defined in @.# (HelloWorld root). The canonical Wikidata definition.
+## super
+- Walk the inheritance chain to find the symbol's meaning at each level. Layered interpretation.
+## collision
+- Two receivers both hold the symbol natively but with different meanings. A synthesis event.

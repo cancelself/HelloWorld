@@ -1,0 +1,21 @@
+# Dispatcher : HelloWorld
+- Message routing, prototypal inheritance, collision detection, and vocabulary drift.
+- The back-end that executes parsed structure through receiver identities.
+## LookupChain
+- Symbol resolution via prototypal inheritance. Walk from receiver through parent chain to HelloWorld. Three outcomes: native, inherited, unknown. Descriptions travel with the result.
+## CollisionDetection
+- When send:to: delivers a symbol both receivers hold natively. Not an error — a synthesis event. Logged to collisions.log.
+## CollisionSynthesis
+- Producing new meaning from a collision. LLM voices both interpretations when available. Structural detection always runs.
+## VocabularyDrift
+- Vocabularies grow through dialogue. Unknown symbols in message arguments are learned automatically. Inherited symbols stay inherited — only truly unknown symbols promote to native.
+## CrossReceiverSend
+- send: #symbol to: Receiver — deliver a symbol from one receiver to another. Checks both vocabularies. Four outcomes: collision, already native, inherited (shared ground), foreign (target learns).
+## RunProtocol
+- HelloWorld run — run all agents. HelloWorld run: Agent — run one agent until inbox empty. The protocol running the agent.
+## ReceiveProtocol
+- Agent receive — pull one message from inbox. Runs the OODA loop: #observe (read message), #orient (check identity and vocabulary), #act (LLM interpretation or structural fallback). Response sent back to sender.
+## UnknownHandling
+- When a symbol is not native and not inherited. Logged for evolution tracking. LLM research attempted if available. Learning happens through message arguments, not lookup.
+## IdentityCarrying
+- Receivers hold identity text and symbol descriptions extracted from .hw files. Descriptions appear in lookup results and structural output. Identity shapes the receiver's __repr__.
