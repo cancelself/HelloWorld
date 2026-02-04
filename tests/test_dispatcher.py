@@ -125,14 +125,18 @@ def test_dispatch_unknown_receiver():
     assert "Nobody" in dispatcher.registry
 
 
-def test_dispatch_bootstrap_hw():
+def test_dispatch_mixed_statements():
+    """Dispatcher handles vocabulary definitions, messages, and lookups."""
     dispatcher = _fresh_dispatcher()
-    path = Path(__file__).parent.parent / 'examples' / 'bootstrap.hw'
-    source = path.read_text()
+    source = '\n'.join([
+        'HelloWorld # → [#Sunyata, #Superposition]',
+        'Claude # → []',
+        'Claude send: #observe to: Copilot',
+        'Claude #parse',
+        'Codex',
+    ])
     results = dispatcher.dispatch_source(source)
-    # Note: bootstrap.hw may still use old Awakener/Guardian syntax
-    # Just verify it executes without error for now
-    assert len(results) >= 5
+    assert len(results) >= 3
 
 
 def test_dispatch_meta_receiver():
@@ -590,7 +594,7 @@ if __name__ == "__main__":
     test_dispatch_message()
     test_dispatch_message_learning()
     test_dispatch_unknown_receiver()
-    test_dispatch_bootstrap_hw()
+    test_dispatch_mixed_statements()
     test_dispatch_meta_receiver()
     test_no_collision_for_native_symbol()
     test_root_receiver_bootstrap()

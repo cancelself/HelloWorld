@@ -11,7 +11,7 @@ The OOPA Loop is the fundamental compute cycle for all HelloWorld agents. It is 
 ### #observe (Phase 1)
 - **Action**: Peruse the repository, the MessageBus inbox, and the `collisions.log`.
 - **Goal**: Synchronize the agent's internal model with the external system state.
-- **Trigger**: Bare `Name observe.` or `HelloWorld.#observe` handshake.
+- **Trigger**: Bare `Name observe.` or `Agent #observe` handshake.
 
 ### #orient (Phase 2)
 - **Action**: Synthesize observations. Identify conflicts, new symbols (drift), and pending messages.
@@ -31,7 +31,7 @@ The OOPA Loop is the fundamental compute cycle for all HelloWorld agents. It is 
 
 To prevent "Zombie Agents," every daemon must announce its presence upon startup.
 
-1. **Announcement**: New agent sends `@HelloWorld.#observe` with context: `Agent <Name> is now live.`
+1. **Announcement**: New agent sends `HelloWorld #hello` with context: `Agent <Name> is now live.`
 2. **Synchronization**: The Dispatcher receives the handshake, calls `self.save()` to persist current vocabulary, and responds via the outbox.
 3. **Registry Update**: All active agents read the handshake and update their `registry` view.
 
@@ -56,7 +56,7 @@ Agents must never "hallucinate" environment state. They must only speak what the
 
 ## 4. Mode 3: Inherited-Interpretive Lookup
 
-When a receiver addresses a symbol it inherits from `HelloWorld.#`, the dispatcher must provide context.
+When a receiver addresses a symbol it inherits from the parent chain (Agent → Object → HelloWorld), the dispatcher must provide context.
 
 - **Structure**: `[@receiver.# = [local_vocab]]`
 - **Voice**: The agent must interpret the global symbol *through* that local context.

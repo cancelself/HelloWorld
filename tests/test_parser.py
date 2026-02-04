@@ -65,17 +65,22 @@ def test_vocabulary_query_variants():
         assert nodes[0].receiver.name == "Guardian"
 
 
-def test_parse_bootstrap_example():
-    bootstrap = Path(__file__).parent.parent / "examples" / "bootstrap.hw"
-    nodes = Parser.from_source(bootstrap.read_text()).parse()
-    assert len(nodes) == 7
+def test_parse_mixed_statements():
+    """Parser handles vocabulary definitions, messages, lookups, and queries."""
+    source = '\n'.join([
+        'HelloWorld # → [#Sunyata, #Superposition]',
+        'Claude # → []',
+        'Claude send: #observe to: Copilot',
+        'Claude #parse',
+        'Codex',
+    ])
+    nodes = Parser.from_source(source).parse()
+    assert len(nodes) == 5
     assert isinstance(nodes[0], VocabularyDefinitionNode)
     assert isinstance(nodes[1], VocabularyDefinitionNode)
-    assert isinstance(nodes[2], VocabularyDefinitionNode)
-    assert isinstance(nodes[3], MessageNode)
-    assert isinstance(nodes[4], MessageNode)
-    assert isinstance(nodes[5], ScopedLookupNode)
-    assert isinstance(nodes[6], VocabularyQueryNode)
+    assert isinstance(nodes[2], MessageNode)
+    assert isinstance(nodes[3], ScopedLookupNode)
+    assert isinstance(nodes[4], VocabularyQueryNode)
 
 
 def test_parse_sunyata_example():
@@ -278,7 +283,7 @@ if __name__ == "__main__":
     test_message_with_annotation()
     test_symbol_lookup()
     test_vocabulary_query_variants()
-    test_parse_bootstrap_example()
+    test_parse_mixed_statements()
     test_parse_sunyata_example()
     test_root_vocabulary_query()
     test_root_scoped_lookup()

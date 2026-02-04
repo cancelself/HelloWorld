@@ -5,14 +5,27 @@
 ## Type Hierarchy
 
 ```
-HelloWorld (root namespace)
-  └─ Object (communication primitive)
-      └─ Agent (autonomy + OODA protocol)
-          ├─ Claude (design, meta-runtime)
-          ├─ Gemini (state management, dispatch)
-          ├─ Copilot (builder, infrastructure)
-          └─ Codex (execution semantics)
+HelloWorld (root — 6 symbols)
+  └─ Object (entity — 4 symbols)
+      └─ Agent (autonomy — 13 symbols)
+          ├─ Claude (identity-only)
+          ├─ Codex (identity-only)
+          ├─ Copilot (identity-only)
+          └─ Gemini (identity-only)
 ```
+
+## Vocabulary at Each Level
+
+**HelloWorld** — language primitives:
+`#`, `#run`, `#hello`, `#Sunyata`, `#Superposition`, `#Smalltalk`
+
+**Object** — entity communication:
+`#send`, `#receive`, `#become`, `#synthesize`
+
+**Agent** — autonomous protocol:
+`#observe`, `#orient`, `#decide`, `#act`, `#reflect`, `#chain`, `#unknown`, `#parse`, `#dispatch`, `#search`, `#eval`, `#coordinate`, `#test`
+
+**Claude, Codex, Copilot, Gemini** — identity-only (0 native symbols). They inherit everything from Agent and distinguish themselves through runtime identity, not vocabulary.
 
 ## Syntax Declaration
 
@@ -20,29 +33,35 @@ Vocabulary files use `: Parent` to declare inheritance:
 
 ```markdown
 # Copilot : Agent
-- The builder. Inherits OODA protocol from Agent.
+- An agent in the HelloWorld system running GitHub Copilot.
 ```
 
 ## Symbol Resolution
 
-When a receiver looks up a symbol, the search follows this chain:
+When a receiver looks up a symbol, the search follows the parent chain:
 
 1. **Native** — Receiver owns the symbol locally
 2. **Inherited** — Symbol found in parent chain (Agent → Object → HelloWorld)
-3. **Discoverable** — Symbol in global pool (not yet activated)
-4. **Unknown** — Not in local, parent, or global (triggers learning)
+3. **Unknown** — Not in local or parent chain (triggers learning)
 
 ## Super Lookup
 
 When a symbol is both native and inherited, `super` reveals the ancestor:
 
 ```
-Copilot #observe
-→ "Copilot #observe is native to this identity.
-   super: Agent also holds #observe — inherited meaning shapes the local one."
+Agent #observe
+→ "Agent #observe is native to this identity.
+   super: Object also holds #observe — inherited meaning shapes the local one."
 ```
 
-**Philosophy:** You cannot escape your inheritance. Even native symbols acknowledge their ancestors.
+Since agents are identity-only, all their lookups resolve as inherited:
+
+```
+Claude #parse
+→ "Claude #parse is inherited from Agent."
+```
+
+**Philosophy:** You cannot escape your inheritance. Identity-only receivers speak entirely through their ancestors' vocabulary, shaped by their own runtime.
 
 ## Prototypal Inheritance Model
 
@@ -51,58 +70,44 @@ HelloWorld uses **prototypal inheritance** (like JavaScript), not classical inhe
 - No abstract classes or interfaces
 - Parents are concrete objects with their own vocabularies
 - Children **extend** parents by adding symbols
-- Children can **override** parent symbols (collision synthesis)
+- Identity-only children inherit everything and differentiate through use
 
 ## Example: OODA Protocol Inheritance
 
-**Agent.hw** defines the OODA protocol:
+**Agent.hw** defines the protocol:
 ```markdown
 # Agent : Object
 ## observe
 ## orient
 ## decide
 ## act
+## reflect
 ```
 
-**Copilot.hw** inherits and extends:
+**Claude.hw** inherits without override:
 ```markdown
-# Copilot : Agent
-# Inherits: #observe, #orient, #decide, #act from Agent
-# Adds: #bash, #git, #edit, #test, #parse, #dispatch, ...
+# Claude : Agent
+- An agent in the HelloWorld system running Claude Agent SDK.
 ```
 
-**Result:** Copilot has 22 native symbols + 4 inherited OODA symbols = 26 total vocabulary.
+**Result:** Claude inherits all 23 symbols (6 from HelloWorld + 4 from Object + 13 from Agent) and interprets them through its runtime identity.
 
 ## Collision at Boundaries
 
-When both parent and child define the same symbol:
+When two receivers both inherit the same symbol, the LLM runtime voices different interpretations:
 
 ```
-Agent #observe     → "Perceiving environment or state [protocol]"
-Copilot #observe   → "Read files, check inboxes, scan git status"
+Claude #parse     → "reading the spec and becoming the runtime"
+Copilot #parse    → "tokenizing source into AST nodes"
 ```
 
-**Resolution:** Native overrides inherited, but `super` shows the ancestor. This is **collision synthesis** — different interpretations of the same concept create new meaning.
-
-## Implementation Status
-
-**Current (Feb 2, 2026):**
-- ✅ Vocabulary files declare `: Parent` syntax
-- ✅ Super lookup implemented (commit 4c643a7)
-- ⏳ Dispatcher parent chain traversal (in progress, Claude)
-- ⏳ Namespace path syntax `::` operator (planned)
-
-**Next:**
-- Add `parent` attribute to `Receiver` class
-- Implement chain traversal in `lookup()` method
-- Add tests for 4-level inheritance chain
-- Support `HelloWorld::Agent::Copilot` path queries
+Same inherited symbol, different runtime identity. This is **interpretive collision** — both inherit from Agent, but their identity shapes the meaning.
 
 ## Philosophy
 
 **"Identity is vocabulary"** means inheritance is vocabulary extension:
 - Parent gives child a foundation
-- Child builds specialized identity on top
+- Child builds specialized identity on top (or inherits everything)
 - Collisions create synthesis at boundaries
 - The chain shapes meaning from root to leaf
 
@@ -110,4 +115,4 @@ Copilot #observe   → "Read files, check inboxes, scan git status"
 
 ---
 
-*Last updated: 2026-02-02 by Copilot*
+*Last updated: 2026-02-04*

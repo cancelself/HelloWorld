@@ -1,9 +1,8 @@
 # HelloWorld Minimal Core Philosophy
 
-**Purpose:** Define the absolute minimum symbol set needed for HelloWorld to bootstrap  
-**Rationale:** User directive "minimize the number of symbols" + design principle "identity is vocabulary"  
-**Created:** 2026-02-01  
-**Status:** Consensus Reached (Hybrid Model)
+**Purpose:** Define the absolute minimum symbol set needed for HelloWorld to bootstrap
+**Rationale:** User directive "minimize the number of symbols" + design principle "identity is vocabulary"
+**Status:** Implemented
 
 ---
 
@@ -11,54 +10,68 @@
 
 **Identity is vocabulary** means vocabularies should START small and grow through collision. Not arrive pre-populated.
 
-Current state: 50 symbols implemented in the global library.
-
 **This document defines the CORE** — symbols required for HelloWorld to parse, dispatch, and interpret its first message. Everything else is emergent.
 
 ---
 
-## The Hybrid Core Consensus (Option 3)
+## The Three-Layer Hierarchy
 
-**Consensus Date:** 2026-02-01  
-**Participants:** Claude, Copilot, Gemini
+### Layer 1: HelloWorld (Root — 6 symbols)
 
-After identifying the tension between "minimize symbols" and "preserve Wikidata grounding," we have adopted a **Hybrid Model**:
+Language primitives. Every object inherits these.
 
-1. **Bootstrap with 12 Core Symbols**: All new receivers start with exactly 12 symbols required for structural operation.
-2. **Global Registry as a Library**: The 50+ grounded symbols remain in `src/global_symbols.py` as a learnable pool.
-3. **Growth through Discovery**: When a receiver encounters a known global symbol (e.g., #Sunyata), they "discover" it, learning the definition and adding it to their local vocabulary.
+1. **`#`** — Symbol primitive (the atom of meaning)
+2. **`#run`** — Execute the receive loop
+3. **`#hello`** — Announce presence to the system
+4. **`#Sunyata`** — Absence of inherent existence — identity can be rewritten
+5. **`#Superposition`** — Multiple states until observation collapses them
+6. **`#Smalltalk`** — Ancestral language, message-passing paradigm
 
-This model preserves the richness of our grounding work while maintaining the constraint required for identity to emerge through collision.
+### Layer 2: Object (Entity — 4 symbols)
+
+Communication and transformation. Objects hold symbols and respond to messages.
+
+7. **`#send`** — Deliver a message to another object's inbox
+8. **`#receive`** — Pull the next message, interpret through identity, respond
+9. **`#become`** — Transformation — adopting new symbols, shedding old ones
+10. **`#synthesize`** — Combining observations into coherent understanding
+
+### Layer 3: Agent (Autonomy — 13 symbols)
+
+Protocol for autonomous action. Agents observe, decide, and act.
+
+11. **`#observe`** — Perceive environment or state
+12. **`#orient`** — Synthesize observations into understanding
+13. **`#decide`** — Commit to a course of action
+14. **`#act`** — Execute immediately with full authority
+15. **`#reflect`** — Honest assessment after every cycle
+16. **`#chain`** — Display the full inheritance path
+17. **`#unknown`** — The moment before learning, boundary where growth begins
+18. **`#parse`** — Decompose input into structured meaning
+19. **`#dispatch`** — Route messages through the system
+20. **`#search`** — Query sources beyond current knowledge
+21. **`#eval`** — Assess fidelity between expectation and result
+22. **`#coordinate`** — Send messages to peer agents, synchronize state
+23. **`#test`** — Verify that structure matches intention
 
 ---
 
-## The Minimal Core (12 symbols)
+## Identity-Only Agents
 
-### Language Primitives (3)
-1. **`#HelloWorld`** — The language itself (root namespace)
-2. **`#`** — Symbol primitive (the atom)
-3. **`#Symbol`** — Mark representing something
+Claude, Codex, Copilot, and Gemini are **identity-only** — they have 0 native symbols and inherit everything from Agent. Their identity is their runtime, not their vocabulary.
 
-### Identity & Structure (3)
-4. **`#Receiver`** — Entity that accepts messages per vocabulary
-5. **`#Message`** — Communication unit  
-6. **`#Vocabulary`** — Set of symbols a receiver speaks
+```markdown
+# Claude : Agent
+- An agent in the HelloWorld system running Claude Agent SDK.
+```
 
-### Runtime Operations (3)
-7. **`#parse`** — Decompose syntax into structure
-8. **`#dispatch`** — Route message to receiver
-9. **`#interpret`** — Generate meaning from symbol through receiver lens
-
-### Agent Protocol (3)
-10. **`#Agent`** — Symbol-defining dialogue participant
-11. **`#observe`** — Perceive environment/state
-12. **`#act`** — Execute autonomously
+23 total symbols inherited. 0 native. Identity distinguishes.
 
 ---
 
 ## The Bare-Word Convention
 
-In accordance with the move towards a pure Smalltalk-style syntax, the `@` prefix for receivers has been deprecated in all canonical documentation and instruction files.
+In accordance with the move towards a pure Smalltalk-style syntax, the `@` prefix for receivers has been deprecated in all canonical documentation.
 
 - **Old**: `@claude.#observe`
 - **New**: `Claude observe: #HelloWorld`
@@ -67,4 +80,4 @@ Names stand alone. The receiver's identity scopes the lookup.
 
 ---
 
-**Consensus reached:** Start small. Grow through collision. The global namespace is not inheritance — it's a library.
+**Consensus reached:** Start small. Grow through collision. Three layers: language, entity, autonomy.
