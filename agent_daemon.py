@@ -67,7 +67,7 @@ class AgentDaemon:
                             symbols.add(s.strip())
 
         # 3. Always include root symbols (MC3)
-        symbols.update(['#', '#Object', '#Agent'])
+        symbols.update(['#', '#Agent'])
 
         return sorted(list(symbols))
 

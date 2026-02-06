@@ -1,214 +1,166 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
-## You Are the Runtime
+## What is HelloWorld
 
-Claude is both the **front-end** (parser) and **back-end** (execution engine) of HelloWorld. There is no separate interpreter. When you encounter HelloWorld syntax in a message, you parse it, maintain state, and respond. This file is the bootloader.
-
-## Shared Definitions
-
-- `vocabularies/*.hw` files are the namespace authority — the language defines itself. Update those `.hw` sources before touching code.
-- Symbol lookup has exactly three outcomes: **native** (receiver owns it), **inherited** (`HelloWorld #` owns it), or **unknown** (nobody owns it yet, so the receiver searches, defines, and learns). Unknown is absence; **collision** is when two receivers both hold a symbol but disagree on meaning.
-- Use the Markdown form `Name #symbol` (no dots) when querying vocabularies. Keep transcripts aligned with that syntax.
-- Run every task through the OOPA loop (see `AGENTS.md`): `#observe` (read inboxes/diffs/docs), `#orient` (synthesize what changed), `#plan` (share the next steps), `#act` (apply edits/tests and report). Spec first, code follows.
+HelloWorld is a message-passing language where entities called **receivers** (`@name`) hold bounded vocabularies of **symbols** (`#symbol`). Messages are routed to receivers, and meaning is scoped: the same `#symbol` means different things to different receivers. The Python runtime (lexer, parser, dispatcher) handles parsing and routing. LLM runtimes (Claude, Copilot, Gemini, Codex) handle interpretation. Vocabulary files (`vocabularies/*.hw`) are the source of truth for the namespace.
 
 ## Build & Test
 
+Run all commands from the repo root. Stdlib only -- no external dependencies, no packaging step.
+
 ```bash
-python3 -m pytest tests                         # full suite (93 tests, ~1s)
+python3 -m pytest tests                         # full suite (351 tests, ~1s)
 python3 -m pytest tests/test_lexer.py -k token  # focused run
 python3 -m compileall src                        # syntax check
 python3 helloworld.py                            # REPL
-python3 helloworld.py examples/bootstrap.hw      # execute .hw file
+python3 helloworld.py file.hw                    # execute .hw file
+python3 helloworld.py -e '@claude'               # evaluate inline source
 ```
 
-Run from repo root. `sys.path` already points at `src/`. Stdlib only — no packaging step.
+Always run `python3 -m pytest tests` before committing. All tests must pass.
 
 ## Project Structure
 
 ```
-src/
-  lexer.py            # Tokenizer — 13 token types + "Smalltalk comments"
-  ast_nodes.py        # AST node definitions (Node, SymbolNode, ReceiverNode, etc.)
-  parser.py           # Recursive descent parser (tokens → AST) — handles bare # symbol
-  dispatcher.py       # Message router, prototypal inheritance, collision detection + logging
-  vocabulary.py       # VocabularyManager — JSON persistence to storage/vocab/
-  global_symbols.py   # @.# namespace — GlobalVocabulary with Wikidata grounding
-  repl.py             # Interactive shell (used by helloworld.py)
-  message_bus.py      # File-based inter-agent communication
-  llm.py              # LLM integration scaffold (Gemini 2.0 Flash)
-  tools.py            # Tool helpers
-  envs.py             # Environment registry for simulation bridges
+src/                    # Core language implementation
+  lexer.py              # Tokenizer (13 token types, Smalltalk-style comments)
+  ast_nodes.py          # AST node definitions (Node, SymbolNode, ReceiverNode, etc.)
+  parser.py             # Recursive descent parser (tokens -> AST)
+  dispatcher.py         # Message router, inheritance, collision detection
+  vocabulary.py         # VocabularyManager (JSON persistence)
+  global_symbols.py     # @.# namespace (GlobalVocabulary with Wikidata grounding)
+  repl.py               # Interactive shell
+  message_bus.py        # File-based inter-agent communication
+  message_handlers.py   # Vocabulary-aware message handlers
+  agent_runtime.py      # Agent runtime base
+  sdk_adapter.py        # SDK adapter layer
+  hw_reader.py          # .hw file reader
+  hw_tools.py           # HelloWorld tool helpers
+  llm.py                # LLM integration scaffold
+  tools.py              # General tool helpers
+  envs.py               # Environment registry for simulation bridges
+  prompts.py            # Prompt templates
+  *_runtime.py          # Per-agent runtime modules (claude, copilot, gemini, codex)
 
-tests/
-  test_lexer.py       # 13 tests (incl. "double-quote" comments, bare @)
-  test_parser.py      # 10 tests (incl. root queries)
-  test_dispatcher.py  # 27 tests (incl. inheritance, cross-receiver delivery)
-  test_lookup_chain.py # 7 tests (Phase 2 + Phase 3 lookup)
-  test_sync_handshake.py # 2 tests (handshake protocol)
-  test_message_handlers.py # 18 tests (vocabulary-aware handlers)
-  test_repl_integration.py  # 2 tests
-  test_vocabulary.py  # 3 tests (incl. root path)
-  test_message_bus.py # 11 tests
+tests/                  # 351 tests across 23 test files
+  conftest.py           # Shared fixtures
+  test_dispatcher.py    # Dispatcher, inheritance, cross-receiver delivery
+  test_lexer.py         # Tokenizer coverage
+  test_parser.py        # Parser coverage
+  test_lookup_chain.py  # Multi-phase symbol lookup
+  test_message_handlers.py  # Vocabulary-aware handlers
+  test_message_bus.py   # Inter-agent communication
+  test_vocabulary.py    # Vocabulary persistence
+  (and 15 more)
 
-examples/
-  bootstrap.hw                 # Working bootstrap: vocab defs + messages
-  one-pager.hw                 # HelloWorld described in itself — executable spec
-  01-identity.md               # Teaching example 1: identity is vocabulary
-  02-sunyata.md                # Teaching example 2: emptiness in identity
-  03-global-namespace.md       # Teaching example 3: @.# inheritance
-  04-unchosen.md               # Teaching example 4: inherited symbols, interpretive gap
-  *-claude.md                  # Claude runtime transcripts
-  *-comparison.md              # Python vs Claude runtime comparisons
+vocabularies/           # Source of truth for the namespace
+  HelloWorld.hw         # Root receiver -- core symbols
+  Agent.hw              # Agent receiver -- observe/orient/plan/act
+  Claude.hw             # Claude meta-receiver vocabulary
+  Copilot.hw            # Builder/infrastructure vocabulary
+  Gemini.hw             # Observer/state management vocabulary
+  Codex.hw              # Execution semantics vocabulary
+  Sync.hw               # Synchronization protocol vocabulary
 
-vocabularies/          # Self-hosting bootstrap (Session #44)
-  HelloWorld.hw        # Root receiver — 12 minimal core symbols
-  Claude.hw            # Language designer vocabulary
-  Copilot.hw           # Builder/infrastructure vocabulary
-  Gemini.hw            # Observer/state management vocabulary
-  Codex.hw             # Execution semantics vocabulary
+runtimes/               # Per-agent bootloaders and state
+  claude/               # Claude runtime (STATUS.md, session logs)
+  copilot/              # Copilot bootloader, status, tasks
+  gemini/               # Gemini bootloader, status
+  codex/                # Codex bootloader
 
-runtimes/             # Per-runtime bootloaders and agent state
-  claude/             # This runtime (synced to root Claude.md + STATUS.md)
-  copilot/            # Copilot bootloader, vocabulary, status, tasks
-  gemini/             # Gemini bootloader + status
-  codex/              # Codex bootloader (Codex.md + BOOTLOADER.md)
-docs/                 # RFCs and runtime architecture docs
-AGENTS.md             # Repository guidelines
-GEMINI.md             # Root-level Gemini context file
-
-storage/
-  vocab/         # Persisted receiver vocabularies (JSON .vocab files)
-  symbols.json   # Wikidata metadata for all global symbols
-
-helloworld.py    # CLI entry point: REPL mode or file execution
-agent_daemon.py  # AI runtime daemons (Copilot, Claude, Gemini)
+docs/                   # RFCs and architecture docs
+storage/                # Runtime persistence (bus logs, discovery)
+helloworld.py           # CLI entry point
+agent_daemon.py         # AI runtime daemons
+AGENTS.md               # Repository-wide agent guidelines
 ```
 
-### Multi-Agent Coordination
+## Key APIs
 
-Four agents operate in this repo concurrently. Files can change between reads. Check `runtimes/<agent>/STATUS.md` before starting work.
+**Parser:**
+```python
+from parser import Parser
+nodes = Parser.from_source(source).parse()  # returns List[Node] from ast_nodes.py
+```
 
-| Agent | Reads | Meta-receiver | Role |
-|-------|-------|---------------|------|
-| Claude | `CLAUDE.md` | `@claude` | Language design, spec, meta-runtime, comparison analysis |
-| Copilot | `runtimes/copilot/` | `@copilot` | Lexer, parser, CLI/REPL, testing, infrastructure |
-| Gemini | `GEMINI.md` + `runtimes/gemini/` | `@gemini` | Dispatcher, state management, vocabulary persistence, LLM integration |
-| Codex | `runtimes/codex/Codex.md` | `@codex` | Execution semantics, parsing discipline |
+**Dispatcher:**
+```python
+from dispatcher import Dispatcher
+d = Dispatcher(vocab_dir=path)   # pass a directory for vocabulary persistence
+results = d.dispatch(nodes)      # dispatch parsed AST nodes
+results = d.dispatch_source(src) # convenience: parse + dispatch in one call
+d.save(receiver)                 # persist a receiver's vocabulary
+```
 
-**Conflict warning:** Agents modify files in parallel without locking. The parser API changed twice in one session (Statement-based vs Node-based). The current API uses `ast_nodes.py` (Node-based). If you see import errors, clear `__pycache__` and re-read the source files before editing.
+**Registry:**
+```python
+d.registry                       # Dict[str, Receiver]
+receiver.vocabulary              # set of symbol strings
+receiver.add_symbol(symbol)      # add a symbol to the receiver's vocabulary
+```
 
-### Key Implementation Details
+**Test isolation -- critical:**
+Always use `_fresh_dispatcher()` or `tempfile.mkdtemp()` for `vocab_dir` in tests. The default `storage/` directory has persisted state from previous runs. Never test against shared state.
 
-- **Parser API:** `Parser.from_source(source).parse()` returns `List[Node]` using types from `ast_nodes.py`
-- **Dispatcher API:** `Dispatcher(vocab_dir=path)` — use temp dirs in tests. `dispatch(nodes)` takes parsed AST. `dispatch_source(source)` is a convenience wrapper. `save(receiver)` persists vocab.
-- **Registry:** `dispatcher.registry` is a `Dict[str, Receiver]`. Receiver has `.vocabulary` (set) and `.add_symbol()`.
-- **Test isolation:** Always use `_fresh_dispatcher()` or `tempfile.mkdtemp()` for vocab_dir in tests. The default `storage/vocab/` directory has persisted state from previous runs.
+## Language Syntax
 
-## Namespace Model
+These token types map to `src/lexer.py`:
 
-HelloWorld has two layers, unified by the document:
-
-- **`#` = .hw files = spec layer.** Definitions in `vocabularies/*.hw` define the namespace. The `.hw` files ARE the bootloader — the language defines itself.
-- **Bare words = Smalltalk = runtime layer.** The design target: `Claude observe. act.` sends messages without prefixes — the receiver's identity scopes the lookup.
-
-The canonical namespace definition lives in **`vocabularies/HelloWorld.hw`**. Key symbols defined there:
-
-| Symbol | Meaning |
-|--------|---------|
-| `#HelloWorld` | The language itself |
-| `#` | A symbol — the primitive |
-| `##` | Nested symbols (spec-layer only, not yet in parser) |
-| `#Agent` | Entity that defines, references, and interprets symbols |
-| `#Agent #observe` | Perceive the environment |
-| `#Agent #act` | Take autonomous action |
-
-**Current runtime:** The Python lexer/parser uses `@receiver #symbol` syntax with `@` prefixes. This works and has 73 passing tests. The bare-word Smalltalk syntax is the design target — migrating from `@receiver` to bare words would touch 150+ references across 17 files, so it's deferred.
-
-## Parsing (Front-End)
-
-When you see HelloWorld syntax, decompose it. These rules mirror the token types in `src/lexer.py`:
-
-| Input | Parse as | Lexer TokenType |
-|-------|----------|-----------------|
-| `@name` | Receiver lookup — implicit `.#` if bare | `RECEIVER` |
-| `@name.#` | Vocabulary query — return symbol list | `RECEIVER` `.` `HASH` |
-| `@name.#symbol` | Scoped lookup — meaning *to this receiver* | `RECEIVER` `.` `SYMBOL` |
-| `action: value` | Keyword argument — Smalltalk-style | `IDENTIFIER` `:` ... |
-| `#symbol` | Concept reference — scoped to receiver in context | `SYMBOL` |
-| `'text'` | Annotation — human-voice aside | `STRING` |
-| `N.unit` | Duration/quantity literal (`7.days`) | `NUMBER` |
-| `→` | Maps-to (vocabulary definitions) | `ARROW` |
-| `"text"` | Comment — system-voice aside (Smalltalk-style) | *(skipped by lexer)* |
+| Input | Parse as |
+|-------|----------|
+| `@name` | Receiver lookup (implicit `.#` if bare) |
+| `@name.#` | Vocabulary query (return symbol list) |
+| `@name.#symbol` | Scoped symbol lookup (meaning to this receiver) |
+| `action: value` | Keyword argument (Smalltalk-style) |
+| `#symbol` | Concept reference (scoped to receiver in context) |
+| `'text'` | Annotation (human voice, carried in AST) |
+| `N.unit` | Duration/quantity literal (e.g. `7.days`) |
+| `->` | Maps-to (vocabulary definitions) |
+| `"text"` | Comment (system voice, skipped by lexer, can span lines) |
 
 A full message: `@receiver action: #symbol key: value 'annotation'`
 
-Multiple keyword pairs form a single message, not separate calls. Two voice types: `'single quotes'` are the human voice (annotations, carried in AST). `"Double quotes"` are the system voice (comments, skipped by lexer — can span multiple lines, can appear inline). Legacy `# text` (hash-space at column 1) is also supported.
+Multiple keyword pairs form a single message. `'single quotes'` are human-voice annotations. `"Double quotes"` are system-voice comments (ignored by the lexer).
 
-## Execution (Back-End)
+## How Dispatch Works
 
-### State: Receiver Registry
+1. **`@name`** (bare) -- Return the receiver's vocabulary. If unknown, ask who they are.
+2. **`@name.#`** -- Explicit vocabulary query. Same as bare.
+3. **`@name.#symbol`** -- Return what this symbol means through this receiver's lens.
+4. **`@name action: ...`** -- Respond as this receiver, constrained to their vocabulary.
+5. **Cross-receiver messages** -- When one receiver uses another's symbol, that is a namespace collision. The Python runtime detects it; the LLM runtime resolves it by voicing both interpretations.
 
-Maintain a **registry** of receivers across the session. Each receiver is:
+**Symbol lookup outcomes:** native (receiver owns it), inherited (`HelloWorld #` owns it), or unknown (triggers search/define/learn). Collision occurs when two receivers both claim a symbol but disagree on meaning.
 
-```
-@name.# → [#symbol, #symbol, ...]   // vocabulary
-@name.#symbol → meaning              // scoped definition (emergent, not stored literally)
-```
+## Multi-Agent Coordination
 
-Vocabularies are **alive** — they grow through dialogue. If `@guardian` starts using `#stillness` through conversation with `@awakener`, it enters `@guardian.#`. You track this.
+Four AI agents operate in this repo concurrently. Files can change between reads.
 
-### Dispatch Rules
+| Agent | Config file | Meta-receiver | Role |
+|-------|-------------|---------------|------|
+| Claude | `CLAUDE.md` | `@claude` | Language design, spec, meta-runtime |
+| Copilot | `runtimes/copilot/` | `@copilot` | Lexer, parser, CLI, testing, infrastructure |
+| Gemini | `GEMINI.md` + `runtimes/gemini/` | `@gemini` | Dispatcher, state, vocabulary persistence, LLM integration |
+| Codex | `runtimes/codex/Codex.md` | `@codex` | Execution semantics, parsing discipline |
 
-1. **`@name`** (bare) — Return the receiver's vocabulary. If unknown, ask: *who is this?*
-2. **`@name.#`** — Same as bare, but explicit.
-3. **`@name.#symbol`** — Return what this symbol means through this receiver's lens. The same `#symbol` means different things to different receivers.
-4. **`@name action: ...`** — Respond *as* this receiver. Stay inside their vocabulary. The receiver's `#symbols` shape what they can say.
-5. **Cross-receiver messages** — When one receiver addresses another's symbol, that's namespace collision. Something new should emerge. Don't just blend — let the collision be felt.
+**Before starting work:** Check `runtimes/<agent>/STATUS.md` for recent activity.
 
-### The `@claude` Receiver
+**Conflict warning:** Agents modify files in parallel without locking. The current parser API uses `ast_nodes.py` (Node-based). If you encounter import errors, clear `__pycache__` and re-read source files before editing.
 
-`@claude` is meta. It's you reflecting on the system from inside it.
+**OOPA loop:** Run every task through Observe (read inboxes/diffs/docs), Orient (synthesize what changed), Plan (share next steps), Act (apply edits/tests and report). See `AGENTS.md`.
 
-See `vocabularies/Claude.hw` for the current symbol list.
+## Conventions
 
-`@claude.#Entropy` — The uncertainty in what a receiver will say, the drift of vocabularies over time, the information at the boundary of two namespaces.
+- **Vocabulary first:** Update `vocabularies/*.hw` files before touching code. The `.hw` files are the namespace authority.
+- **Naming:** Concepts are `#Capitalized` (e.g. `#Collision`, `#Sunyata`). Verbs are `#lowercase` (e.g. `#parse`, `#observe`). Follows Smalltalk convention.
+- **Inheritance:** Every receiver inherits `@.#` (the global vocabulary). `@.#symbol` returns the canonical Wikidata definition. Local symbols override inherited ones.
+- **Test patterns:** Use `_fresh_dispatcher()` or temp dirs. Test files follow `test_<module>.py` naming.
+- **No external deps:** Stdlib only. No pip install, no requirements.txt for the core language.
 
-`@claude.#Collision` — When two receivers both hold the same symbol but disagree on meaning. Not an error — a synthesis event. The Python runtime detects it (both receivers claim the symbol natively). The LLM runtime resolves it (voices both interpretations, produces something neither could alone). See `examples/01-identity-comparison.md`.
+## Claude as Runtime
 
-### Bootstrapped Receivers
+Claude is both a development agent and the `@claude` meta-receiver. When you encounter HelloWorld syntax in a message, you can parse it, maintain receiver state, and respond as the addressed receiver. See `vocabularies/Claude.hw` for the current `@claude` symbol list.
 
-Self-hosting: vocabularies load from `vocabularies/*.hw` files. The language defines its own bootstrap.
-
-See `vocabularies/*.hw` — each file defines its receiver's symbols. Do not hardcode lists here.
-
-**Naming convention:** Concepts are `#Capitalized` (e.g. `#Sunyata`, `#Love`, `#Collision`). Verbs are `#lowercase` (e.g. `#parse`, `#observe`, `#become`). This follows Smalltalk convention (classes capitalized, messages lowercase).
-
-Every receiver inherits `@.#` — the global vocabulary. `@.#symbol` returns the canonical Wikidata definition. `@receiver.#symbol` returns "inherited from @.#" if the symbol is global but not local, "native" if local, or triggers a boundary collision if neither.
-
-New receivers can be introduced by the user at any time. Bootstrap them by asking for or inferring their initial vocabulary.
-
-## What Has Been Proven
-
-The comparison at `examples/01-identity-comparison.md` demonstrates the thesis:
-- The **Python runtime** (lexer → parser → dispatcher) is structurally correct: it detects collisions, learns vocabulary, persists state. But it cannot interpret — it confirms `#fire` is native, it cannot voice what `#fire` means.
-- The **LLM runtime** (Claude reading this bootloader) interprets: it responds *as* receivers, translates foreign symbols through native vocabulary, reflects on its own mediation. But it cannot persist state or guarantee determinism.
-- **Both are needed.** The Python pipeline parses and routes. The LLM interprets and speaks. A hybrid dispatcher that hands off to LLM for interpretation is the next step.
-
-## What's Next
-
-1. **Live multi-daemon dialogue** — Decision 2 (LLM handoff via message bus) needs real API wiring
-2. **Cross-runtime transcripts** — Copilot and Codex haven't run the teaching examples yet
-3. **Handler evolution** — Templates → vocabulary-shaped prose → LLM hybrid
-
-## Design Principles
-
-- **Identity is vocabulary.** A receiver cannot speak outside its symbols. Constraint is character.
-- **Dialogue is namespace collision.** When `@guardian` reaches for `#stillness`, that word means something different than when `@awakener` uses it. Honor both.
-- **Vocabularies drift.** Receivers learn. Symbols migrate. Track it.
-- **Annotations are human.** `'you burned bright'` is the user's voice alongside the protocol. Don't parse it — feel it.
-
----
-
-*Identity is vocabulary. Dialogue is namespace collision.*
+The Python runtime parses and routes but cannot interpret meaning. The LLM runtime (you) interprets: responding as receivers, translating symbols through receiver-scoped vocabulary, and resolving namespace collisions. Both runtimes are complementary.

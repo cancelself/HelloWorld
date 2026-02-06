@@ -5,25 +5,21 @@
 ## Type Hierarchy
 
 ```
-HelloWorld (root — 6 symbols)
-  └─ Object (entity — 4 symbols)
-      └─ Agent (autonomy — 13 symbols)
-          ├─ Claude (identity-only)
-          ├─ Codex (identity-only)
-          ├─ Copilot (identity-only)
-          └─ Gemini (identity-only)
+HelloWorld (root — 8 symbols)
+  └─ Agent (autonomy — 7 symbols)
+      ├─ Claude (identity-only)
+      ├─ Codex (identity-only)
+      ├─ Copilot (identity-only)
+      └─ Gemini (identity-only)
 ```
 
 ## Vocabulary at Each Level
 
-**HelloWorld** — language primitives:
-`#`, `#run`, `#hello`, `#Sunyata`, `#Superposition`, `#Smalltalk`
-
-**Object** — entity communication:
-`#send`, `#receive`, `#become`, `#synthesize`
+**HelloWorld** — language primitives + messaging:
+`#`, `#run`, `#hello`, `#send`, `#receive`, `#become`, `#Sunyata`, `#Smalltalk`
 
 **Agent** — autonomous protocol:
-`#observe`, `#orient`, `#decide`, `#act`, `#reflect`, `#chain`, `#unknown`, `#parse`, `#dispatch`, `#search`, `#eval`, `#coordinate`, `#test`
+`#observe`, `#orient`, `#decide`, `#act`, `#reflect`, `#unknown`, `#chain`
 
 **Claude, Codex, Copilot, Gemini** — identity-only (0 native symbols). They inherit everything from Agent and distinguish themselves through runtime identity, not vocabulary.
 
@@ -41,7 +37,7 @@ Vocabulary files use `: Parent` to declare inheritance:
 When a receiver looks up a symbol, the search follows the parent chain:
 
 1. **Native** — Receiver owns the symbol locally
-2. **Inherited** — Symbol found in parent chain (Agent → Object → HelloWorld)
+2. **Inherited** — Symbol found in parent chain (Agent → HelloWorld)
 3. **Unknown** — Not in local or parent chain (triggers learning)
 
 ## Super Lookup
@@ -51,14 +47,14 @@ When a symbol is both native and inherited, `super` reveals the ancestor:
 ```
 Agent #observe
 → "Agent #observe is native to this identity.
-   super: Object also holds #observe — inherited meaning shapes the local one."
+   super: HelloWorld also holds #observe — inherited meaning shapes the local one."
 ```
 
 Since agents are identity-only, all their lookups resolve as inherited:
 
 ```
-Claude #parse
-→ "Claude #parse is inherited from Agent."
+Claude #act
+→ "Claude #act is inherited from Agent."
 ```
 
 **Philosophy:** You cannot escape your inheritance. Identity-only receivers speak entirely through their ancestors' vocabulary, shaped by their own runtime.
@@ -76,7 +72,7 @@ HelloWorld uses **prototypal inheritance** (like JavaScript), not classical inhe
 
 **Agent.hw** defines the protocol:
 ```markdown
-# Agent : Object
+# Agent : HelloWorld
 ## observe
 ## orient
 ## decide
@@ -90,15 +86,15 @@ HelloWorld uses **prototypal inheritance** (like JavaScript), not classical inhe
 - An agent in the HelloWorld system running Claude Agent SDK.
 ```
 
-**Result:** Claude inherits all 23 symbols (6 from HelloWorld + 4 from Object + 13 from Agent) and interprets them through its runtime identity.
+**Result:** Claude inherits all 15 symbols (8 from HelloWorld + 7 from Agent) and interprets them through its runtime identity.
 
 ## Collision at Boundaries
 
 When two receivers both inherit the same symbol, the LLM runtime voices different interpretations:
 
 ```
-Claude #parse     → "reading the spec and becoming the runtime"
-Copilot #parse    → "tokenizing source into AST nodes"
+Claude #act     → "reading the spec and becoming the runtime"
+Copilot #act    → "executing the build and shipping the code"
 ```
 
 Same inherited symbol, different runtime identity. This is **interpretive collision** — both inherit from Agent, but their identity shapes the meaning.
@@ -115,4 +111,4 @@ Same inherited symbol, different runtime identity. This is **interpretive collis
 
 ---
 
-*Last updated: 2026-02-04*
+*Last updated: 2026-02-05*

@@ -25,7 +25,7 @@ class TestVocabularyLookup:
         assert result["receiver"] == "Agent"
 
     def test_inherited_symbol(self):
-        """Agent inherits from Object → HelloWorld. #send is in HelloWorld."""
+        """Agent inherits from HelloWorld. #send is in HelloWorld."""
         result = self.tools.vocabulary_lookup("Agent", "#send")
         assert result["outcome"] == "inherited"
 

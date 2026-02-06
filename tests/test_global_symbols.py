@@ -68,7 +68,7 @@ class TestWikidataMetadata:
 
     def test_wikidata_url_none_when_no_id(self):
         """wikidata_url returns None for symbols without IDs."""
-        url = GlobalVocabulary.wikidata_url("#Object")
+        url = GlobalVocabulary.wikidata_url("#Sunyata")
         assert url is None
 
     def test_wikidata_parsed_from_custom_hw(self):

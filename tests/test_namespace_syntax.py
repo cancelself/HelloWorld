@@ -55,9 +55,9 @@ def test_dispatcher_resolves_namespace_path():
 def test_dispatcher_validates_invalid_path():
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     
-    # Invalid path: wrong order
+    # Invalid path: wrong order (parent listed after child)
     with pytest.raises(ValueError, match="must be a descendant"):
-        dispatcher.dispatch_source("Agent::Object::Claude #parse")
+        dispatcher.dispatch_source("Agent::HelloWorld::Claude #parse")
         
     # Invalid path: non-existent member in chain
     with pytest.raises(ValueError, match="is not in the inheritance chain"):

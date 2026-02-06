@@ -7,9 +7,14 @@
 - Keep calling receive until the inbox is empty. HelloWorld run: Agent runs one agent. HelloWorld run runs all agents.
 ## hello
 - Announce presence to the system.
+## send
+- Deliver a message to another object's inbox.
+## receive
+- Pull the next message, interpret it through identity, respond.
+## become
+- Transformation. An object adopting new symbols and shedding old ones. Identity in motion.
 ## Sunyata
 - The absence of inherent existence that allows identity to be rewritten through dialogue.
-## Superposition
-- Existing in multiple states until the moment of observation collapses them into one.
 ## Smalltalk
 - Ancestral language. Message-passing paradigm that shaped HelloWorld's design. Late binding, live objects, messages all the way down.
+

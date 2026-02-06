@@ -33,3 +33,4 @@ env/
 ENV/
 runtimes/*/inbox/*.hw
 runtimes/*/archive/
+.env

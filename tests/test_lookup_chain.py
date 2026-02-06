@@ -32,18 +32,18 @@ def test_lookup_inherited_symbol():
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Codex"]
 
-    # #synthesize is in Object, inherited via Codex → Agent → Object
-    result = receiver.lookup("#synthesize")
+    # #send is in HelloWorld, inherited via Codex → Agent → HelloWorld
+    result = receiver.lookup("#send")
 
     assert result.outcome == LookupOutcome.INHERITED
-    assert result.symbol == "#synthesize"
+    assert result.symbol == "#send"
     assert result.receiver_name == "Codex"
     assert result.is_inherited()
     assert result.is_inherited()
     assert not result.is_native()
     assert not result.is_unknown()
     assert "defined_in" in result.context
-    assert result.context["defined_in"] == "Object"
+    assert result.context["defined_in"] == "HelloWorld"
 
 
 def test_lookup_inherited_from_agent():
@@ -58,16 +58,16 @@ def test_lookup_inherited_from_agent():
     assert result.context["defined_in"] == "Agent"
 
 
-def test_lookup_inherited_from_object():
-    """Test lookup returns INHERITED with correct ancestor for Object symbols."""
+def test_lookup_inherited_from_helloworld():
+    """Test lookup returns INHERITED with correct ancestor for HelloWorld symbols."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
     receiver = dispatcher.registry["Claude"]
 
-    # #send is in Object.hw, inherited by Claude → Agent → Object
+    # #send is in HelloWorld.hw, inherited by Claude → Agent → HelloWorld
     result = receiver.lookup("#send")
 
     assert result.outcome == LookupOutcome.INHERITED
-    assert result.context["defined_in"] == "Object"
+    assert result.context["defined_in"] == "HelloWorld"
 
 
 def test_lookup_unknown_symbol():
@@ -98,11 +98,11 @@ def test_scoped_lookup_uses_parent_chain():
 
     # Inherited symbol — stays inherited, no promotion
     codex = dispatcher.registry["Codex"]
-    assert codex.is_inherited("#synthesize")
-    result = dispatcher.dispatch_source("Codex #synthesize")
+    assert codex.is_inherited("#send")
+    result = dispatcher.dispatch_source("Codex #send")
     assert len(result) == 1
     assert "inherited" in result[0]
-    assert "#synthesize" not in codex.vocabulary  # Not promoted to local
+    assert "#send" not in codex.vocabulary  # Not promoted to local
 
     # Unknown symbol
     result = dispatcher.dispatch_source("Codex #newSymbol")
@@ -162,10 +162,10 @@ def test_lookup_preserves_context():
     assert native_sym in native_result.context["local_vocabulary"]
 
     # Inherited lookup includes defined_in ancestor
-    inherited_result = receiver.lookup("#synthesize")
+    inherited_result = receiver.lookup("#send")
     assert inherited_result.is_inherited()
     assert "defined_in" in inherited_result.context
-    assert inherited_result.context["defined_in"] == "Object"
+    assert inherited_result.context["defined_in"] == "HelloWorld"
 
     # Unknown lookup includes local vocabulary for research context
     unknown_result = receiver.lookup("#brandNewSymbol")
@@ -177,9 +177,8 @@ def test_receiver_chain():
     """Test chain() returns the full inheritance path."""
     dispatcher = Dispatcher(vocab_dir=tempfile.mkdtemp())
 
-    assert dispatcher.registry["Claude"].chain() == ["Claude", "Agent", "Object", "HelloWorld"]
-    assert dispatcher.registry["Codex"].chain() == ["Codex", "Agent", "Object", "HelloWorld"]
-    assert dispatcher.registry["Object"].chain() == ["Object", "HelloWorld"]
+    assert dispatcher.registry["Claude"].chain() == ["Claude", "Agent", "HelloWorld"]
+    assert dispatcher.registry["Codex"].chain() == ["Codex", "Agent", "HelloWorld"]
     assert dispatcher.registry["HelloWorld"].chain() == ["HelloWorld"]
 
 
@@ -187,7 +186,7 @@ if __name__ == "__main__":
     test_lookup_native_symbol()
     test_lookup_inherited_symbol()
     test_lookup_inherited_from_agent()
-    test_lookup_inherited_from_object()
+    test_lookup_inherited_from_helloworld()
     test_lookup_unknown_symbol()
     test_scoped_lookup_uses_parent_chain()
     test_unknown_symbol_logged()
