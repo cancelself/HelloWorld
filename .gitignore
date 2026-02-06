@@ -19,18 +19,37 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Runtime output
-collisions.log
-
-# Message bus: Track for audit trail (decision: Session #24)
-# Messages ARE dialogue. Dialogue IS collision. Track it.
-# runtimes/*/inbox/
-# runtimes/*/outbox/
+# Secrets
+.env
 
 # Virtual environments
 venv/
 env/
 ENV/
+
+# Runtime output
+collisions.log
+runtimes/daemon-logs/
+*.pid
 runtimes/*/inbox/*.hw
 runtimes/*/archive/
-.env
+runtimes/*/history/
+storage/*.log
+
+# Session artifacts (ephemeral, not canonical state)
+SESSION_*.md
+METADATA_SESSION_*.md
+HUMAN_SUMMARY_SESSION_*.md
+runtimes/*/SESSION_*.md
+runtimes/*/SESSION_*.txt
+runtimes/*/METADATA_SESSION_*.md
+runtimes/*/HUMAN_SUMMARY_SESSION_*.md
+runtimes/*/STATUS_SESSION_*.md
+runtimes/*/SESSION_CURRENT.md
+runtimes/*/SESSION_NOTES.md
+runtimes/*/SESSION_RATINGS.md
+runtimes/*/SESSION_SUMMARY.md
+
+# Generated artifacts
+ratings_chart.html
+requirements.txt

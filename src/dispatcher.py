@@ -27,8 +27,6 @@ from parser import Parser
 from vocabulary import VocabularyManager
 from global_symbols import GlobalVocabulary
 import message_bus
-from tools import ToolRegistry
-from envs import EnvironmentRegistry
 from message_handlers import MessageHandlerRegistry
 from prompts import (
     scoped_lookup_prompt, scoped_lookup_prompt_with_descriptions,
@@ -182,8 +180,6 @@ class Dispatcher:
             )
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
-        self.tool_registry = ToolRegistry()
-        self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
         self.log_file = "collisions.log"
         self.trace = False
@@ -994,28 +990,6 @@ class Dispatcher:
         if handler_response:
             return handler_response
         
-        # Check for Environment interaction: @receiver action: #env with: "scienceworld"
-        if "#env" in args_str:
-            env_name = node.arguments.get("with", LiteralNode("scienceworld")).value
-            env = self.env_registry.get_env(str(env_name))
-            if env:
-                # Map HelloWorld action to env step
-                # e.g., @gemini action: #step args: "look"
-                action_node = node.arguments.get("action", SymbolNode("#look"))
-                action = self._node_val(action_node)
-                observation = env.step(action)
-                return f"[{receiver_name} @ {env_name}] {observation}"
-
-        # Check for Tool symbols in the message
-        tool_results = []
-        for key, val in node.arguments.items():
-            if isinstance(val, SymbolNode):
-                # Tools can be inherited from "HelloWorld" or be native
-                tool = self.tool_registry.get_tool(val.name)
-                if tool and (val.name in receiver.vocabulary or val.name in parent.vocabulary):
-                    tool_input = args_str 
-                    tool_results.append(tool.execute(query=tool_input))
-
         # Phase 4: LLM interpretation for agent messages
         if receiver_name in self.agents:
             message_content = f"{receiver_name} {args_str}"
@@ -1040,8 +1014,6 @@ class Dispatcher:
             self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
 
         response_text = f"[{receiver_name}] Received message: {args_str}"
-        if tool_results:
-            response_text += "\n" + "\n".join(tool_results)
         if node.annotation:
             response_text += f" '{node.annotation}'"
         return response_text
