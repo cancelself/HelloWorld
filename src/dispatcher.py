@@ -333,6 +333,15 @@ class Dispatcher:
         for name, rec in self.registry.items():
             self.vocab_manager.save(name, rec.local_vocabulary, descriptions=rec.descriptions)
 
+    def _full_vocabulary(self, receiver: Receiver) -> Set[str]:
+        """Return a receiver's full vocabulary: local + inherited from parent chain."""
+        vocab = receiver.local_vocabulary.copy()
+        ancestor = receiver.parent
+        while ancestor:
+            vocab |= ancestor.local_vocabulary
+            ancestor = ancestor.parent
+        return vocab
+
     def _trace(self, msg: str):
         """Emit trace output if tracing is enabled."""
         if self.trace:
@@ -450,7 +459,7 @@ class Dispatcher:
 
         # Phase 4: LLM interpretation layer for agent receivers
         if receiver_name in self.agents and self.llm:
-            local_vocab = sorted(receiver.local_vocabulary)
+            local_vocab = sorted(self._full_vocabulary(receiver))
             bare_sym = symbol_name.lstrip("#") if symbol_name != "#" else "#"
             desc = self.vocab_manager.load_description(receiver_name, bare_sym)
             identity = self.vocab_manager.load_identity(receiver_name)
@@ -477,7 +486,7 @@ class Dispatcher:
                 print(f"⚠️  LLM interpretation failed: {e}")
 
             print(f"📡 Querying {receiver_name} for {symbol_name}...")
-            local_vocab = sorted(list(receiver.local_vocabulary))
+            local_vocab = sorted(self._full_vocabulary(receiver))
             context = f"Local Vocabulary: {local_vocab}"
             prompt = f"{receiver_name} {symbol_name}?"
             self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
@@ -532,7 +541,7 @@ class Dispatcher:
             ancestor = receiver._find_in_chain(symbol_name)
             if ancestor:
                 if self.llm:
-                    local_vocab = sorted(receiver.local_vocabulary)
+                    local_vocab = sorted(self._full_vocabulary(receiver))
                     local_desc = self.vocab_manager.load_description(receiver_name, node.message)
                     ancestor_desc = self.vocab_manager.load_description(ancestor.name, node.message)
                     from prompts import super_lookup_prompt
@@ -563,7 +572,7 @@ class Dispatcher:
         # Non-super unary message
         if lookup.is_native() or lookup.is_inherited():
             if self.use_llm and self.llm and receiver_name in self.agents:
-                local_vocab = sorted(receiver.local_vocabulary)
+                local_vocab = sorted(self._full_vocabulary(receiver))
                 desc = self.vocab_manager.load_description(receiver_name, node.message)
                 from prompts import scoped_lookup_prompt_with_descriptions
                 identity = self.vocab_manager.load_identity(receiver_name)
@@ -604,7 +613,7 @@ class Dispatcher:
         Receiving is hearing through who you are.
         """
         identity = self.vocab_manager.load_identity(receiver_name)
-        local_vocab = sorted(receiver.local_vocabulary)
+        local_vocab = sorted(self._full_vocabulary(receiver))
 
         msg = message_bus.receive(receiver_name)
         if msg is None:
@@ -901,7 +910,7 @@ class Dispatcher:
         if not llm:
             return None
 
-        local_vocab = sorted(receiver.local_vocabulary)
+        local_vocab = sorted(self._full_vocabulary(receiver))
         identity = self.vocab_manager.load_identity(receiver_name)
         identity_str = f" ({identity})" if identity else ""
 
@@ -1015,7 +1024,7 @@ class Dispatcher:
             
             # Try LLM first if enabled
             if self.llm:
-                local_vocab = sorted(receiver.local_vocabulary)
+                local_vocab = sorted(self._full_vocabulary(receiver))
                 prompt = message_prompt(receiver_name, local_vocab, message_content)
                 print(f"🤖 LLM interpreting message for {receiver_name}...")
                 try:
@@ -1026,7 +1035,7 @@ class Dispatcher:
             
             # Fallback to message bus (fire-and-forget)
             print(f"📡 Dispatching to {receiver_name} for interpretive response...")
-            local_vocab = sorted(list(receiver.local_vocabulary))
+            local_vocab = sorted(self._full_vocabulary(receiver))
             context = f"Local Vocabulary: {local_vocab}"
             self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
 
@@ -1063,7 +1072,7 @@ class Dispatcher:
         # Try LLM research if available (fire-and-forget via message bus)
         if receiver_name in self.agents:
             print(f"📡 Asking {receiver_name} to research unknown symbol {symbol_name}...")
-            local_vocab = lookup.context.get("local_vocabulary", []) if lookup else sorted(list(receiver.local_vocabulary))
+            local_vocab = sorted(self._full_vocabulary(receiver))
             context = f"Local Vocabulary: {local_vocab}"
             prompt = f"research new symbol: {symbol_name}"
             self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
