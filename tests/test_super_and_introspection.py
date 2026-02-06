@@ -31,19 +31,20 @@ from prompts import (
     scoped_lookup_prompt_with_descriptions,
     super_lookup_prompt,
 )
+import message_bus
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 
 def _fresh_dispatcher():
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
     tmp = tempfile.mkdtemp()
+    message_bus.BASE_DIR = Path(tmp)
     return Dispatcher(vocab_dir=tmp)
 
 
 def _fresh_dispatcher_with_dir():
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
     tmp = tempfile.mkdtemp()
+    message_bus.BASE_DIR = Path(tmp)
     return Dispatcher(vocab_dir=tmp), tmp
 
 
@@ -160,7 +161,7 @@ def test_dispatch_unary_super():
     """Claude act super → invokes through ancestor."""
     d = _fresh_dispatcher()
     # Set up inheritance: Claude : Agent, Agent has #act
-    d.dispatch_source("# Agent : Object\n## act")
+    d.dispatch_source("# Agent : HelloWorld\n## act")
     d.dispatch_source("# Claude : Agent\n## act")
     d._resolve_parents()
 
@@ -190,7 +191,7 @@ def test_dispatch_unary_unknown():
 def test_dispatch_typedef_super():
     """Claude #act super → shows super chain with definitions."""
     d = _fresh_dispatcher()
-    d.dispatch_source("# Agent : Object\n## act")
+    d.dispatch_source("# Agent : HelloWorld\n## act")
     d.dispatch_source("# Claude : Agent\n## act")
     d._resolve_parents()
 
@@ -203,7 +204,7 @@ def test_dispatch_typedef_super():
 def test_super_native_with_ancestor():
     """Super chain returns both local and ancestor entries."""
     d = _fresh_dispatcher()
-    d.dispatch_source("# Agent : Object\n## act")
+    d.dispatch_source("# Agent : HelloWorld\n## act")
     d.dispatch_source("# Claude : Agent\n## act")
     d._resolve_parents()
 
@@ -377,7 +378,7 @@ def test_llm_lazy_load_without_key():
 def test_repl_chain():
     """.chain Claude shows full inheritance."""
     d = _fresh_dispatcher()
-    d.dispatch_source("# Agent : Object\n## observe\n## act")
+    d.dispatch_source("# Agent : HelloWorld\n## observe\n## act")
     d.dispatch_source("# Claude : Agent\n## parse\n## act")
     d._resolve_parents()
 
@@ -428,7 +429,7 @@ def test_repl_lookup_native():
 def test_repl_lookup_inherited():
     """.lookup Child #observe shows inherited from Parent."""
     d = _fresh_dispatcher()
-    d.dispatch_source("# Parent : Object\n## observe")
+    d.dispatch_source("# Parent : HelloWorld\n## observe")
     d.dispatch_source("# Child : Parent\n## parse")
     d._resolve_parents()
     repl = _make_repl(d)
@@ -457,7 +458,7 @@ def test_repl_super():
     d, tmp = _fresh_dispatcher_with_dir()
     # Create .hw files with descriptions
     with open(os.path.join(tmp, "Agent.hw"), "w") as f:
-        f.write("# Agent : Object\n## act\n- Execute immediately.\n")
+        f.write("# Agent : HelloWorld\n## act\n- Execute immediately.\n")
     with open(os.path.join(tmp, "Claude.hw"), "w") as f:
         f.write("# Claude : Agent\n## act\n- Act autonomously.\n")
     # Re-bootstrap to pick up the files

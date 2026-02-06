@@ -106,11 +106,13 @@ class TestAgentDefinitions:
 
 
 class TestEmptyVocabDir:
-    def test_empty_dir_loads_no_agents(self):
+    def test_empty_dir_falls_back_to_canonical(self):
+        """Empty vocab dir falls back to canonical vocabularies/*.hw via Dispatcher."""
         tmpdir = tempfile.mkdtemp()
         try:
             runtime = AgentRuntime(vocab_dir=tmpdir)
-            assert len(runtime.agents) == 0
+            # Dispatcher falls back to vocabularies/*.hw, so agents still load
+            assert len(runtime.agents) > 0
         finally:
             shutil.rmtree(tmpdir)
 

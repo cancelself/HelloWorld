@@ -4,7 +4,6 @@
 (lookup, inheritance, collision, learning), not specific symbol content.
 """
 
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -16,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from vocabulary import VocabularyManager
 from dispatcher import Dispatcher
+import message_bus
 
 
 # --- Vocabulary helpers ---
@@ -87,8 +87,8 @@ def fresh_dispatcher():
 
     Replaces the duplicated _fresh_dispatcher() helpers across test files.
     """
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
     tmp = tempfile.mkdtemp()
+    message_bus.BASE_DIR = Path(tmp)
     return Dispatcher(vocab_dir=tmp)
 
 
@@ -98,6 +98,6 @@ def fresh_dispatcher_with_dir():
 
     For tests that need to inspect persisted files.
     """
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
     tmp = tempfile.mkdtemp()
+    message_bus.BASE_DIR = Path(tmp)
     return Dispatcher(vocab_dir=tmp), tmp

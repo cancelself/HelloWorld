@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass
 from enum import Enum
-import os
 from datetime import datetime
 
 from ast_nodes import (
@@ -183,7 +182,6 @@ class Dispatcher:
             )
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
-        self.message_bus_enabled = os.environ.get("HELLOWORLD_DISABLE_MESSAGE_BUS") != "1"
         self.tool_registry = ToolRegistry()
         self.env_registry = EnvironmentRegistry()
         self.message_handler_registry = MessageHandlerRegistry()
@@ -478,12 +476,11 @@ class Dispatcher:
             except Exception as e:
                 print(f"⚠️  LLM interpretation failed: {e}")
 
-            if self.message_bus_enabled:
-                print(f"📡 Querying {receiver_name} for {symbol_name}...")
-                local_vocab = sorted(list(receiver.local_vocabulary))
-                context = f"Local Vocabulary: {local_vocab}"
-                prompt = f"{receiver_name} {symbol_name}?"
-                self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
+            print(f"📡 Querying {receiver_name} for {symbol_name}...")
+            local_vocab = sorted(list(receiver.local_vocabulary))
+            context = f"Local Vocabulary: {local_vocab}"
+            prompt = f"{receiver_name} {symbol_name}?"
+            self.message_bus_send_and_wait("HelloWorld", receiver_name, prompt, context=context)
 
         # Structural response based on lookup outcome
         if lookup.is_native():
@@ -817,6 +814,9 @@ class Dispatcher:
 
         lines = [f"{sender_name} sends {symbol_name} to {target_name}"]
 
+        # Queue on the message bus for async pickup
+        message_bus.send(sender_name, target_name, f"{sender_name} send: {symbol_name}")
+
         sender_native = sender.is_native(symbol_name)
         target_native = target.is_native(symbol_name)
 
@@ -842,10 +842,14 @@ class Dispatcher:
             ancestor = target._find_in_chain(symbol_name)
             defined_in = ancestor.name if ancestor else "parent"
             lines.append(f"  {target_name} inherits {symbol_name} from {defined_in} (shared ground)")
+        elif symbol_name.lstrip("#") == target_name:
+            # Self-referencing — don't learn your own name
+            lines.append(f"  {symbol_name} names {target_name} itself — not learned")
         else:
             # Foreign — the symbol is foreign to the target
             self._log_collision(target_name, symbol_name)
-            target.add_symbol(symbol_name)
+            desc = self._generate_symbol_description(target_name, target, symbol_name)
+            target.add_symbol(symbol_name, desc)
             self.vocab_manager.save(target_name, target.local_vocabulary, descriptions=target.descriptions)
             lines.append(f"  {symbol_name} is foreign to {target_name} — boundary collision")
             lines.append(f"  {target_name} learns {symbol_name} (vocabulary drift)")
@@ -874,20 +878,45 @@ class Dispatcher:
                 print(f"  LLM synthesis failed: {e}")
 
         # Try message bus synthesis (fire-and-forget)
-        if self.message_bus_enabled:
-            prompt = (
-                f"COLLISION SYNTHESIS: {sender_name} and {target_name} both hold {symbol_name}. "
-                f"What emerges?"
-            )
-            context = (
-                f"{sender_name} vocabulary: {sorted(sender.local_vocabulary)}\n"
-                f"{target_name} vocabulary: {sorted(target.local_vocabulary)}"
-            )
-            self.message_bus_send_and_wait(
-                "HelloWorld", sender_name, prompt, context=context
-            )
+        prompt = (
+            f"COLLISION SYNTHESIS: {sender_name} and {target_name} both hold {symbol_name}. "
+            f"What emerges?"
+        )
+        context = (
+            f"{sender_name} vocabulary: {sorted(sender.local_vocabulary)}\n"
+            f"{target_name} vocabulary: {sorted(target.local_vocabulary)}"
+        )
+        self.message_bus_send_and_wait(
+            "HelloWorld", sender_name, prompt, context=context
+        )
 
         return None
+
+    def _generate_symbol_description(self, receiver_name: str, receiver, symbol_name: str) -> Optional[str]:
+        """Generate a description for a newly learned symbol via LLM.
+
+        Returns a one-sentence description, or None if no LLM is available.
+        """
+        llm = self._get_llm()
+        if not llm:
+            return None
+
+        local_vocab = sorted(receiver.local_vocabulary)
+        identity = self.vocab_manager.load_identity(receiver_name)
+        identity_str = f" ({identity})" if identity else ""
+
+        prompt = (
+            f"You are defining a symbol for the HelloWorld language.\n"
+            f"Receiver: {receiver_name}{identity_str}\n"
+            f"Symbol: {symbol_name}\n"
+            f"Existing vocabulary: {local_vocab}\n\n"
+            f"Write a one-sentence description for this symbol as it relates to this receiver. "
+            f"Be concise. No quotes. No prefix. Just the description."
+        )
+        try:
+            return llm.call(prompt).strip()
+        except Exception:
+            return None
 
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
@@ -909,9 +938,16 @@ class Dispatcher:
             if isinstance(val, SymbolNode):
                 symbol_name = val.name
 
+                # Skip self-referencing symbols (a receiver shouldn't learn its own name)
+                bare_name = symbol_name.lstrip("#")
+                if bare_name == receiver_name:
+                    continue
+
                 # Only learn truly unknown symbols (not native, not inherited)
                 if not receiver.has_symbol(symbol_name):
-                    receiver.add_symbol(symbol_name)
+                    # Generate LLM description if available
+                    desc = self._generate_symbol_description(receiver_name, receiver, symbol_name)
+                    receiver.add_symbol(symbol_name, desc)
                     self._log_collision(receiver_name, symbol_name, context="message_args")
                     learned = True
 
@@ -989,11 +1025,10 @@ class Dispatcher:
                     print(f"⚠️  LLM interpretation failed: {e}")
             
             # Fallback to message bus (fire-and-forget)
-            if self.message_bus_enabled:
-                print(f"📡 Dispatching to {receiver_name} for interpretive response...")
-                local_vocab = sorted(list(receiver.local_vocabulary))
-                context = f"Local Vocabulary: {local_vocab}"
-                self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
+            print(f"📡 Dispatching to {receiver_name} for interpretive response...")
+            local_vocab = sorted(list(receiver.local_vocabulary))
+            context = f"Local Vocabulary: {local_vocab}"
+            self.message_bus_send_and_wait("HelloWorld", receiver_name, message_content, context=context)
 
         response_text = f"[{receiver_name}] Received message: {args_str}"
         if tool_results:
@@ -1026,7 +1061,7 @@ class Dispatcher:
             f.write(log_entry)
         
         # Try LLM research if available (fire-and-forget via message bus)
-        if receiver_name in self.agents and self.message_bus_enabled:
+        if receiver_name in self.agents:
             print(f"📡 Asking {receiver_name} to research unknown symbol {symbol_name}...")
             local_vocab = lookup.context.get("local_vocabulary", []) if lookup else sorted(list(receiver.local_vocabulary))
             context = f"Local Vocabulary: {local_vocab}"
@@ -1041,8 +1076,6 @@ class Dispatcher:
 
     def message_bus_send_and_wait(self, sender: str, receiver: str, content: str, context: Optional[str] = None) -> Optional[str]:
         """Send a message via the bus.  Returns None (fire-and-forget)."""
-        if not self.message_bus_enabled:
-            return None
         full_content = content
         if context:
             full_content += f"\n\n# Context\n{context}"

@@ -5,7 +5,7 @@ with its system prompt built from its .hw vocabulary file. Uses hw_reader
 (parser-free) for all .hw file operations — no lexer/parser dependency.
 
 The orchestrator prompt is built from the vocabulary hierarchy itself:
-HelloWorld.hw (root symbols), Object.hw (messaging), Agent.hw (protocol).
+HelloWorld.hw (root symbols + messaging), Agent.hw (protocol).
 
 Works without claude-agent-sdk for construction and testing.
 Raises ImportError on query()/run_autonomous() if SDK is missing.
@@ -55,12 +55,12 @@ class ReceiverAgent:
 class AgentRuntime:
     """Multi-agent runtime powered by Claude Agent SDK.
 
-    Loads .hw vocabulary files via hw_reader (no parser dependency) and
-    constructs ReceiverAgent instances. Each agent's system prompt is
-    built from its identity, vocabulary, and symbol descriptions.
+    Uses the Dispatcher for vocabulary loading and inheritance resolution
+    (the single source of truth), and hw_reader for identity/description
+    text used in system prompts.
 
     The orchestrator prompt is assembled from the vocabulary hierarchy:
-    HelloWorld.hw, Object.hw, Agent.hw — the language describing itself.
+    HelloWorld.hw, Agent.hw — the language describing itself.
     """
 
     def __init__(self, vocab_dir: str = "vocabularies"):
@@ -73,25 +73,56 @@ class AgentRuntime:
         self._load_agents()
 
     def _load_agents(self):
-        """Load all agent receivers from .hw files via hw_reader."""
+        """Load all agent receivers via Dispatcher (inheritance-aware).
+
+        The Dispatcher is the single source of truth for vocabulary and
+        inheritance. hw_reader supplements with identity text and symbol
+        descriptions for system prompt construction.
+        """
+        from dispatcher import Dispatcher
+
+        dispatcher = Dispatcher(vocab_dir=self.vocab_dir)
         self._receivers = read_hw_directory(self.vocab_dir)
 
         for name in AGENT_RECEIVERS:
-            receiver = self._receivers.get(name)
-            if receiver is None:
+            if name not in dispatcher.registry:
                 continue
+            receiver = dispatcher.registry[name]
 
-            vocabulary = receiver.vocabulary
-            identity = receiver.identity
-            descriptions = {
-                sym: receiver.symbol_description(sym) for sym in vocabulary
-            }
+            # Full vocabulary: local + inherited via parent chain
+            all_symbols = sorted(receiver.local_vocabulary)
+            ancestor = receiver.parent
+            while ancestor:
+                for sym in ancestor.local_vocabulary:
+                    if sym not in all_symbols:
+                        all_symbols.append(sym)
+                ancestor = ancestor.parent
+            all_symbols.sort()
 
-            system_prompt = self.build_system_prompt(name, vocabulary, identity, descriptions)
+            # Identity and descriptions from hw_reader (richer text)
+            hw_receiver = self._receivers.get(name)
+            identity = hw_receiver.identity if hw_receiver else None
+            descriptions = {}
+            for sym in all_symbols:
+                desc = None
+                if hw_receiver:
+                    desc = hw_receiver.symbol_description(sym)
+                # Fall back to dispatcher descriptions
+                if desc is None:
+                    desc = receiver.description_of(sym)
+                # Check parent chain for inherited descriptions
+                if desc is None:
+                    anc = receiver.parent
+                    while anc and desc is None:
+                        desc = anc.description_of(sym)
+                        anc = anc.parent
+                descriptions[sym] = desc
+
+            system_prompt = self.build_system_prompt(name, all_symbols, identity, descriptions)
 
             self.agents[name] = ReceiverAgent(
                 name=name,
-                vocabulary=vocabulary,
+                vocabulary=all_symbols,
                 identity=identity,
                 symbol_descriptions=descriptions,
                 system_prompt=system_prompt,
@@ -139,7 +170,7 @@ class AgentRuntime:
         """Build the orchestrator system prompt from the vocabulary hierarchy.
 
         The orchestrator is the runtime: it parses HelloWorld syntax and dispatches
-        to receiver subagents. Its rules come from HelloWorld.hw, Object.hw, and
+        to receiver subagents. Its rules come from HelloWorld.hw and
         Agent.hw — the language describing itself through its own inheritance chain.
         """
         lines = [
@@ -149,7 +180,7 @@ class AgentRuntime:
         ]
 
         # Load hierarchy .hw files — the language IS the spec
-        hierarchy_files = ["HelloWorld", "Object", "Agent"]
+        hierarchy_files = ["HelloWorld", "Agent"]
         for name in hierarchy_files:
             receiver = self._receivers.get(name)
             if receiver is None:

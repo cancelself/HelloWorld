@@ -8,18 +8,20 @@ import os
 import tempfile
 import pytest
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock
 sys.path.insert(0, "src")
 from src.dispatcher import Dispatcher
 from src.llm import GeminiModel, has_api_key
 from src.prompts import scoped_lookup_prompt, message_prompt, collision_prompt
+import message_bus
 
 
 def _make_dispatcher(**kw):
-    """Create a dispatcher with message bus disabled and temp vocab dir."""
-    os.environ["HELLOWORLD_DISABLE_MESSAGE_BUS"] = "1"
+    """Create a dispatcher with message bus redirected to temp dir."""
     if "vocab_dir" not in kw:
         kw["vocab_dir"] = tempfile.mkdtemp()
+    message_bus.BASE_DIR = Path(kw["vocab_dir"])
     return Dispatcher(**kw)
 
 

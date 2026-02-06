@@ -26,7 +26,7 @@ class TestOrchestratorPrompt:
 
     def test_contains_object_section(self):
         prompt = self.runtime.build_orchestrator_prompt()
-        assert "## Object" in prompt
+        assert "## HelloWorld" in prompt
 
     def test_contains_agent_section(self):
         prompt = self.runtime.build_orchestrator_prompt()
@@ -56,8 +56,8 @@ class TestHwReaderIntegration:
     def setup_method(self):
         self.runtime = AgentRuntime(vocab_dir=VOCAB_DIR)
 
-    def test_agent_vocabulary_matches_hw_file(self):
-        """Agent vocabulary should match what hw_reader extracts from the .hw file."""
+    def test_agent_vocabulary_includes_inherited(self):
+        """Agent vocabulary includes local + inherited symbols from parent chain."""
         from hw_reader import read_hw_file
         import os
 
@@ -65,7 +65,12 @@ class TestHwReaderIntegration:
             agent = self.runtime.agents[name]
             receiver = read_hw_file(os.path.join(VOCAB_DIR, f"{name}.hw"))
             assert receiver is not None
-            assert agent.vocabulary == receiver.vocabulary
+            # Local symbols from .hw file are a subset of full vocabulary
+            for sym in receiver.vocabulary:
+                assert sym in agent.vocabulary, \
+                    f"{name}: local symbol {sym} missing from resolved vocabulary"
+            # Inherited symbols should also be present
+            assert len(agent.vocabulary) >= len(receiver.vocabulary)
 
     def test_agent_identity_matches_hw_file(self):
         from hw_reader import read_hw_file
