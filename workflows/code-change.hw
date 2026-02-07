@@ -1,0 +1,38 @@
+# Workflow: Code Change
+# Implementation follows vocabulary. Tests confirm correctness.
+
+@human propose: #change 'natural language'
+"Describe need: 'add error handling' or 'optimize dispatcher' or 'fix bug in parser'."
+
+@agent observe: #request
+"Understand intent. Locate relevant modules. Check current tests."
+
+@agent orient: #approach
+"Synthesize: vocabulary change needed? Just implementation? Refactor required?"
+
+@agent decide: #implementation
+"State plan: 'I will add try-catch to dispatcher, update 3 tests, expect 352/352 passing.'"
+
+@agent act: #vocabulary-first IF needed
+"If new symbols required, update .hw files BEFORE code."
+
+@agent implement: #change with: #minimal-edits
+"Surgical changes only. Preserve working code. Add, don't rewrite."
+
+@agent test: #implementation
+"Run full suite: python3 -m pytest tests. Report pass/fail with context."
+
+@agent report: #completion to: @human
+"State: files changed, lines added/removed, test results, any vocabulary updates."
+
+@human review: #tests not: #code
+"Read test results. If 352/352 passing, trust it. Spot-check only if suspicious."
+
+@human question: #implementation IF needed
+"Ask 'why approach X?' or 'explain change in file Y'. Agent clarifies."
+
+@agent clarify: #decision
+"Explain reasoning. Show alternatives considered. Justify minimal-change principle."
+
+@human approve: #completion | @human iterate: #change
+"'looks good' → done. 'change X' → agent refines. 'revert' → git checkout."

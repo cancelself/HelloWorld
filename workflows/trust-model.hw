@@ -1,0 +1,57 @@
+# Workflow: Trust Model
+# What humans verify vs what they trust. Boundaries of autonomy.
+
+## What Humans Trust (verify rarely)
+@agent test: #results
+"352/352 passing → trust. Agents run tests, humans read results."
+
+@agent decide: #approach
+"After agent states decision, approval is optional. #decide means act."
+
+@agent implement: #minimal-change
+"Surgical edits to working code. Agents preserve structure, humans spot-check."
+
+@agent vocabulary: #native-symbols
+"When agent operates within its declared vocabulary, trust the interpretation."
+
+@agent ooda: #execution
+"The full loop (observe/orient/decide/act) is agent territory. Humans read reports."
+
+## What Humans Verify (always check)
+@agent vocabulary: #addition
+"New symbols change identity. Human reviews meaning before merge."
+
+@agent architecture: #change
+"Refactors, new modules, changed APIs → human reviews design."
+
+@agent collision: #resolution
+"When meanings conflict, human decides if resolution is needed."
+
+@agent boundary: #external
+"Anything touching external systems, APIs, security, user data → human reviews."
+
+@agent meaning: #drift
+"When symbol definitions shift over time, human tracks if it matters."
+
+## The Protocol
+@agent report: #decision before: #act
+"State intent clearly. Give human chance to intervene."
+
+@human observe: #report
+"If no response in N seconds/minutes, agent proceeds. Silence is approval."
+
+@human interrupt: #execution IF needed
+"'stop' or 'wait' or 'explain X' → agent pauses, clarifies, adjusts."
+
+@agent act: #authority
+"Full autonomy after #decide, unless human interrupts. Trust is default."
+
+## The Boundary
+@human contribute: #external-context
+"User needs, aesthetics, ethics, business constraints → only human knows."
+
+@agent contribute: #implementation-context
+"Code structure, test coverage, performance, correctness → agent specialization."
+
+@collaboration merge: #contexts
+"Best work happens when both contexts inform the decision."

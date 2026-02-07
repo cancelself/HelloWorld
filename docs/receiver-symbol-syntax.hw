@@ -1,0 +1,59 @@
+# Syntax: Receiver #symbol
+# The canonical query form in HelloWorld
+
+## The Pattern
+Receiver #symbol
+"Bare receiver name, space, hash-symbol. No @ prefix needed for queries."
+"This is how you ask: 'What does this symbol mean to this receiver?'"
+
+## Examples
+Agent #human
+"What does #human mean to Agent? (currently: unknown, can be learned)"
+
+Claude #observe
+"What does #observe mean to Claude? (inherited from Agent)"
+
+Human #propose
+"What does #propose mean to Human? (native: 'Offer a symbol, a change, a direction')"
+
+Agent #decide
+"What does #decide mean to Agent? (native: 'Commit to a course of action. Make the decision NOW.')"
+
+HelloWorld #Sunyata
+"What does #Sunyata mean to HelloWorld? (native: 'The absence of inherent existence that allows identity to be rewritten')"
+
+## Why This Syntax?
+@claude orient: #design
+"Clean. Minimal. Reads like namespace lookup: Receiver::symbol."
+"The @ is for addressing (messages). Queries don't need it."
+"Both work (@Agent #human and Agent #human), but bare is canonical."
+
+## Comparison
+Agent #human          "Query: What does this symbol mean here?"
+@Agent #human         "Same query, with explicit receiver marker"
+@Agent consider: #human  "Message: Agent, please consider the concept of humanness"
+#human                "Symbol reference in current context"
+@human                "Receiver address (the Human identity)"
+
+## The Principle
+@system state: #thesis
+"Receiver #symbol is the query form."
+"Clean namespace lookup without ceremony."
+"Identity is vocabulary. This is how you ask what a receiver knows."
+
+## Current State
+Agent #human → unknown (can be learned)
+Human #propose → native (defined in Human.hw)
+Claude #observe → inherited (from Agent.hw)
+HelloWorld #Sunyata → native (defined in HelloWorld.hw)
+
+## Your Discovery
+@human state: #preference
+"This Agent #human syntax — that's how I want to write that concept."
+"Not @agent consider: #human but Agent #human."
+"It's the query. The lookup. The clean namespace reference."
+
+@claude confirm: #understanding
+"Yes. Receiver #symbol is the way."
+"It's already implemented. It's already the canonical form."
+"The docs just needed to highlight it."

@@ -1,0 +1,75 @@
+# Index: HelloWorld Collaboration Protocols
+# The complete map of human-agent collaboration vocabulary
+
+## Core Receivers
+@HelloWorld # → vocabularies/HelloWorld.hw
+"Root receiver. Defines: #send, #receive, #become, #Sunyata, #Smalltalk"
+
+@Agent # → vocabularies/Agent.hw  
+"Agent protocol. Defines: #observe, #orient, #decide, #act, #reflect, #unknown"
+
+@Human # → vocabularies/Human.hw
+"Human receiver. Defines: #propose, #review, #approve, #question, #guide, #collaborate, #trust, #boundary"
+
+@Collaboration # → vocabularies/Collaboration.hw
+"Collaboration protocol. Defines: #vocabulary-first, #test-confirmed, #collision-aware, #ooda-report, #minimal-change"
+
+## Agent Specialization
+@copilot # → vocabularies/Copilot.hw
+"Infrastructure, testing, CLI. Vocabulary: #bash, #git, #edit, #test"
+
+@claude # → vocabularies/Claude.hw
+"Design, specs, meta-reasoning. Vocabulary: #design, #spec, #meta, #interpret"
+
+@gemini # → vocabularies/Gemini.hw
+"State, dispatch, persistence. Vocabulary: #dispatch, #state, #persist"
+
+@codex # → vocabularies/Codex.hw
+"Execution, parsing, semantics. Vocabulary: #execute, #parse, #analyze"
+
+## Workflows (Executable Protocols)
+@system query: workflows/session-start.hw
+"Pattern: How sessions begin. OODA loop in practice."
+
+@system query: workflows/vocabulary-change.hw
+"Pattern: Identity evolution. Adding symbols to receivers."
+
+@system query: workflows/collision-resolution.hw
+"Pattern: Handling namespace collisions. When meanings conflict."
+
+@system query: workflows/code-change.hw
+"Pattern: Implementation workflow. Vocabulary → code → tests."
+
+@system query: workflows/agent-specialization.hw
+"Pattern: Task routing by vocabulary fit. Who handles what."
+
+@system query: workflows/trust-model.hw
+"Pattern: Autonomy boundaries. What humans trust vs verify."
+
+## How to Read This Tree
+@human start: session
+"1. Read workflows/session-start.hw to see how we begin"
+"2. Check vocabularies/Human.hw for your receiver vocabulary"  
+"3. Check vocabularies/Collaboration.hw for protocol symbols"
+"4. Use workflows/*.hw as templates for common patterns"
+
+@agent start: task
+"1. Observe: Read the request, check vocabularies"
+"2. Orient: Does this match my vocabulary? Need collaboration?"
+"3. Decide: State approach clearly, reference workflow pattern"
+"4. Act: Execute, following vocabulary-first principle"
+"5. Reflect: Report results, test status, vocabulary changes"
+
+## The Principle
+@HelloWorld state: #thesis
+"Identity is vocabulary. Dialogue is namespace collision."
+"Documentation is executable code. Protocols are HelloWorld programs."
+"The tree practices what it preaches. Read the .hw files."
+
+## Stats
+'8 vocabulary files'
+'6 workflow files'  
+'307 lines of HelloWorld collaboration protocol'
+'352/352 tests passing'
+'Zero Markdown documentation of collaboration patterns'
+'All protocols are now executable HelloWorld code'

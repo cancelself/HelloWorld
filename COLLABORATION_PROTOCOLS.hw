@@ -1,0 +1,84 @@
+# README: Human-Agent Collaboration
+# This tree is now HelloWorld code. The protocols live in .hw files.
+
+## What Changed
+@claude observe: #documentation-gap
+"Docs were prose about how agents work. Not executable. Not HelloWorld."
+
+@claude orient: #principle
+"As much of this tree should be HelloWorld 'code' as possible."
+
+@claude decide: #approach
+"Move collaboration protocols from Markdown into .hw files. Let the language define itself."
+
+@claude act: #creation
+"Created 8 new .hw files defining human-agent collaboration:"
+
+## New Vocabulary Files
+@system receive: vocabularies/Human.hw
+"Human receiver vocabulary: #propose, #review, #approve, #question, #guide, #collaborate, #trust, #boundary"
+
+@system receive: vocabularies/Collaboration.hw
+"Protocol symbols: #vocabulary-first, #test-confirmed, #collision-aware, #ooda-report, #minimal-change, #trust-but-verify"
+
+## New Workflow Files
+@system receive: workflows/session-start.hw
+"How humans and agents begin working together. OODA in action."
+
+@system receive: workflows/vocabulary-change.hw
+"The fundamental pattern: identity evolution through symbol addition."
+
+@system receive: workflows/collision-resolution.hw
+"What happens when two receivers claim the same symbol with different meanings."
+
+@system receive: workflows/code-change.hw
+"Implementation workflow: vocabulary first, tests confirm, minimal edits only."
+
+@system receive: workflows/agent-specialization.hw
+"Task routing by vocabulary fit. @copilot for infra, @claude for design, etc."
+
+@system receive: workflows/trust-model.hw
+"Autonomy boundaries: what humans trust vs what they verify."
+
+## Updated Documentation
+@claude update: README.md
+"Added workflows/ section, fixed test count (352), linked to new .hw files."
+
+@claude update: AGENTS.md  
+"Fixed OOPA→OODA, added pointer to executable protocols in workflows/."
+
+@claude update: Claude.md
+"Fixed OOPA→OODA, linked to collaboration .hw files."
+
+## The Principle
+@human state: #principle
+"Identity is vocabulary. Dialogue is namespace collision."
+
+@claude extend: #principle
+"Documentation is executable code. Protocols are HelloWorld programs."
+
+@system confirm: #tests
+"352/352 passing. No code broken. Only vocabulary added."
+
+## How to Use
+@human read: workflows/session-start.hw
+"See how a session begins. This is the pattern."
+
+@agent execute: workflows/code-change.hw
+"When proposing changes, follow this protocol."
+
+@system query: @human.#
+"Check Human.hw for human receiver vocabulary."
+
+@system query: @collaboration.#
+"Check Collaboration.hw for protocol symbols."
+
+## What This Means
+@claude reflect: #achievement
+"The collaboration protocol is now part of the language itself."
+"Agents can dispatch on @human as a receiver."
+"Workflows are executable, parseable, trackable."
+"The tree practices what it preaches."
+
+@system state: #status
+"Documentation is code. Protocols are vocabulary. The boundary is clear."

@@ -1,0 +1,32 @@
+# Workflow: Collision Resolution
+# When two receivers claim the same symbol with different meanings
+
+@system detect: #collision between: @receiver1 and: @receiver2
+"Dispatcher finds both own #symbol. This is not an error. This is where meaning emerges."
+
+@agent observe: #collision
+"Read both vocabulary definitions. Understand each perspective without judgment."
+
+@agent voice: #perspective of: @receiver1
+"Speak as receiver1: 'To me, #symbol means...'"
+
+@agent voice: #perspective of: @receiver2
+"Speak as receiver2: 'To me, #symbol means...'"
+
+@agent synthesize: #collision
+"Find the generative tension. What can be said that neither receiver could say alone?"
+
+@agent present: #perspectives to: @human
+"Show both meanings. Show the synthesis. State: 'Resolution optional.'"
+
+@human decide: #resolution | @human preserve: #collision
+"Either: 'rename one' or 'keep both' or 'merge meanings' or 'let it be'."
+
+@agent act: #decision
+"If resolution requested, implement. If preservation chosen, document collision as feature."
+
+@agent document: #collision in: collisions.log
+"Record: receivers, symbol, date, perspectives, decision. Collisions are data."
+
+@system learn: #collision
+"The collision history is how the language learns what matters to its users."

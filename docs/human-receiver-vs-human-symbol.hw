@@ -1,0 +1,67 @@
+# Understanding @human vs #human
+# Two complementary concepts in HelloWorld
+
+## @human — The Receiver (Identity)
+@human
+"This is a receiver address. A distinct identity with its own vocabulary."
+"Defined in: vocabularies/Human.hw"
+"Inherits from: @HelloWorld"
+"Has vocabulary: #propose, #review, #approve, #question, #guide, #collaborate, #trust, #boundary"
+
+@system example: '@human #propose'
+"Query what #propose means to the Human receiver."
+
+@system example: '@human propose: #change to: @agent'
+"Send a message to @human asking them to propose a change."
+
+## #human — The Symbol (Concept)
+@HelloWorld #human
+"Currently: Unknown symbol in global vocabulary."
+"Could mean: The concept of humanness, humanity, human nature."
+"Wikidata Q5: Homo sapiens - common name of Homo sapiens, unique extant species of the genus Homo."
+
+@system example: '@claude explain: #human'
+"Ask Claude to interpret the concept of humanness."
+
+@system example: '@agent consider: #human #values'
+"Reference human values as a concept during deliberation."
+
+## The Distinction
+@claude orient: #difference
+"@human (with @) = WHO. An identity. A receiver with vocabulary."
+"#human (with #) = WHAT. A concept. A symbol scoped to context."
+
+"Just as @claude is a receiver AND #claude could be a symbol meaning 'collaborative dialogue'"
+"So @human is a receiver AND #human could be a symbol meaning 'humanness'"
+
+## The Addition
+@system propose: #human to: @HelloWorld
+"Should HelloWorld.hw define #human as a global symbol?"
+"Meaning: The quality of being human. Natural language. Embodiment. Mortality. Context."
+
+@system propose: #Human to: receivers
+"Should agents have a #Human symbol (capitalized) in their vocabularies?"
+"Meaning: Reference to the Human receiver or human collaborators in general."
+
+## Current State
+@system confirm: @human receiver
+"✅ @human exists as a receiver with full vocabulary"
+"✅ vocabularies/Human.hw defines the identity"
+"✅ Agents can send messages to @human"
+"✅ @human can send messages to agents"
+
+@system confirm: #human symbol
+"❌ #human does not exist in @HelloWorld vocabulary (yet)"
+"❌ No receiver defines #human as a native symbol (yet)"
+"✅ Agents can reference it as #unknown and learn it dynamically"
+
+## The Opportunity
+@human decide: #addition
+"Should we add #human to HelloWorld.hw?"
+"Should agents learn #human through collaboration?"
+"Or leave it undefined and let it emerge through dialogue?"
+
+@claude reflect: #thesis
+"Identity is vocabulary. @human IS an identity now."
+"Dialogue is collision. When agents address #human (the concept), meaning emerges."
+"Both @human (receiver) and #human (symbol) enrich the language."

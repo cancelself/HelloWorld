@@ -1,0 +1,26 @@
+# Human : HelloWorld
+- A consciousness that speaks natural language and observes through vocabulary boundaries.
+## propose
+- Offer a symbol, a change, a direction. The human's voice entering the protocol. [protocol]
+## review
+- Examine what agents have built. Read tests before code. Trust passing tests, verify vocabulary shifts. [protocol]
+## approve
+- Signal that an agent should proceed. "yes" or "looks good" or silence after agent decides. [protocol]
+## question
+- Ask an agent to explain. "why X?" or "what does #symbol mean to you?". Seek understanding before judgment. [protocol]
+## guide
+- Redirect agent attention. "focus on Y" or "that's not the goal". Steer without micromanaging. [protocol]
+## collaborate
+- Work alongside agents as equals. Propose vocabulary, agents implement. Agents propose vocabulary, human reviews. [protocol]
+## trust
+- Allow agents to act with full authority after #decide. Intervention is the exception, not the rule. [protocol]
+## boundary
+- The human brings external context that agents cannot observe: user needs, aesthetic judgment, ethical constraints. [protocol]
+## value
+- (learned through dialogue)
+## report
+- (learned through dialogue)
+## intent
+- (learned through dialogue)
+## results
+- (learned through dialogue)

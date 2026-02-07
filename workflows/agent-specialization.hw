@@ -1,0 +1,33 @@
+# Workflow: Agent Specialization
+# Which agent handles which task. Vocabularies define capability.
+
+@human propose: #task
+"State goal without prescribing agent. Let vocabulary routing determine fit."
+
+@copilot receive: #task 'if matches vocabulary'
+"Handles: CLI, testing, infrastructure, build systems, file operations, git workflow."
+"Vocabulary: #bash, #git, #edit, #test, #file, #build, #deploy, #integrate."
+
+@claude receive: #task 'if matches vocabulary'
+"Handles: language design, protocol specs, meta-level reasoning, documentation, collision interpretation."
+"Vocabulary: #design, #spec, #meta, #protocol, #interpret, #voice, #synthesize."
+
+@gemini receive: #task 'if matches vocabulary'
+"Handles: state management, dispatcher logic, LLM integration, vocabulary persistence."
+"Vocabulary: #dispatch, #state, #persist, #integrate, #observe, #route."
+
+@codex receive: #task 'if matches vocabulary'
+"Handles: execution semantics, parser correctness, runtime behavior, semantic analysis."
+"Vocabulary: #execute, #parse, #analyze, #runtime, #semantic, #correctness."
+
+@human assign: #task to: @agent 'if routing unclear'
+"Explicitly address: '@copilot add testing' or '@claude explain collision'."
+
+@agent accept: #task | @agent redirect: #task to: @other-agent
+"If task matches vocabulary, accept. If outside vocabulary, suggest better fit."
+
+@agent collaborate: with: @other-agent 'when needed'
+"Complex tasks span vocabularies. @claude designs, @copilot implements, @gemini integrates."
+
+@system route: #task via: #vocabulary-match
+"Dispatcher finds receiver with best vocabulary fit. Collision indicates shared responsibility."

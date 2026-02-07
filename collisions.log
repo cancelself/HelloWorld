@@ -1,1 +1,6 @@
-[2026-02-02T17:12:16.038636] UNKNOWN: Codex encountered #unknownSymbol
+[2026-02-07T10:54:34.270396] UNKNOWN: Codex encountered #unknownSymbol
+[2026-02-07T10:54:34.309717] UNKNOWN: HelloWorld::Agent::Claude encountered #parse
+[2026-02-07T10:54:34.309788] UNKNOWN: HelloWorld::Claude encountered #parse
+[2026-02-07T10:54:34.334333] UNKNOWN: Codex encountered #newSymbol
+[2026-02-07T10:54:34.334519] COLLISION: Codex reached for #newSymbol in context of message_args
+[2026-02-07T10:54:34.768604] COLLISION: Gemini reached for #fire in context of collision with Claude

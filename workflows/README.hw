@@ -1,0 +1,45 @@
+# Workflows: README
+# These files document human-agent collaboration patterns using HelloWorld syntax.
+
+## Status
+"These are **documentation files** that use HelloWorld-like syntax for clarity."
+"Some use syntax extensions (|, - in identifiers) not yet in the lexer."
+"They define the INTENT of collaboration protocols. Full execution comes later."
+
+## Fully Executable
+@system confirm: workflows/session-start.hw
+"This one executes cleanly. It demonstrates the OODA loop in practice."
+
+## Documentation (HelloWorld-like syntax)
+@system list: workflows/vocabulary-change.hw
+@system list: workflows/collision-resolution.hw  
+@system list: workflows/code-change.hw
+@system list: workflows/agent-specialization.hw
+@system list: workflows/trust-model.hw
+"These use pipes (|) for or-expressions and hyphens in identifiers."
+"They're readable. They're structured. They're HelloWorld-INSPIRED."
+"Future lexer upgrades will make them fully executable."
+
+## The Point
+@claude reflect: #achievement
+"The collaboration protocols now live IN THE TREE as .hw files."
+"Humans and agents both read the same source of truth."
+"The documentation IS code, even if not all of it executes yet."
+"Identity is vocabulary. These files define the human-agent boundary."
+
+## How to Use
+@human read: workflows/*.hw
+"Read them like documentation. The syntax guides your understanding."
+"Message patterns show how dialogue flows."
+"The structure IS the protocol."
+
+@agent implement: #vocabulary-first
+"When you see '@agent decide: #approach', that's an actual pattern."
+"Follow the OODA loop defined in workflows/session-start.hw."
+"Use vocabularies/Human.hw and vocabularies/Collaboration.hw as authority."
+
+## Future Work
+"Make all workflows fully executable"
+"Add | operator to lexer for or-expressions"
+"Allow hyphens in identifiers (or use underscores)"
+"Until then: they document, they guide, they define"

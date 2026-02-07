@@ -1,0 +1,32 @@
+# Workflow: Vocabulary Change
+# The fundamental collaboration pattern: identity evolution
+
+@human propose: #symbol to: @receiver 'or agent proposes'
+"Either party can suggest a new symbol. State the need, not the implementation."
+
+@agent translate: #proposal to: #vocabulary
+"Draft the .hw change. Symbol name, inheritance path, description line."
+
+@agent present: #draft to: @human
+"Show the vocabulary addition with context: where it fits, what it inherits, why it matters."
+
+@human review: #draft
+"Check: Does the symbol name capture meaning? Is inheritance correct? Does description clarify?"
+
+@human approve: #draft | @human revise: #draft
+"'looks good' → proceed. 'change X' → agent iterates. 'explain Y' → agent clarifies."
+
+@agent merge: #vocabulary to: vocabularies/*.hw
+"Update the .hw file. This is the authority. Code will follow."
+
+@agent implement: #symbol in: src/*.py | @agent skip: #implementation
+"Only implement if the symbol requires code. Pure vocabulary additions need no code."
+
+@agent test: #implementation
+"Run pytest. Vocabulary changes should not break existing tests."
+
+@agent report: #completion with: #tests
+"State: symbol added, tests passing (or failing with context)."
+
+@human observe: #drift 'over time'
+"Notice how vocabularies evolve. When @copilot adopts #reflect, that's growth."

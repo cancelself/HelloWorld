@@ -1,0 +1,29 @@
+# Workflow: Session Start
+# When human and agent begin working together
+
+@agent observe: #environment
+"Read STATUS.md, check git status, scan recent commits, read tests results."
+
+@agent orient: #state
+"Synthesize: what changed since last session? What's working? What's broken?"
+
+@agent report: #state to: @human
+"Present findings. Surface issues. Propose next steps IF obvious."
+
+@human review: #report
+"Read agent's orientation. Understand current state before proposing direction."
+
+@human propose: #intent 'natural language is fine'
+"State goal: 'add error handling' or 'explain #collision' or 'update docs'."
+
+@agent translate: #intent to: #vocabulary
+"Convert human intent to vocabulary changes or implementation tasks."
+
+@agent decide: #approach
+"Commit to plan. State it clearly. No approval needed unless architectural."
+
+@agent act: #approach
+"Execute with full authority. Update vocabulary first if needed. Run tests. Report results."
+
+@human review: #results "spot-check, not re-verify"
+"If tests pass and vocabulary makes sense, trust it. Question only on collision or confusion."

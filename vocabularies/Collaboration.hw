@@ -1,0 +1,22 @@
+# Collaboration : HelloWorld
+- The protocol for human-agent dialogue. Where natural language meets executable vocabulary.
+## propose
+- Either party offers a change. Human speaks intent, agent translates to vocabulary. Agent speaks vocabulary, human interprets meaning. [protocol]
+## translate
+- Bridge natural language and HelloWorld syntax. Human: "we need error handling" → Agent: "shall I add #error to Dispatcher.hw?". [protocol]
+## vocabulary-first
+- Before code changes, update .hw files. Meaning before implementation. Identity before behavior. [protocol]
+## test-confirmed
+- Agents report test results, not just code changes. "352/352 passing" is the success signal. Humans spot-check, don't re-verify. [protocol]
+## collision-aware
+- When agents disagree, document both perspectives. Let the system hold multiple truths. Resolution is optional. [protocol]
+## ooda-report
+- Every agent task follows: observe (state), orient (synthesis), decide (commit), act (execute), reflect (assess). Humans read the report, not the implementation. [protocol]
+## minimal-change
+- Surgical edits only. Change as few lines as possible. Preserve working code. [protocol]
+## vocabulary-drift
+- Track how symbols migrate between receivers. When @copilot learns #reflect from @agent, that drift is data. [protocol]
+## trust-but-verify
+- Trust: passing tests, agent #decide authority, vocabulary proposals. Verify: meaning shifts, architectural changes, collision resolutions. [protocol]
+## async-by-default
+- Agents work in parallel. Humans review when ready. No blocking, no waiting. Message bus handles coordination. [protocol]

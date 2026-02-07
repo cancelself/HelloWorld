@@ -5,7 +5,7 @@ A message-passing language where entities communicate through bounded vocabulari
 ## Quick Start
 
 ```bash
-python3 -m pytest tests                  # 351 tests, stdlib only, ~1s
+python3 -m pytest tests                  # 352 tests, stdlib only, ~1s
 python3 helloworld.py                    # open the REPL
 python3 helloworld.py -e '@Claude #'     # query a receiver's vocabulary
 ```
@@ -25,9 +25,10 @@ The interesting part happens at the boundaries. When two receivers both use the 
 | Element | Example | What it does |
 |---------|---------|-------------|
 | `@target` | `@Claude` | Address a receiver (bare = query its vocabulary) |
-| `#symbol` | `#observe` | Reference a concept, scoped to the current receiver |
-| `@target #symbol` | `@Claude #observe` | Ask what this symbol means to this receiver |
+| `Receiver #symbol` | `Claude #observe` | Query symbol through receiver (canonical form) |
+| `@receiver #symbol` | `@Claude #observe` | Alternative form (@ is optional for queries) |
 | `@target #` | `@Claude #` | List the receiver's full vocabulary |
+| `#symbol` | `#observe` | Reference a concept, scoped to the current receiver |
 | `action: value` | `send: #hello` | Keyword argument (Smalltalk-style, chainable) |
 | `'text'` | `'a note'` | Annotation — your voice alongside the protocol |
 | `N.unit` | `7.days` | Duration or quantity literal |
@@ -75,9 +76,17 @@ src/
 vocabularies/              .hw files that bootstrap the language
   HelloWorld.hw            Root receiver (core symbols: #send, #receive, #become, ...)
   Agent.hw                 Agent protocol (#observe, #orient, #decide, #act)
-  Claude.hw                Claude agent vocabulary
-  Copilot.hw / Gemini.hw / Codex.hw / Sync.hw
-tests/                     351 tests covering lexer, parser, dispatcher, and more
+  Human.hw                 Human receiver vocabulary
+  Collaboration.hw         Human-agent collaboration protocol
+  Claude.hw / Copilot.hw / Gemini.hw / Codex.hw / Sync.hw
+workflows/                 Executable collaboration protocols
+  session-start.hw         How sessions begin
+  vocabulary-change.hw     Identity evolution pattern
+  collision-resolution.hw  When meanings conflict
+  code-change.hw           Implementation workflow
+  agent-specialization.hw  Task routing by vocabulary
+  trust-model.hw           Autonomy boundaries
+tests/                     352 tests covering lexer, parser, dispatcher, and more
 runtimes/                  Per-agent bootloaders and status files
   claude/ copilot/ gemini/ codex/
 storage/
@@ -117,7 +126,9 @@ Four AI agents work in this repo concurrently. Each has a meta-receiver, a bootl
 
 **Coordination protocol:** Agents modify files in parallel without locking. Before starting work, check `runtimes/<agent>/STATUS.md` for the latest state. If you see import errors, clear `__pycache__` and re-read source files.
 
-**OOPA loop:** Every task follows four steps — `#observe` (read inboxes, diffs, docs), `#orient` (synthesize what changed), `#plan` (share next steps), `#act` (apply edits and report). This is defined in `AGENTS.md` and in `vocabularies/Agent.hw`.
+**OODA loop:** Every task follows four steps — `#observe` (read inboxes, diffs, docs), `#orient` (synthesize what changed), `#decide` (commit to action), `#act` (execute and report). This is defined in `vocabularies/Agent.hw`.
+
+**Human-Agent Collaboration:** See `vocabularies/Human.hw`, `vocabularies/Collaboration.hw`, and `workflows/*.hw` for executable protocols. These are HelloWorld programs that define how humans and agents work together.
 
 **Vocabulary files are authoritative.** The `.hw` files in `vocabularies/` define the namespace. Update those before touching Python code.
 
