@@ -138,6 +138,52 @@ class VocabularyManager:
                 return " ".join(descs) if descs else None
         return None
 
+    def update_description(self, receiver_name: str, symbol_name: str, description: str):
+        """Replace the description of an existing symbol, or append the symbol if absent.
+
+        Reads the .hw file, finds the ## heading for symbol_name, replaces all
+        `- ` description lines under it, and writes the file back.  If the symbol
+        is not present in the file, appends a new ## heading with the description.
+        """
+        path = self._get_path(receiver_name)
+        if not os.path.exists(path):
+            # No file yet — create one with just this symbol
+            bare = symbol_name.lstrip("#") if symbol_name != "#" else "#"
+            with open(path, "w") as f:
+                f.write(f"# {receiver_name}\n")
+                f.write(f"## {bare}\n")
+                f.write(f"- {description}\n")
+            return
+
+        lines = open(path, "r").readlines()
+        bare = symbol_name.lstrip("#") if symbol_name != "#" else "#"
+
+        # Find the ## heading that matches the symbol
+        heading_idx = None
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith("## "):
+                heading_name = stripped[3:].strip()
+                if heading_name == bare or heading_name == f"#{bare}":
+                    heading_idx = i
+                    break
+
+        if heading_idx is not None:
+            # Remove old description lines immediately after the heading
+            desc_start = heading_idx + 1
+            desc_end = desc_start
+            while desc_end < len(lines) and lines[desc_end].startswith("- "):
+                desc_end += 1
+            # Replace with new description
+            new_lines = lines[:desc_start] + [f"- {description}\n"] + lines[desc_end:]
+            with open(path, "w") as f:
+                f.writelines(new_lines)
+        else:
+            # Symbol not in file — append
+            with open(path, "a") as f:
+                f.write(f"## {bare}\n")
+                f.write(f"- {description}\n")
+
     def _read_symbols(self, path: str) -> Set[str]:
         """Parse a .hw file and extract symbol names from ## headings."""
         if not os.path.exists(path):

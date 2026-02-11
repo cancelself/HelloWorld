@@ -3,11 +3,12 @@ Enables Hybrid Dispatch: Structural facts via Python, Interpretive voice via LLM
 Enables Prototypal Inheritance: HelloWorld is the parent of all receivers.
 """
 
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ast_nodes import (
     DescriptionNode,
@@ -185,6 +186,7 @@ class Dispatcher:
         self.trace = False
         # HelloWorld is the root parent
         self.agents = {"Claude", "Copilot", "Gemini", "Codex", "Scribe"}
+        self.pending_collision_symbols: Set[str] = set()
         # Phase 4: LLM interpretation — lazy-loaded on first use
         self._llm = None
         self._llm_checked = False
@@ -296,6 +298,9 @@ class Dispatcher:
 
         # 4. Resolve parent name strings to actual Receiver objects
         self._resolve_parents()
+
+        # 5. Load pending collision symbols from HelloWorld inbox
+        self._load_pending_collision_symbols()
 
     def dispatch(self, nodes: List[Node]) -> List[str]:
         results = []
@@ -452,6 +457,12 @@ class Dispatcher:
         receiver = self._get_or_create_receiver(receiver_name)
         lookup = receiver.lookup(symbol_name)
         self._trace(f"lookup({receiver_name}, {symbol_name}) -> {lookup.outcome.value.upper()}")
+
+        # Deferred collision resolution: if symbol has a pending collision and LLM is now available
+        if self._check_pending_collision(symbol_name) and self.llm:
+            synthesis = self._resolve_pending_collision(symbol_name)
+            if synthesis:
+                self._trace(f"Deferred collision on {symbol_name} resolved")
 
         # Phase 4: LLM interpretation layer for agent receivers
         if receiver_name in self.agents and self.llm:
@@ -618,6 +629,39 @@ class Dispatcher:
         # Skip self-messages
         if msg.sender == receiver_name:
             return f"[{receiver_name}] Skipped self-message."
+
+        # Collision message handling: when HelloWorld receives a collision message
+        if "# Collision:" in msg.content or "COLLISION:" in msg.content:
+            import re
+            m = re.search(r"@(\w+) send: (#\w+) to: @(\w+)", msg.content)
+            if m and self.llm:
+                c_sender_name = m.group(1)
+                c_symbol = m.group(2)
+                c_target_name = m.group(3)
+                c_sender = self._get_or_create_receiver(c_sender_name)
+                c_target = self._get_or_create_receiver(c_target_name)
+                sender_vocab = sorted(c_sender.local_vocabulary)
+                target_vocab = sorted(c_target.local_vocabulary)
+                sender_desc = c_sender.description_of(c_symbol)
+                target_desc = c_target.description_of(c_symbol)
+                prompt = collision_prompt(
+                    c_sender_name, sender_vocab, c_target_name, target_vocab,
+                    c_symbol, sender_desc=sender_desc, target_desc=target_desc,
+                )
+                try:
+                    synthesis = self.llm.call(prompt)
+                    self._persist_synthesis(c_sender_name, c_target_name, c_symbol, synthesis)
+                    self.pending_collision_symbols.discard(c_symbol)
+                    cid_match = re.search(r"# Collision: (\w+)", msg.content)
+                    collision_id = cid_match.group(1) if cid_match else "unknown"
+                    self._log_collision_status("RESOLVED", collision_id, c_sender_name, c_target_name, c_symbol)
+                    return (
+                        f"[{receiver_name}] Collision resolved: "
+                        f"{c_sender_name} × {c_target_name} on {c_symbol}\n"
+                        f"  {synthesis}"
+                    )
+                except Exception:
+                    pass
 
         lines = []
 
@@ -825,6 +869,17 @@ class Dispatcher:
         sender_native = sender.is_native(symbol_name)
         target_native = target.is_native(symbol_name)
 
+        # Deferred resolution: if this symbol already has a pending collision, try to resolve now
+        if sender_native and target_native and self._check_pending_collision(symbol_name) and self.llm:
+            synthesis = self._resolve_pending_collision(symbol_name)
+            if synthesis:
+                lines.append(f"  COLLISION (deferred, now resolved): {sender_name} × {target_name} on {symbol_name}")
+                lines.append(f"  [COLLISION SYNTHESIS: {sender_name} × {target_name} on {symbol_name}]")
+                lines.append(f"  {synthesis}")
+                if node.annotation:
+                    lines.append(f"  '{node.annotation}'")
+                return "\n".join(lines)
+
         if sender_native and target_native:
             # TRUE COLLISION: both receivers hold the symbol natively
             # This is the synthesis event — meanings diverge, new meaning must emerge
@@ -865,35 +920,199 @@ class Dispatcher:
 
         return "\n".join(lines)
 
-    def _synthesize_collision(self, sender_name: str, sender, target_name: str, target, symbol_name: str) -> Optional[str]:
-        """Attempt to synthesize meaning from a collision between two receivers.
+    def _load_pending_collision_symbols(self):
+        """Scan HelloWorld inbox for files with # Collision: header.
 
-        Returns a synthesis string if LLM is available, None otherwise.
-        The synthesis should voice both interpretations and produce something
-        neither receiver could produce alone.
+        Extracts symbol names into self.pending_collision_symbols.
+        Called from _bootstrap() after _resolve_parents().
         """
-        # Try LLM synthesis first
-        if self.llm:
+        hw_inbox = message_bus._inbox("HelloWorld")
+        for hw_file in hw_inbox.glob("msg-*.hw"):
+            try:
+                text = hw_file.read_text()
+            except Exception:
+                continue
+            for line in text.split("\n"):
+                if line.startswith("# Collision:"):
+                    # Extract symbol from the collision message body
+                    # Look for the symbol in subsequent lines
+                    for body_line in text.split("\n"):
+                        if "COLLISION:" in body_line and "#" in body_line:
+                            import re
+                            m = re.search(r"(#\w+)", body_line.split("COLLISION:")[-1])
+                            if m:
+                                self.pending_collision_symbols.add(m.group(1))
+                    break
+
+    def _persist_synthesis(self, sender_name: str, target_name: str, symbol_name: str, synthesis: str):
+        """Update both receivers' descriptions in-memory and on disk.
+
+        Writes a collision synthesis description to both receivers' .hw files.
+        """
+        desc = f"(collision synthesis with {'×'.join(sorted([sender_name, target_name]))}): {synthesis}"
+
+        # Update sender
+        sender = self._get_or_create_receiver(sender_name)
+        sender.descriptions[symbol_name] = desc
+        self.vocab_manager.update_description(sender_name, symbol_name, desc)
+
+        # Update target
+        target = self._get_or_create_receiver(target_name)
+        target.descriptions[symbol_name] = desc
+        self.vocab_manager.update_description(target_name, symbol_name, desc)
+
+    def _send_collision_to_helloworld(self, collision_id: str, sender_name: str, target_name: str, symbol_name: str):
+        """Format collision as .hw message and send to HelloWorld inbox.
+
+        Also sends to the invoking agent's inbox if sender is an agent.
+        """
+        sender = self._get_or_create_receiver(sender_name)
+        target = self._get_or_create_receiver(target_name)
+
+        sender_desc = sender.description_of(symbol_name) or "(no description)"
+        target_desc = target.description_of(symbol_name) or "(no description)"
+
+        body = (
+            f"@{sender_name} send: {symbol_name} to: @{target_name} "
+            f"'COLLISION: both hold {symbol_name} natively'\n"
+            f"\n"
+            f"{sender_name} {symbol_name} -> \"{sender_desc}\"\n"
+            f"{target_name} {symbol_name} -> \"{target_desc}\""
+        )
+
+        # Send to HelloWorld inbox with collision header
+        timestamp = datetime.now(timezone.utc).isoformat()
+        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+        hw_inbox = message_bus._inbox("HelloWorld")
+        msg_file = hw_inbox / f"{msg_id}.hw"
+        msg_file.write_text(
+            f"# From: dispatcher\n"
+            f"# Timestamp: {timestamp}\n"
+            f"# Collision: {collision_id}\n"
+            f"\n"
+            f"{body}\n"
+        )
+
+        # Also send to invoking agent's inbox if sender is an agent
+        if sender_name in self.agents:
+            message_bus.send("dispatcher", sender_name, f"# Collision: {collision_id}\n\n{body}")
+
+    def _check_pending_collision(self, symbol_name: str) -> bool:
+        """Check if a symbol has an unresolved collision in HelloWorld inbox."""
+        return symbol_name in self.pending_collision_symbols
+
+    def _resolve_pending_collision(self, symbol_name: str) -> Optional[str]:
+        """Attempt to resolve a pending collision if LLM is now available.
+
+        Scans HelloWorld inbox for the collision message, extracts parties,
+        synthesizes, persists, and removes the message.
+        Returns synthesis text or None.
+        """
+        if not self.llm:
+            return None
+
+        hw_inbox = message_bus._inbox("HelloWorld")
+        for hw_file in hw_inbox.glob("msg-*.hw"):
+            try:
+                text = hw_file.read_text()
+            except Exception:
+                continue
+            if "# Collision:" not in text:
+                continue
+
+            # Check if this collision involves our symbol
+            import re
+            if symbol_name not in text:
+                continue
+
+            # Extract sender and target from the body
+            m = re.search(r"@(\w+) send: (#\w+) to: @(\w+)", text)
+            if not m or m.group(2) != symbol_name:
+                continue
+
+            sender_name = m.group(1)
+            target_name = m.group(3)
+
+            # Extract collision_id
+            cid_match = re.search(r"# Collision: (\w+)", text)
+            collision_id = cid_match.group(1) if cid_match else "unknown"
+
+            # Synthesize
+            sender = self._get_or_create_receiver(sender_name)
+            target = self._get_or_create_receiver(target_name)
             sender_vocab = sorted(sender.local_vocabulary)
             target_vocab = sorted(target.local_vocabulary)
-            prompt = collision_prompt(sender_name, sender_vocab, target_name, target_vocab, symbol_name)
+            sender_desc = sender.description_of(symbol_name)
+            target_desc = target.description_of(symbol_name)
+
+            prompt = collision_prompt(
+                sender_name, sender_vocab, target_name, target_vocab,
+                symbol_name, sender_desc=sender_desc, target_desc=target_desc,
+            )
             try:
-                return self.llm.call(prompt)
+                synthesis = self.llm.call(prompt)
+            except Exception:
+                return None
+
+            # Persist
+            self._persist_synthesis(sender_name, target_name, symbol_name, synthesis)
+
+            # Log as resolved
+            self._log_collision_status("RESOLVED", collision_id, sender_name, target_name, symbol_name)
+
+            # Remove from HelloWorld inbox
+            try:
+                hw_file.unlink()
+            except FileNotFoundError:
+                pass
+
+            # Remove from pending set
+            self.pending_collision_symbols.discard(symbol_name)
+
+            return synthesis
+
+        return None
+
+    def _log_collision_status(self, status: str, collision_id: str, sender_name: str, target_name: str, symbol_name: str):
+        """Log a collision event with status (RESOLVED/UNRESOLVED)."""
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] {status} COLLISION [{collision_id}]: {sender_name} x {target_name} on {symbol_name}\n"
+        with open(self.log_file, "a") as f:
+            f.write(log_entry)
+
+    def _synthesize_collision(self, sender_name: str, sender, target_name: str, target, symbol_name: str) -> Optional[str]:
+        """Three-tier collision resolution cascade.
+
+        Tier 1: LLM available → synthesize immediately, persist to both .hw files
+        Tier 2: No LLM, agent available → send to HelloWorld inbox + agent inbox
+        Tier 3: Neither → collision sits in HelloWorld inbox as .hw file
+
+        Returns a synthesis string (Tier 1) or None (Tier 2/3).
+        """
+        collision_id = uuid.uuid4().hex[:8]
+        sender_vocab = sorted(sender.local_vocabulary)
+        target_vocab = sorted(target.local_vocabulary)
+        sender_desc = sender.description_of(symbol_name)
+        target_desc = target.description_of(symbol_name)
+
+        # Tier 1: LLM available — synthesize immediately
+        if self.llm:
+            prompt = collision_prompt(
+                sender_name, sender_vocab, target_name, target_vocab,
+                symbol_name, sender_desc=sender_desc, target_desc=target_desc,
+            )
+            try:
+                synthesis = self.llm.call(prompt)
+                self._persist_synthesis(sender_name, target_name, symbol_name, synthesis)
+                self._log_collision_status("RESOLVED", collision_id, sender_name, target_name, symbol_name)
+                return synthesis
             except Exception as e:
                 print(f"  LLM synthesis failed: {e}")
 
-        # Try message bus synthesis (fire-and-forget)
-        prompt = (
-            f"COLLISION SYNTHESIS: {sender_name} and {target_name} both hold {symbol_name}. "
-            f"What emerges?"
-        )
-        context = (
-            f"{sender_name} vocabulary: {sorted(sender.local_vocabulary)}\n"
-            f"{target_name} vocabulary: {sorted(target.local_vocabulary)}"
-        )
-        self.message_bus_send_and_wait(
-            "HelloWorld", sender_name, prompt, context=context
-        )
+        # Tier 2/3: No LLM — send collision to HelloWorld inbox
+        self._send_collision_to_helloworld(collision_id, sender_name, target_name, symbol_name)
+        self.pending_collision_symbols.add(symbol_name)
+        self._log_collision_status("UNRESOLVED", collision_id, sender_name, target_name, symbol_name)
 
         return None
 

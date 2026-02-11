@@ -581,6 +581,244 @@ def test_agent_parent_is_helloworld():
     assert agent.parent.name == "HelloWorld"
 
 
+# --- Three-Tier Collision Cascade Tests ---
+
+
+class _MockLLM:
+    """Mock LLM that returns a predictable synthesis."""
+    def __init__(self, response="Mock synthesis: meanings converge."):
+        self.response = response
+        self.calls = []
+
+    def call(self, prompt):
+        self.calls.append(prompt)
+        return self.response
+
+
+def test_tier1_collision_persists_synthesis_to_hw_files():
+    """Tier 1: collision with LLM persists synthesis to both .hw files."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    mock_llm = _MockLLM("Light emerges from both perspectives.")
+    dispatcher.llm = mock_llm
+
+    dispatcher.dispatch_source("AlphaR # → [#light, #dark]")
+    dispatcher.dispatch_source("BetaR # → [#light, #sound]")
+
+    results = dispatcher.dispatch_source("AlphaR send: #light to: BetaR")
+    result = results[0]
+
+    assert "COLLISION" in result
+    assert "COLLISION SYNTHESIS" in result
+
+    # Both .hw files should have synthesis description
+    alpha_path = Path(tmpdir) / "AlphaR.hw"
+    beta_path = Path(tmpdir) / "BetaR.hw"
+    alpha_content = alpha_path.read_text()
+    beta_content = beta_path.read_text()
+    assert "collision synthesis" in alpha_content
+    assert "collision synthesis" in beta_content
+    assert "Light emerges from both perspectives." in alpha_content
+    assert "Light emerges from both perspectives." in beta_content
+
+
+def test_tier1_updates_in_memory_descriptions():
+    """Tier 1: both receivers' in-memory descriptions updated after synthesis."""
+    dispatcher, _ = _fresh_dispatcher_with_dir()
+    mock_llm = _MockLLM("Synthesized meaning.")
+    dispatcher.llm = mock_llm
+
+    dispatcher.dispatch_source("SynA # → [#glow, #shade]")
+    dispatcher.dispatch_source("SynB # → [#glow, #drift]")
+
+    dispatcher.dispatch_source("SynA send: #glow to: SynB")
+
+    alpha_desc = dispatcher.registry["SynA"].description_of("#glow")
+    beta_desc = dispatcher.registry["SynB"].description_of("#glow")
+    assert alpha_desc is not None and "collision synthesis" in alpha_desc
+    assert beta_desc is not None and "collision synthesis" in beta_desc
+
+
+def test_tier2_no_llm_creates_helloworld_inbox_message():
+    """Tier 2: no LLM → collision .hw message appears in HelloWorld inbox."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    # No LLM set (default in tests)
+
+    dispatcher.dispatch_source("NoLlmA # → [#spark, #flame]")
+    dispatcher.dispatch_source("NoLlmB # → [#spark, #water]")
+
+    results = dispatcher.dispatch_source("NoLlmA send: #spark to: NoLlmB")
+    result = results[0]
+
+    assert "COLLISION" in result
+    assert "synthesis requires LLM" in result
+
+    # HelloWorld inbox should have collision message
+    hw_inbox = Path(tmpdir) / "helloworld" / "inbox"
+    collision_files = list(hw_inbox.glob("msg-*.hw"))
+    assert len(collision_files) >= 1
+
+    # Collision file should have correct headers and content
+    collision_text = collision_files[0].read_text()
+    assert "# Collision:" in collision_text
+    assert "NoLlmA" in collision_text
+    assert "NoLlmB" in collision_text
+    assert "#spark" in collision_text
+
+
+def test_tier2_collision_message_contains_vocabularies():
+    """Tier 2: collision message contains both vocabularies and descriptions."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+
+    dispatcher.dispatch_source("# VocA\n## spark\n- The initial fire.\n## flame\n- Sustained burning.\n")
+    dispatcher.dispatch_source("# VocB\n## spark\n- An electrical discharge.\n## water\n- Flowing element.\n")
+
+    dispatcher.dispatch_source("VocA send: #spark to: VocB")
+
+    hw_inbox = Path(tmpdir) / "helloworld" / "inbox"
+    collision_files = list(hw_inbox.glob("msg-*.hw"))
+    assert len(collision_files) >= 1
+
+    collision_text = collision_files[0].read_text()
+    assert "VocA" in collision_text
+    assert "VocB" in collision_text
+    assert "#spark" in collision_text
+
+
+def test_tier2_helloworld_receive_resolves_collision():
+    """Tier 2: HelloWorld receive with LLM resolves pending collision."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+
+    # Create collision without LLM (Tier 2)
+    dispatcher.dispatch_source("RecvA # → [#beam, #ray]")
+    dispatcher.dispatch_source("RecvB # → [#beam, #wave]")
+    dispatcher.dispatch_source("RecvA send: #beam to: RecvB")
+
+    # Verify collision is pending
+    assert "#beam" in dispatcher.pending_collision_symbols
+
+    # Now add LLM and have HelloWorld receive
+    mock_llm = _MockLLM("Beam: a synthesis of ray and wave.")
+    dispatcher.llm = mock_llm
+
+    result = dispatcher.dispatch_source("HelloWorld receive")
+    assert len(result) >= 1
+
+    # Collision should be resolved
+    assert "#beam" not in dispatcher.pending_collision_symbols
+
+
+def test_tier3_pending_collision_resolved_on_scoped_lookup():
+    """Tier 3: pending collision detected on scoped lookup, resolved with LLM."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+
+    # Create collision without LLM (Tier 2/3)
+    dispatcher.dispatch_source("DeferA # → [#pulse, #tone]")
+    dispatcher.dispatch_source("DeferB # → [#pulse, #echo]")
+    dispatcher.dispatch_source("DeferA send: #pulse to: DeferB")
+
+    assert "#pulse" in dispatcher.pending_collision_symbols
+
+    # Now add LLM
+    mock_llm = _MockLLM("Pulse: rhythmic convergence.")
+    dispatcher.llm = mock_llm
+
+    # Scoped lookup on the collided symbol triggers deferred resolution
+    dispatcher.dispatch_source("DeferA #pulse")
+
+    assert "#pulse" not in dispatcher.pending_collision_symbols
+
+
+def test_tier3_stays_pending_without_llm():
+    """Tier 3: stays pending without LLM (symbol remains in pending set)."""
+    dispatcher, _ = _fresh_dispatcher_with_dir()
+
+    dispatcher.dispatch_source("PendA # → [#glow, #dim]")
+    dispatcher.dispatch_source("PendB # → [#glow, #bright]")
+    dispatcher.dispatch_source("PendA send: #glow to: PendB")
+
+    assert "#glow" in dispatcher.pending_collision_symbols
+
+    # Lookup without LLM — collision should stay pending
+    dispatcher.dispatch_source("PendA #glow")
+    assert "#glow" in dispatcher.pending_collision_symbols
+
+
+def test_collision_cross_session_persistence():
+    """Cross-session: pending collision survives dispatcher restart (inbox file persists)."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+
+    dispatcher.dispatch_source("PersistA # → [#flux, #flow]")
+    dispatcher.dispatch_source("PersistB # → [#flux, #drift]")
+    dispatcher.dispatch_source("PersistA send: #flux to: PersistB")
+
+    assert "#flux" in dispatcher.pending_collision_symbols
+
+    # Verify collision file exists in HelloWorld inbox
+    hw_inbox = Path(tmpdir) / "helloworld" / "inbox"
+    collision_files = list(hw_inbox.glob("msg-*.hw"))
+    assert len(collision_files) >= 1
+
+    # Create a new dispatcher pointing to the same dirs — simulates restart
+    dispatcher2 = Dispatcher(vocab_dir=tmpdir)
+    assert "#flux" in dispatcher2.pending_collision_symbols
+
+
+def test_tier1_logs_resolved_collision():
+    """Tier 1: resolved collision is logged with RESOLVED status."""
+    dispatcher, tmpdir = _fresh_dispatcher_with_dir()
+    mock_llm = _MockLLM("Resolved synthesis.")
+    dispatcher.llm = mock_llm
+
+    log_path = Path(dispatcher.log_file)
+    if log_path.exists():
+        log_path.unlink()
+
+    dispatcher.dispatch_source("LogResA # → [#signal, #noise]")
+    dispatcher.dispatch_source("LogResB # → [#signal, #tone]")
+    dispatcher.dispatch_source("LogResA send: #signal to: LogResB")
+
+    assert log_path.exists()
+    log_text = log_path.read_text()
+    assert "RESOLVED COLLISION" in log_text
+    assert "LogResA" in log_text
+    assert "LogResB" in log_text
+    assert "#signal" in log_text
+
+
+def test_tier2_logs_unresolved_collision():
+    """Tier 2: unresolved collision is logged with UNRESOLVED status."""
+    dispatcher, _ = _fresh_dispatcher_with_dir()
+
+    log_path = Path(dispatcher.log_file)
+    if log_path.exists():
+        log_path.unlink()
+
+    dispatcher.dispatch_source("LogUnA # → [#wave, #crest]")
+    dispatcher.dispatch_source("LogUnB # → [#wave, #trough]")
+    dispatcher.dispatch_source("LogUnA send: #wave to: LogUnB")
+
+    assert log_path.exists()
+    log_text = log_path.read_text()
+    assert "UNRESOLVED COLLISION" in log_text
+    assert "LogUnA" in log_text
+    assert "LogUnB" in log_text
+    assert "#wave" in log_text
+
+
+def test_collision_prompt_includes_descriptions():
+    """collision_prompt includes sender/target descriptions when provided."""
+    from prompts import collision_prompt
+    prompt = collision_prompt(
+        "AlphaR", ["#light", "#dark"],
+        "BetaR", ["#light", "#sound"],
+        "#light",
+        sender_desc="The initial ignition.",
+        target_desc="A flash of insight.",
+    )
+    assert 'AlphaR describes #light: "The initial ignition."' in prompt
+    assert 'BetaR describes #light: "A flash of insight."' in prompt
+
+
 if __name__ == "__main__":
     test_dispatcher_bootstrap()
     test_dispatch_query()
@@ -619,4 +857,15 @@ if __name__ == "__main__":
     test_inherited_from_agent()
     test_inherited_from_helloworld()
     test_agent_parent_is_helloworld()
+    test_tier1_collision_persists_synthesis_to_hw_files()
+    test_tier1_updates_in_memory_descriptions()
+    test_tier2_no_llm_creates_helloworld_inbox_message()
+    test_tier2_collision_message_contains_vocabularies()
+    test_tier2_helloworld_receive_resolves_collision()
+    test_tier3_pending_collision_resolved_on_scoped_lookup()
+    test_tier3_stays_pending_without_llm()
+    test_collision_cross_session_persistence()
+    test_tier1_logs_resolved_collision()
+    test_tier2_logs_unresolved_collision()
+    test_collision_prompt_includes_descriptions()
     print("All dispatcher tests passed")

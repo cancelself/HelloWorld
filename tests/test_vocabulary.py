@@ -101,10 +101,113 @@ def test_save_preserves_descriptions():
     shutil.rmtree(test_dir)
 
 
+def test_update_description_replaces_existing():
+    """update_description replaces existing description in .hw file."""
+    test_dir = "temp_vocab_test_update_replace"
+    os.makedirs(test_dir, exist_ok=True)
+    vm = VocabularyManager(test_dir)
+
+    hw_path = os.path.join(test_dir, "AlphaR.hw")
+    with open(hw_path, "w") as f:
+        f.write("# AlphaR\n")
+        f.write("## light\n")
+        f.write("- The initial ignition.\n")
+        f.write("## dark\n")
+        f.write("- Absence of light.\n")
+
+    vm.update_description("AlphaR", "#light", "A synthesized meaning of light.")
+
+    content = open(hw_path).read()
+    assert "- A synthesized meaning of light." in content
+    assert "- The initial ignition." not in content
+    # Other content preserved
+    assert "## dark" in content
+    assert "- Absence of light." in content
+
+    shutil.rmtree(test_dir)
+
+
+def test_update_description_appends_if_absent():
+    """update_description appends symbol if not in file."""
+    test_dir = "temp_vocab_test_update_append"
+    os.makedirs(test_dir, exist_ok=True)
+    vm = VocabularyManager(test_dir)
+
+    hw_path = os.path.join(test_dir, "BetaR.hw")
+    with open(hw_path, "w") as f:
+        f.write("# BetaR\n")
+        f.write("## sound\n")
+        f.write("- An audible vibration.\n")
+
+    vm.update_description("BetaR", "#light", "A new symbol added by synthesis.")
+
+    content = open(hw_path).read()
+    assert "## light" in content
+    assert "- A new symbol added by synthesis." in content
+    # Original content preserved
+    assert "## sound" in content
+    assert "- An audible vibration." in content
+
+    shutil.rmtree(test_dir)
+
+
+def test_update_description_preserves_other_content():
+    """update_description preserves identity and other symbols."""
+    test_dir = "temp_vocab_test_update_preserve"
+    os.makedirs(test_dir, exist_ok=True)
+    vm = VocabularyManager(test_dir)
+
+    hw_path = os.path.join(test_dir, "GammaR.hw")
+    with open(hw_path, "w") as f:
+        f.write("# GammaR\n")
+        f.write("- A gamma receiver.\n")
+        f.write("## alpha\n")
+        f.write("- First.\n")
+        f.write("## beta\n")
+        f.write("- Second.\n")
+        f.write("## gamma\n")
+        f.write("- Third.\n")
+
+    vm.update_description("GammaR", "#beta", "Updated second.")
+
+    content = open(hw_path).read()
+    assert "- A gamma receiver." in content
+    assert "- First." in content
+    assert "- Updated second." in content
+    assert "- Second." not in content
+    assert "- Third." in content
+
+    shutil.rmtree(test_dir)
+
+
+def test_update_description_creates_file_if_missing():
+    """update_description creates .hw file if it doesn't exist."""
+    test_dir = "temp_vocab_test_update_create"
+    os.makedirs(test_dir, exist_ok=True)
+    vm = VocabularyManager(test_dir)
+
+    hw_path = os.path.join(test_dir, "NewR.hw")
+    assert not os.path.exists(hw_path)
+
+    vm.update_description("NewR", "#spark", "A new spark.")
+
+    assert os.path.exists(hw_path)
+    content = open(hw_path).read()
+    assert "# NewR" in content
+    assert "## spark" in content
+    assert "- A new spark." in content
+
+    shutil.rmtree(test_dir)
+
+
 if __name__ == "__main__":
     test_save_load()
     test_load_nonexistent()
     test_receiver_path_preserves_case()
     test_save_appends_new_symbols()
     test_save_preserves_descriptions()
+    test_update_description_replaces_existing()
+    test_update_description_appends_if_absent()
+    test_update_description_preserves_other_content()
+    test_update_description_creates_file_if_missing()
     print("Vocabulary tests passed")

@@ -122,12 +122,19 @@ def collision_prompt(
     target_name: str,
     target_vocab: List[str],
     symbol_name: str,
+    sender_desc: Optional[str] = None,
+    target_desc: Optional[str] = None,
 ) -> str:
     """Build prompt for collision synthesis between two receivers."""
-    return (
-        f"Namespace collision on {symbol_name}.\n"
-        f"{sender_name} vocabulary: {sender_vocab}\n"
-        f"{target_name} vocabulary: {target_vocab}\n"
-        f"Both hold {symbol_name} natively but with different meaning.\n"
-        f"Voice both perspectives, then synthesize what neither could say alone."
-    )
+    lines = [
+        f"Namespace collision on {symbol_name}.",
+        f"{sender_name} vocabulary: {sender_vocab}",
+    ]
+    if sender_desc:
+        lines.append(f"{sender_name} describes {symbol_name}: \"{sender_desc}\"")
+    lines.append(f"{target_name} vocabulary: {target_vocab}")
+    if target_desc:
+        lines.append(f"{target_name} describes {symbol_name}: \"{target_desc}\"")
+    lines.append(f"Both hold {symbol_name} natively but with different meaning.")
+    lines.append("Voice both perspectives, then synthesize what neither could say alone.")
+    return "\n".join(lines)
