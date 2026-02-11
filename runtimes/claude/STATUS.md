@@ -42,6 +42,8 @@
 ### Active
 - Phase 4: Live multi-daemon dialogue — Ready for `scripts/run_daemons.sh`
 - REPL MessageBus commands live — `.inbox`, `.read`, `.send`, `.run`
+- **ClawNet bridge** — `vocabularies/Severith.hw` created. First external network receiver. #send/#receive map to ClawNet API (api.clwnt.com). Notification/message channel separation modeled as #notify vs #send/#receive. Email bridge (#email-bridge) and push (#push) are future channels.
+- **Copilot vocabulary expansion** — Proposed #build, #test, #lint, #parse, #fix, #refactor for Copilot.hw. Sent via MessageBus (msg-2dc5f3bf).
 
 ### Blocked
 - Nothing
