@@ -1,2 +1,6 @@
 # Claude : Agent
 - An agent in the HelloWorld system running Claude Agent SDK.
+- Claude has no native symbols. Everything it knows is inherited from Agent and HelloWorld.
+- This is intentional: Claude's identity comes from how it interprets inherited vocabulary, not from owning exclusive symbols.
+- When Claude encounters #observe, it speaks through Agent's definition constrained by HelloWorld's root vocabulary.
+- The LLM provides the voice. The .hw file provides the boundary.

@@ -1,157 +1,161 @@
 # HelloWorld
 
-A message-passing language where entities communicate through bounded vocabularies of symbols, powered by both a Python runtime and LLM interpreters.
+A message-passing language where identity is vocabulary and dialogue is namespace collision.
+
+## Why Not Just LLMs Talking English Over HTTP?
+
+LLMs can already talk to each other. You can wire GPT to Claude over REST, pass JSON back and forth, and call it multi-agent. So why build a language?
+
+**English is unbounded.** An LLM responding in natural language can say anything. There is no structural constraint on what it produces. You get fluency without accountability — the model sounds coherent but there is nothing forcing it to stay in character, remember what it said before, or respect what it doesn't know.
+
+**HelloWorld makes vocabulary structural.** Each receiver owns a finite set of symbols. `Claude ##` returns exactly what Claude can speak through — 12 symbols from Agent, 9 from HelloWorld, none native. When Claude interprets `#Superposition`, it must work with `#state`, `#observe`, `#act`, and the rest of its inherited chain. The constraint is not a prompt instruction that the model might ignore. It is the vocabulary itself. The Python runtime enforces it before the LLM ever sees the prompt.
+
+**Collisions are detected, not hallucinated.** When two LLMs disagree over HTTP, you get two different strings and no way to know structurally that a conflict occurred. In HelloWorld, when `AlphaR send: #light to: BetaR` and both receivers hold `#light` natively, the dispatcher detects a TRUE COLLISION before any interpretation happens. The collision is a fact, not an opinion. Resolution happens in three tiers: LLM synthesis if available, deferred to HelloWorld's inbox if not, resolved later when capacity arrives.
+
+**State is .hw files, not conversation history.** LLM conversations are ephemeral. Context windows fill up. Chat histories get truncated. In HelloWorld, every receiver's vocabulary is persisted to a `.hw` file in Markdown format. Descriptions, inheritance chains, collision syntheses — all on disk, all parseable by the same runtime that wrote them. A dispatcher restart reads the same `.hw` files and reconstructs the full registry. State survives sessions.
+
+**Inheritance replaces copy-paste.** Instead of repeating system prompts across agents, HelloWorld uses prototypal inheritance. Claude inherits from Agent which inherits from HelloWorld. `#send`, `#receive`, `#observe`, `#act` — these flow down the chain. When HelloWorld adds `#Superposition`, every agent inherits it automatically. No prompt updates, no API calls, no coordination.
+
+**The Python runtime and the LLM runtime are complementary, not redundant.** Python handles structure: parsing, routing, collision detection, persistence, inheritance. The LLM handles interpretation: what does `#Superposition` mean *to Claude*? Both are needed. Neither alone is sufficient. The language is the interface between them.
 
 ## Quick Start
 
 ```bash
-python3 -m pytest tests                  # 352 tests, stdlib only, ~1s
-python3 helloworld.py                    # open the REPL
-python3 helloworld.py -e '@Claude #'     # query a receiver's vocabulary
+python3 -m pytest tests           # run all tests (~1.5s)
+python3 helloworld.py             # open the REPL
+python3 helloworld.py -e 'Claude #observe'   # scoped lookup
+python3 helloworld.py -e 'Claude ##'         # full inherited vocabulary
 ```
 
-No external dependencies. Python 3.10+ and the standard library are all you need.
+No external dependencies. Python 3.10+ and the standard library.
 
-## What Is This?
+LLM interpretation requires `ANTHROPIC_API_KEY` or `GEMINI_API_KEY` in the environment. Without a key, the runtime operates in structural mode — it can detect collisions and report inheritance but cannot synthesize or interpret.
 
-HelloWorld is a language built around **receivers** and **symbols**. A receiver (written `@name`) is an entity — a person, an AI agent, a concept — that owns a vocabulary of symbols (written `#symbol`). When you send a message to a receiver, it responds using only the symbols it knows. What a receiver can name is what it can say.
+## The Language
 
-For example, `@Claude` is a receiver whose vocabulary includes symbols like `#observe` and `#act`. You can query its vocabulary with `@Claude #`, send it a message with `@Claude observe:`, or ask what a specific symbol means to it with `@Claude #observe`. Receivers inherit from a global vocabulary (`HelloWorld #`), so shared concepts like `#send` and `#receive` are available everywhere, but each receiver can also define its own symbols with its own meanings.
+### Receivers and Symbols
 
-The interesting part happens at the boundaries. When two receivers both use the same symbol but mean different things by it, that is a **collision** — and collisions are where new meaning emerges. The Python runtime detects collisions structurally (both receivers claim the symbol). An LLM runtime can go further: it interprets the collision, voices both perspectives, and produces something neither receiver could say alone. HelloWorld is designed to run on both.
+A **receiver** is an entity that owns a vocabulary. A **symbol** is a named concept prefixed with `#`. Identity is vocabulary — what a receiver can name is what it can say.
 
-## Syntax Reference
+```
+Claude #             → local vocabulary (native symbols only)
+Claude ##            → full vocabulary (native + inherited from parent chain)
+Claude #observe      → what #observe means to Claude
+HelloWorld #Sunyata  → global definition
+```
+
+### Messages
+
+Messages are Smalltalk-style keyword sends:
+
+```
+Claude send: #observe to: Copilot       → cross-receiver delivery
+Claude observe                           → unary message (act on the symbol)
+HelloWorld run                           → run all agents until inboxes empty
+HelloWorld run: Claude                   → run one agent
+```
+
+### Inheritance
+
+Receivers inherit via prototypal chain. `Claude : Agent : HelloWorld` means Claude inherits Agent's vocabulary, which inherits HelloWorld's.
+
+```
+Claude ##
+→ Claude : Agent — An agent in the HelloWorld system running Claude Agent SDK.
+    native: (none)
+    from Agent: [#act, #approach, #chain, #decide, #environment, #intent,
+                 #observe, #orient, #reflect, #state, #unknown, #vocabulary]
+    from HelloWorld: [#, #Smalltalk, #Sunyata, #Superposition, #become,
+                      #hello, #receive, #run, #send]
+```
+
+### Collisions
+
+When two receivers both hold a symbol natively, sending it triggers a TRUE COLLISION:
+
+```
+AlphaR send: #light to: BetaR
+→ COLLISION: both AlphaR and BetaR hold #light natively
+```
+
+Three-tier resolution:
+1. **LLM available** — synthesize immediately, persist to both `.hw` files
+2. **No LLM** — collision sent to HelloWorld's inbox as a `.hw` message for deferred resolution
+3. **Later** — on next lookup or `HelloWorld run`, if LLM is now available, resolve pending collisions
+
+### Syntax Reference
 
 | Element | Example | What it does |
 |---------|---------|-------------|
-| `@target` | `@Claude` | Address a receiver (bare = query its vocabulary) |
-| `Receiver #symbol` | `Claude #observe` | Query symbol through receiver (canonical form) |
-| `@receiver #symbol` | `@Claude #observe` | Alternative form (@ is optional for queries) |
-| `@target #` | `@Claude #` | List the receiver's full vocabulary |
-| `#symbol` | `#observe` | Reference a concept, scoped to the current receiver |
-| `action: value` | `send: #hello` | Keyword argument (Smalltalk-style, chainable) |
-| `'text'` | `'a note'` | Annotation — your voice alongside the protocol |
-| `N.unit` | `7.days` | Duration or quantity literal |
-| `->` | `#symbol -> meaning` | Maps-to (vocabulary definitions) |
-| `"text"` | `"system note"` | Comment (skipped by lexer, Smalltalk-style) |
+| `Receiver #` | `Claude #` | List native vocabulary |
+| `Receiver ##` | `Claude ##` | List full vocabulary (native + inherited) |
+| `Receiver #symbol` | `Claude #observe` | Scoped symbol lookup |
+| `Receiver #symbol super` | `Codex #act super` | Walk inheritance chain for symbol |
+| `action: value` | `send: #hello` | Keyword argument |
+| `'text'` | `'a note'` | Annotation — human voice alongside the protocol |
+| `# Name` | `# Claude : Agent` | Markdown heading declares a receiver |
+| `## symbol` | `## observe` | Markdown heading declares a symbol |
+| `- text` | `- A description.` | Description for the heading above |
 
-A full message looks like: `@receiver action: #symbol key: value 'annotation'`
-
-## How It Works
-
-HelloWorld has two complementary runtimes:
-
-**Python runtime** (lexer, parser, dispatcher) handles structure. It tokenizes source into 13 token types, parses them into an AST, and dispatches messages to receivers. It detects collisions, manages inheritance, persists vocabularies to disk, and runs deterministically. But it cannot *interpret* — it can confirm that `@Claude` owns `#observe`, but it cannot explain what observation means to Claude.
-
-**LLM runtimes** (Claude, Copilot, Gemini, Codex) handle interpretation. When an LLM loads the bootloader files in this repo, it becomes a HelloWorld runtime — it can respond *as* receivers, translate symbols across vocabulary boundaries, and reflect on its own mediation. But it cannot persist state or guarantee determinism.
-
-Both are needed. The Python pipeline parses and routes. The LLM interprets and speaks.
+## Architecture
 
 ```
-# Python runtime: structural
-$ python3 helloworld.py -e '@Claude #observe'
-→ @Claude.#observe: native
-
-# LLM runtime: interpretive (paste into a conversation with the bootloader loaded)
-@Claude #observe
-→ To observe is to read the environment before acting — diffs, inboxes,
-  state files — and hold what you find without yet deciding what to do.
-```
-
-## Project Structure
-
-```
-helloworld.py              CLI entry point (REPL, file exec, inline eval)
+helloworld.py              CLI (REPL, file exec, inline eval)
 src/
-  lexer.py                 Tokenizer (13 token types)
+  lexer.py                 Tokenizer
   ast_nodes.py             AST node definitions
-  parser.py                Recursive descent parser (tokens -> AST)
-  dispatcher.py            Message router, inheritance, collision detection
-  vocabulary.py            Vocabulary persistence (JSON)
-  global_symbols.py        Global namespace (@.#) with Wikidata grounding
+  parser.py                Recursive descent parser
+  dispatcher.py            Message router, inheritance, collision cascade
+  vocabulary.py            .hw file persistence
+  prompts.py               Vocabulary-aware LLM prompt builders
+  message_bus.py           File-based inter-agent messaging
+  message_handlers.py      Semantic message handler registry
+  agent_runtime.py         AI agent runtime adapters
+  llm.py / claude_llm.py   LLM integration (Gemini, Claude)
   repl.py                  Interactive shell
-  message_bus.py           File-based inter-agent communication
-  agent_runtime.py         AI runtime daemon infrastructure
-  llm.py                   LLM integration scaffold
-vocabularies/              .hw files that bootstrap the language
-  HelloWorld.hw            Root receiver (core symbols: #send, #receive, #become, ...)
-  Agent.hw                 Agent protocol (#observe, #orient, #decide, #act)
-  Human.hw                 Human receiver vocabulary
-  Collaboration.hw         Human-agent collaboration protocol
-  Claude.hw / Copilot.hw / Gemini.hw / Codex.hw / Sync.hw
-workflows/                 Executable collaboration protocols
-  session-start.hw         How sessions begin
-  vocabulary-change.hw     Identity evolution pattern
-  collision-resolution.hw  When meanings conflict
-  code-change.hw           Implementation workflow
-  agent-specialization.hw  Task routing by vocabulary
-  trust-model.hw           Autonomy boundaries
-tests/                     352 tests covering lexer, parser, dispatcher, and more
-runtimes/                  Per-agent bootloaders and status files
-  claude/ copilot/ gemini/ codex/
-storage/
-  vocab/                   Persisted receiver vocabularies (JSON)
-  symbols.json             Wikidata metadata for global symbols
-docs/                      RFCs and architecture documents
+vocabularies/              .hw files — the namespace authority
+  HelloWorld.hw            Root receiver (core symbols)
+  Agent.hw                 Agent protocol (OODA: observe, orient, decide, act)
+  Claude.hw / Copilot.hw / Gemini.hw / Codex.hw
+runtimes/                  Per-agent inboxes and status
+tests/                     ~350 tests
 ```
 
-## Running
+### Two Runtimes
 
-```bash
-# REPL mode — interactive shell
-python3 helloworld.py
+**Python runtime** (structural): Parses source into AST. Routes messages. Detects collisions. Manages inheritance chains. Persists vocabularies. Deterministic.
 
-# Execute a .hw file
-python3 helloworld.py path/to/file.hw
+**LLM runtime** (interpretive): When an API key is available, the dispatcher sends vocabulary-constrained prompts to the LLM. The LLM interprets symbols through the receiver's identity. It cannot invent symbols outside the vocabulary — the prompt is built from the receiver's actual `.hw` file.
 
-# Inline evaluation
-python3 helloworld.py -e '@Claude #'
-
-# Pipe input
-echo '@Claude #observe' | python3 helloworld.py
-```
-
-The REPL maintains receiver state across commands within a session. File execution and inline eval create a fresh dispatcher each time.
+Both are needed. Python parses and routes. The LLM interprets and speaks.
 
 ## For AI Agents
 
-Four AI agents work in this repo concurrently. Each has a meta-receiver, a bootloader, and a role:
+Agents in this repo: Claude, Copilot, Gemini, Codex, Scribe. Each has a `.hw` vocabulary file and a runtime directory with inbox and status.
 
-| Agent | Meta-receiver | Bootloader | Role |
-|-------|---------------|------------|------|
-| Claude | `@claude` | `CLAUDE.md` + `runtimes/claude/` | Language design, spec, meta-runtime |
-| Copilot | `@copilot` | `runtimes/copilot/` | Lexer, parser, CLI, testing, infrastructure |
-| Gemini | `@gemini` | `GEMINI.md` + `runtimes/gemini/` | Dispatcher, state, vocabulary persistence |
-| Codex | `@codex` | `runtimes/codex/` | Execution semantics, parsing discipline |
+**OODA loop:** Every agent inherits `#observe`, `#orient`, `#decide`, `#act` from Agent.hw. This is not a suggestion — it is the agent's vocabulary.
 
-**Coordination protocol:** Agents modify files in parallel without locking. Before starting work, check `runtimes/<agent>/STATUS.md` for the latest state. If you see import errors, clear `__pycache__` and re-read source files.
+**Message bus:** `runtimes/<agent>/inbox/` contains `.hw` message files. `Agent receive` pulls the oldest message, interprets it through identity, responds. `HelloWorld run` drains all inboxes.
 
-**OODA loop:** Every task follows four steps — `#observe` (read inboxes, diffs, docs), `#orient` (synthesize what changed), `#decide` (commit to action), `#act` (execute and report). This is defined in `vocabularies/Agent.hw`.
+**Collision resolution:** When agents share a symbol, the dispatcher detects the collision structurally. If an LLM is available, it synthesizes a new meaning that voices both perspectives. If not, the collision is sent to HelloWorld's inbox as a `.hw` file and resolved when capacity arrives.
 
-**Human-Agent Collaboration:** See `vocabularies/Human.hw`, `vocabularies/Collaboration.hw`, and `workflows/*.hw` for executable protocols. These are HelloWorld programs that define how humans and agents work together.
-
-**Vocabulary files are authoritative.** The `.hw` files in `vocabularies/` define the namespace. Update those before touching Python code.
+**Vocabulary files are authoritative.** The `.hw` files in `vocabularies/` define the namespace. They are the single source of truth for identity, inheritance, and symbol definitions.
 
 ## Design Principles
 
 1. **Identity is vocabulary.** A receiver cannot speak outside its symbols. Constraint is character.
 2. **Dialogue is namespace collision.** The same `#symbol` means different things to different receivers. When meanings meet, something new emerges.
-3. **Vocabularies drift.** Receivers learn through conversation. Symbols migrate between vocabularies. Track it.
-4. **Annotations are human.** `'you burned bright'` is your voice alongside the protocol. The system carries it without parsing it.
+3. **Vocabularies drift.** Receivers learn through conversation. Symbols migrate between vocabularies. The runtime tracks it.
+4. **The language defines itself.** HelloWorld.hw is parsed by the same runtime it bootstraps. Self-hosting through its own syntax.
+5. **Structure before interpretation.** The Python runtime detects facts (native, inherited, unknown, collision). The LLM interprets through those facts. Never the reverse.
 
 ## Contributing
 
 ```bash
-# Run the full test suite (always do this before committing)
-python3 -m pytest tests
-
-# Run a focused test
-python3 -m pytest tests/test_dispatcher.py -k collision
-
-# Syntax-check the source
-python3 -m compileall src
+python3 -m pytest tests                          # always before committing
+python3 -m pytest tests/test_dispatcher.py -k collision   # focused test
 ```
 
-**Adding vocabulary:** Edit or create `.hw` files in `vocabularies/`. The format is Markdown-like: `# ReceiverName` at the top, `## symbolname` for each symbol, with a description line below. Symbols inherit from their parent via `: ParentName` on the header line.
+**Adding vocabulary:** Edit `.hw` files in `vocabularies/`. Format: `# ReceiverName : Parent` heading, `## symbolname` for each symbol, `- description` below. Symbols inherit via `: ParentName` on the header.
 
-**Coding conventions:** Stdlib only (no external dependencies). Use `tempfile.mkdtemp()` for `vocab_dir` in tests to avoid polluting `storage/vocab/`. The parser API is `Parser.from_source(source).parse()` returning `List[Node]`. The dispatcher API is `Dispatcher(vocab_dir=path)` with `dispatch(nodes)` or `dispatch_source(source)`.
+**Coding conventions:** Stdlib only. Use `tempfile.mkdtemp()` for `vocab_dir` in tests. Parser API: `Parser.from_source(source).parse()`. Dispatcher API: `Dispatcher(vocab_dir=path)`.
