@@ -26,7 +26,6 @@ from ast_nodes import (
 )
 from parser import Parser
 from vocabulary import VocabularyManager
-from global_symbols import GlobalVocabulary
 import message_bus
 from message_handlers import MessageHandlerRegistry
 from prompts import (
@@ -424,9 +423,36 @@ class Dispatcher:
             return f"Defined {node.name} with {len(receiver.vocabulary)} symbols."
         return None
 
+    def _helloworld_definition(self, symbol_name: str) -> Optional[str]:
+        """Return HelloWorld's description for a symbol. Single source of truth."""
+        hw = self._get_or_create_receiver("HelloWorld")
+        return hw.description_of(symbol_name)
+
     def _handle_query(self, node: VocabularyQueryNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
-        return str(receiver)
+        if not node.include_inherited:
+            return str(receiver)
+
+        # ## — show full vocabulary grouped by origin
+        chain = receiver.chain()
+        parent_name = chain[1] if len(chain) > 1 else "root"
+        if receiver.identity:
+            lines = [f"{receiver.name} : {parent_name} — {receiver.identity}"]
+        else:
+            lines = [f"{receiver.name} : {parent_name}"]
+
+        native = sorted(receiver.local_vocabulary)
+        lines.append(f"  native: {native if native else '(none)'}")
+
+        ancestor = receiver.parent
+        while ancestor:
+            # Only show symbols that are new at this level (not already shown)
+            own = sorted(ancestor.local_vocabulary)
+            if own:
+                lines.append(f"  from {ancestor.name}: {own}")
+            ancestor = ancestor.parent
+
+        return "\n".join(lines)
 
     def _handle_scoped_lookup(self, node: ScopedLookupNode) -> str:
         receiver_name = node.receiver.name
@@ -447,12 +473,10 @@ class Dispatcher:
                 
                 return "\n".join(lines)
 
-            global_def = GlobalVocabulary.definition(symbol_name)
-            wikidata = GlobalVocabulary.wikidata_url(symbol_name)
-            result = f"HelloWorld {symbol_name} → {global_def}"
-            if wikidata:
-                result += f"\n  Wikidata: {wikidata}"
-            return result
+            desc = self._helloworld_definition(symbol_name)
+            if desc:
+                return f"HelloWorld {symbol_name} → {desc}"
+            return f"HelloWorld {symbol_name} → Unknown symbol: {symbol_name}"
         
         receiver = self._get_or_create_receiver(receiver_name)
         lookup = receiver.lookup(symbol_name)
@@ -484,7 +508,7 @@ class Dispatcher:
                 from prompts import scoped_lookup_prompt_with_descriptions
                 prompt = scoped_lookup_prompt_with_descriptions(
                     receiver_name, symbol_name, local_vocab,
-                    desc, identity, GlobalVocabulary.definition(symbol_name),
+                    desc, identity, self._helloworld_definition(symbol_name),
                 )
             try:
                 llm_response = self.llm.call(prompt)
@@ -1145,7 +1169,11 @@ class Dispatcher:
     def _handle_definition(self, node: VocabularyDefinitionNode) -> str:
         receiver = self._get_or_create_receiver(node.receiver.name)
         for sym in node.symbols:
-            receiver.add_symbol(sym.name)
+            desc = self._generate_symbol_description(node.receiver.name, receiver, sym.name)
+            already_exists = sym.name in receiver.local_vocabulary
+            receiver.add_symbol(sym.name, desc)
+            if already_exists and desc:
+                self.vocab_manager.update_description(node.receiver.name, sym.name, desc)
         self.vocab_manager.save(receiver.name, receiver.local_vocabulary, descriptions=receiver.descriptions)
         return f"Updated {receiver.name} vocabulary."
 

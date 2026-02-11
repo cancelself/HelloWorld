@@ -11,6 +11,7 @@ class TokenType(Enum):
     SYMBOL = auto()        # #name
     DOT = auto()           # .
     HASH = auto()          # #
+    DOUBLE_HASH = auto()   # ##
     ARROW = auto()         # →
     LBRACKET = auto()      # [
     RBRACKET = auto()      # ]
@@ -178,6 +179,11 @@ class Lexer:
             start = self.pos
             col = self.column
             self._advance()
+            # ## — double hash (inherited vocabulary query)
+            if self.pos < len(self.source) and self.source[self.pos] == '#':
+                self._advance()
+                self.tokens.append(Token(TokenType.DOUBLE_HASH, '##', self.line, col))
+                return True
             if self.pos < len(self.source) and self.source[self.pos] not in ' \t\n.,:[]→':
                 name = self._read_identifier()
                 self.tokens.append(Token(TokenType.SYMBOL, f'#{name}', self.line, col))

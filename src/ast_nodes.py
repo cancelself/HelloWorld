@@ -22,6 +22,7 @@ class LiteralNode(Node):
 @dataclass
 class VocabularyQueryNode(Node):
     receiver: ReceiverNode
+    include_inherited: bool = False
 
 @dataclass
 class ScopedLookupNode(Node):

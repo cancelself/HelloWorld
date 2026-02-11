@@ -259,8 +259,9 @@ def test_collision_sends_vocabulary_prompt():
     dispatcher.dispatch_source("CollB # → [#spark, #glow]")
     dispatcher.dispatch_source("CollA send: #spark to: CollB")
 
-    mock_llm.call.assert_called_once()
-    prompt_arg = mock_llm.call.call_args[0][0]
+    assert mock_llm.call.call_count >= 1
+    # Last call should be the collision synthesis prompt
+    prompt_arg = mock_llm.call.call_args_list[-1][0][0]
     assert "collision" in prompt_arg.lower()
     assert "#spark" in prompt_arg
     assert "synthesize" in prompt_arg.lower()

@@ -581,6 +581,42 @@ def test_agent_parent_is_helloworld():
     assert agent.parent.name == "HelloWorld"
 
 
+# --- Double Hash (##) Inherited Vocabulary Query Tests ---
+
+
+def test_double_hash_shows_inherited():
+    """Claude ## shows native + inherited symbols grouped by origin."""
+    dispatcher = _fresh_dispatcher()
+    results = dispatcher.dispatch_source("Claude ##")
+    assert len(results) == 1
+    result = results[0]
+    assert "Claude" in result
+    assert "native:" in result
+    assert "from Agent:" in result
+    assert "from HelloWorld:" in result
+
+
+def test_single_hash_unchanged():
+    """Claude # still shows only native symbols (no inherited)."""
+    dispatcher = _fresh_dispatcher()
+    results = dispatcher.dispatch_source("Claude #")
+    assert len(results) == 1
+    result = results[0]
+    assert "Claude" in result
+    assert "from Agent:" not in result
+    assert "from HelloWorld:" not in result
+
+
+def test_double_hash_root_receiver():
+    """HelloWorld ## shows native symbols with no inherited (it's the root)."""
+    dispatcher = _fresh_dispatcher()
+    results = dispatcher.dispatch_source("HelloWorld ##")
+    assert len(results) == 1
+    result = results[0]
+    assert "HelloWorld" in result
+    assert "native:" in result
+
+
 # --- Three-Tier Collision Cascade Tests ---
 
 

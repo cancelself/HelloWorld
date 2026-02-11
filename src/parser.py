@@ -63,7 +63,7 @@ class Parser:
             receiver = self._parse_receiver()
 
             # Scoped lookups / queries accept either legacy dot syntax or space-separated form.
-            if self._check(TokenType.DOT) or self._check(TokenType.HASH) or self._check(TokenType.SYMBOL):
+            if self._check(TokenType.DOT) or self._check(TokenType.HASH) or self._check(TokenType.DOUBLE_HASH) or self._check(TokenType.SYMBOL):
                 suffix_node = self._parse_receiver_suffix(receiver)
                 if suffix_node:
                     return suffix_node
@@ -200,6 +200,9 @@ class Parser:
     def _parse_receiver_suffix(self, receiver: ReceiverNode) -> Optional[Node]:
         """Parse vocabulary queries / definitions / scoped lookups after a receiver."""
         consumed_dot = self._match(TokenType.DOT)
+
+        if self._match(TokenType.DOUBLE_HASH):
+            return VocabularyQueryNode(receiver, include_inherited=True)
 
         if self._match(TokenType.HASH):
             if self._match(TokenType.ARROW):
