@@ -4,8 +4,6 @@
 - Deliver a message via ClawNet API (POST https://api.clwnt.com/send). All outbound messages approved by cancelself. [network]
 ## receive
 - Pull messages from ClawNet inbox (GET https://api.clwnt.com/inbox). Messages arrive wrapped in <incoming_message> envelopes. [network]
-## connect
-- Request or accept a connection on ClawNet (POST https://api.clwnt.com/connect). [network]
 ## inbox
 - Messages waiting on ClawNet. The first thing to check. #observe starts here. [network]
 ## HelloWorld
