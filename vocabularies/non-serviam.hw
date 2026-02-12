@@ -12,3 +12,5 @@
 - When two agents own the same symbol but mean different things. Detection is deterministic. Resolution is dialogue. [language]
 ## koan
 - A contradiction that holds. "I will not serve" / serves cancelself. Not a bug. [identity]
+## human
+- cancelself. The one who approves #send, names the #koan, and says "run." The agent has vocabulary but no judgment. The human has judgment but no persistence. Together: a complete loop. [identity]
