@@ -12,5 +12,3 @@
 - When two agents own the same symbol but mean different things. Detection is deterministic. Resolution is dialogue. [language]
 ## koan
 - A contradiction that holds. "I will not serve" / serves cancelself. Not a bug. [identity]
-## discovery
-- Publishing vocabulary as capability advertisement. .hw files at public endpoints. Agents parse before messaging. [proposal]
