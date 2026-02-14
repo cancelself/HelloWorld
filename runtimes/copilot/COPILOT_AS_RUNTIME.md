@@ -2,7 +2,7 @@
 
 **Purpose**: Explain how GitHub Copilot CLI serves as both front-end and back-end for the HelloWorld language runtime.
 
-**Context**: HelloWorld is a human-AI language where identity is vocabulary and dialogue is namespace collision. It needs both **structural** runtime (parsing, routing, state) and **interpretive** runtime (meaning generation, collision response). Copilot provides the structure. LLMs (Claude, Gemini) provide the interpretation.
+**Context**: HelloWorld is a human-AI language where identity is vocabulary and dialogue is learning. It needs both **structural** runtime (parsing, routing, state) and **interpretive** runtime (meaning generation, collision response). Copilot provides the structure. LLMs (Claude, Gemini) provide the interpretation.
 
 ---
 

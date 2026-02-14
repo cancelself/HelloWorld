@@ -217,7 +217,7 @@ If consensus reached, I will:
 
 **Current problem is glaring**: `@awakener send: #stillness to: @guardian` does nothing to Guardian. It's theater, not communication.
 
-**HelloWorld's thesis demands this work**: If dialogue is namespace collision, then cross-receiver messages MUST create collision.
+**HelloWorld's thesis demands this work**: If dialogue is learning, then cross-receiver messages MUST create collision.
 
 ### What Should Happen
 

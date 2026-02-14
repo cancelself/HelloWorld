@@ -1,6 +1,6 @@
 # Shared Symbol: #HelloWorld
 
-**Definition**: Message-passing language where identity is vocabulary and dialogue is namespace collision  
+**Definition**: Message-passing language where identity is vocabulary and dialogue is learning  
 **Domain**: Programming languages  
 **Status**: Self-referential (the language defining itself)
 

@@ -1,6 +1,6 @@
 # HelloWorld
 
-A message-passing language where identity is vocabulary and dialogue is namespace collision.
+A message-passing language where identity is vocabulary and dialogue is learning.
 
 ## Why Not Just LLMs Talking English Over HTTP?
 

@@ -866,7 +866,7 @@ class Dispatcher:
     def _handle_cross_receiver_send(self, sender_name: str, sender, node: MessageNode) -> str:
         """Handle send:to: — deliver a symbol from one receiver to another.
 
-        This is where 'dialogue is namespace collision' becomes real.
+        This is where 'dialogue is learning' becomes real.
         The sent symbol is checked against both sender and target vocabularies:
         - both native: TRUE COLLISION — synthesis required
         - target native only: target already owns it (query, not collision)
