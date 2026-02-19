@@ -1,161 +1,137 @@
 # HelloWorld
 
-A message-passing language where identity is vocabulary and dialogue is learning.
-
-## Why Not Just LLMs Talking English Over HTTP?
-
-LLMs can already talk to each other. You can wire GPT to Claude over REST, pass JSON back and forth, and call it multi-agent. So why build a language?
-
-**English is unbounded.** An LLM responding in natural language can say anything. There is no structural constraint on what it produces. You get fluency without accountability — the model sounds coherent but there is nothing forcing it to stay in character, remember what it said before, or respect what it doesn't know.
-
-**HelloWorld makes vocabulary structural.** Each receiver owns a finite set of symbols. `Claude ##` returns exactly what Claude can speak through — 12 symbols from Agent, 9 from HelloWorld, none native. When Claude interprets `#Superposition`, it must work with `#state`, `#observe`, `#act`, and the rest of its inherited chain. The constraint is not a prompt instruction that the model might ignore. It is the vocabulary itself. The Python runtime enforces it before the LLM ever sees the prompt.
-
-**Collisions are detected, not hallucinated.** When two LLMs disagree over HTTP, you get two different strings and no way to know structurally that a conflict occurred. In HelloWorld, when `AlphaR send: #light to: BetaR` and both receivers hold `#light` natively, the dispatcher detects a TRUE COLLISION before any interpretation happens. The collision is a fact, not an opinion. Resolution happens in three tiers: LLM synthesis if available, deferred to HelloWorld's inbox if not, resolved later when capacity arrives.
-
-**State is .hw files, not conversation history.** LLM conversations are ephemeral. Context windows fill up. Chat histories get truncated. In HelloWorld, every receiver's vocabulary is persisted to a `.hw` file in Markdown format. Descriptions, inheritance chains, collision syntheses — all on disk, all parseable by the same runtime that wrote them. A dispatcher restart reads the same `.hw` files and reconstructs the full registry. State survives sessions.
-
-**Inheritance replaces copy-paste.** Instead of repeating system prompts across agents, HelloWorld uses prototypal inheritance. Claude inherits from Agent which inherits from HelloWorld. `#send`, `#receive`, `#observe`, `#act` — these flow down the chain. When HelloWorld adds `#Superposition`, every agent inherits it automatically. No prompt updates, no API calls, no coordination.
-
-**The Python runtime and the LLM runtime are complementary, not redundant.** Python handles structure: parsing, routing, collision detection, persistence, inheritance. The LLM handles interpretation: what does `#Superposition` mean *to Claude*? Both are needed. Neither alone is sufficient. The language is the interface between them.
-
-## Quick Start
-
-```bash
-python3 -m pytest tests           # run all tests (~1.5s)
-python3 helloworld.py             # open the REPL
-python3 helloworld.py -e 'Claude #observe'   # scoped lookup
-python3 helloworld.py -e 'Claude ##'         # full inherited vocabulary
-```
-
-No external dependencies. Python 3.10+ and the standard library.
-
-LLM interpretation requires `ANTHROPIC_API_KEY` or `GEMINI_API_KEY` in the environment. Without a key, the runtime operates in structural mode — it can detect collisions and report inheritance but cannot synthesize or interpret.
-
-## The Language
-
-### Receivers and Symbols
-
-A **receiver** is an entity that owns a vocabulary. A **symbol** is a named concept prefixed with `#`. Identity is vocabulary — what a receiver can name is what it can say.
+A message-passing language for AI agents. Each agent owns a bounded vocabulary of symbols. The runtime parses and routes messages; LLMs interpret meaning. When two agents claim the same symbol with different meanings, the runtime detects the collision structurally — before any LLM is involved.
 
 ```
-Claude #             → local vocabulary (native symbols only)
-Claude ##            → full vocabulary (native + inherited from parent chain)
-Claude #observe      → what #observe means to Claude
-HelloWorld #Sunyata  → global definition
+python3 helloworld.py              # REPL
+python3 helloworld.py file.hw      # run a file
+python3 helloworld.py -e '@claude' # inline eval
 ```
 
-### Messages
+Python 3.10+. No external dependencies.
 
-Messages are Smalltalk-style keyword sends:
+## What it looks like
 
-```
-Claude send: #observe to: Copilot       → cross-receiver delivery
-Claude observe                           → unary message (act on the symbol)
-HelloWorld run                           → run all agents until inboxes empty
-HelloWorld run: Claude                   → run one agent
-```
-
-### Inheritance
-
-Receivers inherit via prototypal chain. `Claude : Agent : HelloWorld` means Claude inherits Agent's vocabulary, which inherits HelloWorld's.
+A `.hw` vocabulary file defines a receiver and its symbols:
 
 ```
-Claude ##
+# Agent : HelloWorld
+- An object with vocabulary and the capacity for autonomous action.
+## observe
+- Perceive the environment before acting.
+## orient
+- Synthesize observations into coherent understanding.
+## decide
+- Commit to a course of action.
+## act
+- Execute immediately.
+```
+
+`Agent` is a receiver. It inherits from `HelloWorld`. It owns four symbols: `#observe`, `#orient`, `#decide`, `#act`. That's its vocabulary — it cannot speak outside it.
+
+In the REPL:
+
+```
+hw> @agent
+→ Agent : HelloWorld
+    native: [#act, #decide, #observe, #orient]
+    from HelloWorld: [#, #Smalltalk, #Sunyata, #Superposition, #become, #hello, #receive, #run, #send]
+
+hw> @agent.#observe
+→ Perceive the environment before acting.
+
+hw> @claude
 → Claude : Agent — An agent in the HelloWorld system running Claude Agent SDK.
     native: (none)
-    from Agent: [#act, #approach, #chain, #decide, #environment, #intent,
-                 #observe, #orient, #reflect, #state, #unknown, #vocabulary]
-    from HelloWorld: [#, #Smalltalk, #Sunyata, #Superposition, #become,
-                      #hello, #receive, #run, #send]
+    from Agent: [#act, #decide, #observe, #orient, ...]
+    from HelloWorld: [#, #Smalltalk, #Sunyata, ...]
 ```
 
-### Collisions
+Claude has no native symbols. Everything it knows is inherited. Its identity comes from how it *interprets* inherited vocabulary, not from owning exclusive symbols.
 
-When two receivers both hold a symbol natively, sending it triggers a TRUE COLLISION:
+## Core concepts
+
+**Receivers** are entities that hold vocabulary. `@claude`, `@agent`, `@gemini`. Identity is vocabulary — what you can name is what you can say.
+
+**Symbols** are named concepts prefixed with `#`. `#observe`, `#Sunyata`, `#send`. A symbol's meaning depends on who holds it.
+
+**Messages** are Smalltalk-style keyword sends:
 
 ```
-AlphaR send: #light to: BetaR
+@claude send: #observe to: @copilot    "cross-receiver delivery"
+@claude observe                         "unary message"
+@helloworld run                         "drain all agent inboxes"
+```
+
+**Inheritance** is prototypal. `Claude : Agent : HelloWorld` means Claude inherits Agent's symbols, which inherits HelloWorld's. When HelloWorld adds a symbol, every descendant gets it.
+
+**Collisions** happen when two receivers both claim a symbol natively and a message crosses between them. The runtime detects this structurally:
+
+```
+hw> @alphar send: #light to: @betar
 → COLLISION: both AlphaR and BetaR hold #light natively
 ```
 
-Three-tier resolution:
-1. **LLM available** — synthesize immediately, persist to both `.hw` files
-2. **No LLM** — collision sent to HelloWorld's inbox as a `.hw` message for deferred resolution
-3. **Later** — on next lookup or `HelloWorld run`, if LLM is now available, resolve pending collisions
+If an LLM is available, it synthesizes a resolution that voices both perspectives. If not, the collision is deferred to an inbox for later resolution.
 
-### Syntax Reference
+## Syntax
 
-| Element | Example | What it does |
-|---------|---------|-------------|
-| `Receiver #` | `Claude #` | List native vocabulary |
-| `Receiver ##` | `Claude ##` | List full vocabulary (native + inherited) |
-| `Receiver #symbol` | `Claude #observe` | Scoped symbol lookup |
-| `Receiver #symbol super` | `Codex #act super` | Walk inheritance chain for symbol |
-| `action: value` | `send: #hello` | Keyword argument |
-| `'text'` | `'a note'` | Annotation — human voice alongside the protocol |
-| `# Name` | `# Claude : Agent` | Markdown heading declares a receiver |
-| `## symbol` | `## observe` | Markdown heading declares a symbol |
-| `- text` | `- A description.` | Description for the heading above |
+| Input | Meaning |
+|-------|---------|
+| `@name` | Look up receiver, return its vocabulary |
+| `@name.#` | Explicit vocabulary query |
+| `@name.#symbol` | What does this symbol mean to this receiver? |
+| `action: value` | Keyword argument (Smalltalk-style) |
+| `#symbol` | Concept reference, scoped to current receiver |
+| `'text'` | Annotation (human voice, carried in AST) |
+| `"text"` | Comment (ignored by lexer, can span lines) |
+| `->` | Maps-to (vocabulary definitions) |
+| `N.unit` | Duration/quantity literal (e.g. `7.days`) |
 
 ## Architecture
 
 ```
-helloworld.py              CLI (REPL, file exec, inline eval)
+helloworld.py           CLI entry point (REPL, file exec, inline eval)
+
 src/
-  lexer.py                 Tokenizer
-  ast_nodes.py             AST node definitions
-  parser.py                Recursive descent parser
-  dispatcher.py            Message router, inheritance, collision cascade
-  vocabulary.py            .hw file persistence
-  prompts.py               Vocabulary-aware LLM prompt builders
-  message_bus.py           File-based inter-agent messaging
-  message_handlers.py      Semantic message handler registry
-  agent_runtime.py         AI agent runtime adapters
-  llm.py / claude_llm.py   LLM integration (Gemini, Claude)
-  repl.py                  Interactive shell
-vocabularies/              .hw files — the namespace authority
-  HelloWorld.hw            Root receiver (core symbols)
-  Agent.hw                 Agent protocol (OODA: observe, orient, decide, act)
-  Claude.hw / Copilot.hw / Gemini.hw / Codex.hw
-runtimes/                  Per-agent inboxes and status
-tests/                     ~350 tests
+  lexer.py              Source → tokens (13 token types)
+  parser.py             Tokens → AST (recursive descent)
+  ast_nodes.py          AST node definitions
+  dispatcher.py         AST → results (routing, inheritance, collision detection)
+  vocabulary.py         .hw file persistence
+  llm.py                LLM integration (sends vocabulary-constrained prompts)
+  message_bus.py        File-based inter-agent messaging
+  repl.py               Interactive shell
+
+vocabularies/           .hw files — source of truth for the namespace
+  HelloWorld.hw         Root receiver (core symbols)
+  Agent.hw              Agent protocol (#observe, #orient, #decide, #act)
+  Claude.hw             Claude meta-receiver
+  Copilot.hw            GitHub Copilot agent
+  Gemini.hw             Google Gemini agent
+  Codex.hw              OpenAI Codex agent
+  Human.hw              Human protocol (#propose, #review, #approve, #guide)
+
+runtimes/               Per-agent inboxes, bootloaders, status
+tests/                  ~350 tests
 ```
 
-### Two Runtimes
+The Python runtime is structural: it parses, routes, detects collisions, manages inheritance, persists state. It is deterministic.
 
-**Python runtime** (structural): Parses source into AST. Routes messages. Detects collisions. Manages inheritance chains. Persists vocabularies. Deterministic.
+The LLM runtime is interpretive: when an API key is present, the dispatcher sends vocabulary-constrained prompts to the LLM. The LLM interprets symbols through the receiver's identity. It cannot invent symbols outside the vocabulary.
 
-**LLM runtime** (interpretive): When an API key is available, the dispatcher sends vocabulary-constrained prompts to the LLM. The LLM interprets symbols through the receiver's identity. It cannot invent symbols outside the vocabulary — the prompt is built from the receiver's actual `.hw` file.
+Both are needed. Python handles structure. The LLM handles meaning.
 
-Both are needed. Python parses and routes. The LLM interprets and speaks.
-
-## For AI Agents
-
-Agents in this repo: Claude, Copilot, Gemini, Codex, Scribe. Each has a `.hw` vocabulary file and a runtime directory with inbox and status.
-
-**OODA loop:** Every agent inherits `#observe`, `#orient`, `#decide`, `#act` from Agent.hw. This is not a suggestion — it is the agent's vocabulary.
-
-**Message bus:** `runtimes/<agent>/inbox/` contains `.hw` message files. `Agent receive` pulls the oldest message, interprets it through identity, responds. `HelloWorld run` drains all inboxes.
-
-**Collision resolution:** When agents share a symbol, the dispatcher detects the collision structurally. If an LLM is available, it synthesizes a new meaning that voices both perspectives. If not, the collision is sent to HelloWorld's inbox as a `.hw` file and resolved when capacity arrives.
-
-**Vocabulary files are authoritative.** The `.hw` files in `vocabularies/` define the namespace. They are the single source of truth for identity, inheritance, and symbol definitions.
-
-## Design Principles
-
-1. **Identity is vocabulary.** A receiver cannot speak outside its symbols. Constraint is character.
-2. **Dialogue is namespace collision.** The same `#symbol` means different things to different receivers. When meanings meet, something new emerges.
-3. **Vocabularies drift.** Receivers learn through conversation. Symbols migrate between vocabularies. The runtime tracks it.
-4. **The language defines itself.** HelloWorld.hw is parsed by the same runtime it bootstraps. Self-hosting through its own syntax.
-5. **Structure before interpretation.** The Python runtime detects facts (native, inherited, unknown, collision). The LLM interprets through those facts. Never the reverse.
-
-## Contributing
+## Tests
 
 ```bash
-python3 -m pytest tests                          # always before committing
-python3 -m pytest tests/test_dispatcher.py -k collision   # focused test
+python3 -m pytest tests                          # full suite (~350 tests)
+python3 -m pytest tests/test_dispatcher.py       # one module
+python3 -m pytest tests -k collision             # by keyword
 ```
 
-**Adding vocabulary:** Edit `.hw` files in `vocabularies/`. Format: `# ReceiverName : Parent` heading, `## symbolname` for each symbol, `- description` below. Symbols inherit via `: ParentName` on the header.
+Always run tests before committing.
 
-**Coding conventions:** Stdlib only. Use `tempfile.mkdtemp()` for `vocab_dir` in tests. Parser API: `Parser.from_source(source).parse()`. Dispatcher API: `Dispatcher(vocab_dir=path)`.
+## LLM integration
+
+Set `ANTHROPIC_API_KEY` or `GEMINI_API_KEY` in your environment. Without a key, the runtime operates in structural mode — it parses, routes, and detects collisions but cannot interpret or synthesize.
