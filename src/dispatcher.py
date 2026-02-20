@@ -27,6 +27,7 @@ from ast_nodes import (
 from parser import Parser
 from vocabulary import VocabularyManager
 import message_bus
+from memory_bus import MemoryBus, QMDNotFoundError
 from message_handlers import MessageHandlerRegistry
 from prompts import (
     scoped_lookup_prompt, scoped_lookup_prompt_with_descriptions,
@@ -641,10 +642,12 @@ class Dispatcher:
     def _handle_receive(self, receiver_name: str, receiver) -> str:
         """Handle `Agent receive` — pull one message, interpret through identity, respond.
 
-        Receiving is hearing through who you are.
+        Full OODA-R cycle: observe, orient, decide, act, reflect.
+        Each cycle is stored as a memory file for future recall.
         """
         identity = self.vocab_manager.load_identity(receiver_name)
         local_vocab = sorted(self._full_vocabulary(receiver))
+        memory = MemoryBus(receiver_name)
 
         msg = message_bus.receive(receiver_name)
         if msg is None:
@@ -688,25 +691,52 @@ class Dispatcher:
                     pass
 
         lines = []
+        trace = {}
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # #observe
+        # --- #observe ---
+        recalled_snippets = []
+        try:
+            results = memory.recall(f"interaction with {msg.sender}", n=3)
+            recalled_snippets = [r.snippet for r in results]
+        except QMDNotFoundError:
+            pass
+        except Exception:
+            pass
+
+        trace["observe"] = (
+            f"Message from {msg.sender}: \"{msg.content[:120]}\"\n"
+            f"Recalled {len(recalled_snippets)} prior memories."
+        )
         lines.append(
             f"[{receiver_name} #observe] Message from {msg.sender}: "
             f"\"{msg.content[:120]}\""
         )
+        if recalled_snippets:
+            lines.append(f"  Recalled {len(recalled_snippets)} prior memories.")
 
-        # #orient
+        # --- #orient ---
+        trace["orient"] = (
+            f"Identity: {(identity or 'none')[:60]}...\n"
+            f"Vocabulary: {local_vocab}"
+        )
         lines.append(
             f"[{receiver_name} #orient] Identity: "
             f"{(identity or 'none')[:60]}... Vocabulary: {local_vocab}"
         )
 
-        # #act — LLM interpretation or structural fallback
+        # --- #decide ---
+        decision_path = "llm" if self.llm else "structural"
+        trace["decide"] = f"Path: {decision_path}"
+        lines.append(f"[{receiver_name} #decide] Path: {decision_path}")
+
+        # --- #act ---
         response_text = None
         if self.llm:
             prompt = simulate_prompt(
                 receiver_name, identity, local_vocab,
                 msg.sender, msg.content,
+                memories=recalled_snippets if recalled_snippets else None,
             )
             try:
                 response_text = self.llm.call(prompt)
@@ -718,11 +748,41 @@ class Dispatcher:
                 receiver_name, receiver, identity, local_vocab, msg.content,
             )
 
+        trace["act"] = (
+            f"Response: \"{response_text[:120]}\"\n"
+            f"Sent response to {msg.sender}."
+        )
         lines.append(f"[{receiver_name} #act] {response_text}")
 
         # Send response back to sender
         message_bus.send(receiver_name, msg.sender, response_text)
         lines.append(f"  -> Sent response to {msg.sender}")
+
+        # --- #reflect ---
+        summary = (
+            f"{msg.sender} sent a message. "
+            f"Responded via {decision_path} path."
+        )
+        trace["reflect"] = summary
+
+        # Build the full OODA-R markdown trace
+        trace_lines = []
+        for phase in ("observe", "orient", "decide", "act", "reflect"):
+            trace_lines.append(f"## {phase}")
+            trace_lines.append(trace[phase])
+            trace_lines.append("")
+
+        trace_content = "\n".join(trace_lines)
+        sender_tag = msg.sender.lower().replace(" ", "-")
+        title = f"interaction-{sender_tag}-{now}"
+
+        memory.store(
+            trace_content,
+            title=title,
+            tags=["ooda-r", sender_tag],
+        )
+
+        lines.append(f"[{receiver_name} #reflect] {summary}")
 
         return "\n".join(lines)
 

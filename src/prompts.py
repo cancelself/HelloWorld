@@ -101,19 +101,30 @@ def simulate_prompt(
     local_vocab: List[str],
     sender: str,
     message_content: str,
+    memories: Optional[List[str]] = None,
 ) -> str:
     """Build prompt for simulate — agent interprets an inbox message through its identity."""
     ident = identity or f"{agent_name} (no identity description loaded)"
-    return (
-        f"You are {agent_name}. {ident}\n"
-        f"Your vocabulary: {local_vocab}\n\n"
-        f"Incoming message from {sender}:\n"
-        f"{message_content}\n\n"
-        f"Interpret this message through your identity and vocabulary. "
-        f"If the message contains symbols foreign to your vocabulary, acknowledge the boundary. "
-        f"Respond in your natural voice, constrained by your vocabulary. "
-        f"Constraint is character."
-    )
+    lines = [
+        f"You are {agent_name}. {ident}",
+        f"Your vocabulary: {local_vocab}",
+        "",
+    ]
+    if memories:
+        lines.append("Prior context:")
+        for mem in memories:
+            lines.append(f"- {mem}")
+        lines.append("")
+    lines.extend([
+        f"Incoming message from {sender}:",
+        f"{message_content}",
+        "",
+        "Interpret this message through your identity and vocabulary. "
+        "If the message contains symbols foreign to your vocabulary, acknowledge the boundary. "
+        "Respond in your natural voice, constrained by your vocabulary. "
+        "Constraint is character.",
+    ])
+    return "\n".join(lines)
 
 
 def collision_prompt(

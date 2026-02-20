@@ -32,6 +32,7 @@ collisions.log
 runtimes/daemon-logs/
 *.pid
 runtimes/*/inbox/*.hw
+runtimes/*/memory/
 runtimes/*/archive/
 runtimes/*/history/
 storage/*.log

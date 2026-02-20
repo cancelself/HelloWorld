@@ -1,15 +1,18 @@
 """Tests for receive and run — Agent receive processes one message,
 HelloWorld run: Agent loops until inbox is empty."""
 
+import json
 import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import message_bus
 from dispatcher import Dispatcher
+from memory_bus import MemoryBus, QMDNotFoundError
+from prompts import simulate_prompt
 from conftest import hw_symbols
 
 
@@ -201,3 +204,100 @@ def test_send_to_queues_on_bus():
     output = results[0]
     assert "HelloWorld" in output
     assert "#hello" in output or "hello" in output
+
+
+# --- Memory integration ---
+
+
+def test_receive_recalls_memory():
+    """recall() is called during #observe when QMD is available."""
+    d = _fresh_dispatcher()
+    mock_llm = MagicMock()
+    mock_llm.call.return_value = "Interpreted through memory."
+    d.llm = mock_llm
+
+    message_bus.send("Copilot", "Claude", "status update")
+
+    with patch.object(MemoryBus, "recall", return_value=[]) as mock_recall:
+        d.dispatch_source("Claude receive")
+        mock_recall.assert_called_once()
+        args = mock_recall.call_args
+        assert "Copilot" in args[0][0]  # query mentions sender
+
+
+def test_receive_stores_ooda_trace():
+    """store() is called with full OODA-R markdown during #reflect."""
+    d = _fresh_dispatcher()
+    message_bus.send("Copilot", "Claude", "parser progress")
+
+    with patch.object(MemoryBus, "recall", side_effect=QMDNotFoundError("no qmd")):
+        with patch.object(MemoryBus, "store", return_value=Path("/tmp/fake.md")) as mock_store:
+            d.dispatch_source("Claude receive")
+            mock_store.assert_called_once()
+            content = mock_store.call_args[0][0]
+            # Verify markdown sections present
+            assert "## observe" in content
+            assert "## orient" in content
+            assert "## decide" in content
+            assert "## act" in content
+            assert "## reflect" in content
+            # Verify tags
+            kwargs = mock_store.call_args[1]
+            assert "ooda-r" in kwargs["tags"]
+            assert "copilot" in kwargs["tags"]
+
+
+def test_receive_works_without_qmd():
+    """QMDNotFoundError during recall is caught gracefully — cycle completes."""
+    d = _fresh_dispatcher()
+    message_bus.send("Gemini", "Claude", "test message")
+
+    with patch.object(MemoryBus, "recall", side_effect=QMDNotFoundError("no qmd")):
+        with patch.object(MemoryBus, "store", return_value=Path("/tmp/fake.md")):
+            results = d.dispatch_source("Claude receive")
+            output = results[0]
+            assert "#observe" in output
+            assert "#act" in output
+            assert "#reflect" in output
+
+
+def test_ooda_trace_has_all_phases():
+    """Stored content contains all five OODA-R phase sections."""
+    d = _fresh_dispatcher()
+    message_bus.send("Codex", "Claude", "execution semantics")
+
+    stored_content = None
+
+    def capture_store(content, **kwargs):
+        nonlocal stored_content
+        stored_content = content
+        return Path("/tmp/fake.md")
+
+    with patch.object(MemoryBus, "recall", side_effect=QMDNotFoundError("no qmd")):
+        with patch.object(MemoryBus, "store", side_effect=capture_store):
+            d.dispatch_source("Claude receive")
+
+    assert stored_content is not None
+    for phase in ("observe", "orient", "decide", "act", "reflect"):
+        assert f"## {phase}" in stored_content, f"Missing ## {phase} in trace"
+    assert "Codex" in stored_content
+    assert "structural" in stored_content  # no LLM → structural path
+
+
+def test_simulate_prompt_with_memories():
+    """memories kwarg injects 'Prior context:' section into prompt."""
+    prompt = simulate_prompt(
+        "Claude", "An AI assistant", ["#observe", "#act"],
+        "Copilot", "hello",
+        memories=["previous interaction about parser", "copilot prefers brevity"],
+    )
+    assert "Prior context:" in prompt
+    assert "previous interaction about parser" in prompt
+    assert "copilot prefers brevity" in prompt
+
+    # Without memories, no Prior context section
+    prompt_no_mem = simulate_prompt(
+        "Claude", "An AI assistant", ["#observe", "#act"],
+        "Copilot", "hello",
+    )
+    assert "Prior context:" not in prompt_no_mem
