@@ -16,6 +16,7 @@ def _use_tmp():
     """Point message_bus at a temp directory so tests start clean."""
     tmp = Path(tempfile.mkdtemp())
     message_bus.BASE_DIR = tmp
+    message_bus.reset_transport()
     return tmp
 
 
@@ -125,6 +126,36 @@ def test_at_prefix_stripped():
         _restore()
 
 
+def test_default_is_file_transport():
+    """With no env var, _get_transport() returns FileTransport."""
+    message_bus.reset_transport()
+    transport = message_bus._get_transport()
+    assert isinstance(transport, message_bus.FileTransport)
+
+
+def test_set_transport_overrides_default():
+    """set_transport() overrides the auto-detected transport."""
+    _use_tmp()
+    try:
+        sentinel = message_bus.FileTransport()
+        message_bus.set_transport(sentinel)
+        assert message_bus._get_transport() is sentinel
+    finally:
+        _restore()
+
+
+def test_reset_transport():
+    """reset_transport() clears the cached transport."""
+    _use_tmp()
+    try:
+        sentinel = message_bus.FileTransport()
+        message_bus.set_transport(sentinel)
+        message_bus.reset_transport()
+        assert message_bus._get_transport() is not sentinel
+    finally:
+        _restore()
+
+
 if __name__ == "__main__":
     test_send_creates_message_file()
     test_receive_returns_a_message()
@@ -134,4 +165,7 @@ if __name__ == "__main__":
     test_parse_message_headers()
     test_message_dataclass_fields()
     test_at_prefix_stripped()
+    test_default_is_file_transport()
+    test_set_transport_overrides_default()
+    test_reset_transport()
     print("All message bus tests passed")

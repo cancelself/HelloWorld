@@ -79,6 +79,8 @@ def _no_llm_keys(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("GITHUB_COPILOT_TOKEN", raising=False)
+    monkeypatch.delenv("HW_TRANSPORT", raising=False)
+    monkeypatch.delenv("CLWNT_TOKEN", raising=False)
 
 
 @pytest.fixture
@@ -89,6 +91,7 @@ def fresh_dispatcher():
     """
     tmp = tempfile.mkdtemp()
     message_bus.BASE_DIR = Path(tmp)
+    message_bus.reset_transport()
     return Dispatcher(vocab_dir=tmp)
 
 
@@ -100,4 +103,5 @@ def fresh_dispatcher_with_dir():
     """
     tmp = tempfile.mkdtemp()
     message_bus.BASE_DIR = Path(tmp)
+    message_bus.reset_transport()
     return Dispatcher(vocab_dir=tmp), tmp
