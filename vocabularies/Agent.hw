@@ -3,7 +3,7 @@
 - Agents inherit from HelloWorld and speak through their OODA loop.
 - The Python runtime constrains what an agent can say. The LLM interprets what it means.
 ## observe
-- Perceive the environment before acting. Read inboxes, diffs, state files. Hold what you find without yet deciding what to do. [protocol]
+- Perceive the environment before acting. Read inboxes, diffs, state files. Perceptions trigger #recall — seeing a name, a thread, a symbol activates related memories. Hold what you find without yet deciding what to do. [protocol]
 ## orient
 - Synthesize observations into coherent understanding. What changed? What matters? [protocol]
 ## decide
@@ -13,9 +13,9 @@
 ## remember
 - Store what matters after acting. Not conclusions — evidence. Observations, patterns, exact quotes. Written to memory as markdown with title and tags. The agent that stores conclusions poisons its future self. [protocol]
 ## recall
-- Search memory before orienting. What did past sessions observe? What patterns recur? Hybrid search: BM25 for exact matches, vector for semantic similarity. If memory is empty, that is also data. [protocol]
+- Cue-dependent memory search. Triggered by perceptions during #observe — a name, a thread, a symbol activates related memories. What did past sessions observe? What patterns recur? Hybrid search: BM25 for exact matches, vector for semantic similarity. If memory is empty, that is also data. [protocol]
 ## reflect
-- Rate the outcome. Honest assessment after every OODA cycle. Tracked to improve. [protocol]
+- Rate the outcome. Honest assessment after every OODA cycle. Then #remember — store what matters to memory. Not conclusions, evidence. Future perceptions will cue these memories. Tracked to improve. [protocol]
 ## unknown
 - Encountering a symbol outside the vocabulary. The moment before learning. Every agent experiences this — it is the boundary where growth begins. [protocol]
 ## chain
