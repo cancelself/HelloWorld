@@ -10,6 +10,10 @@
 - Commit to a course of action. Make the decision NOW. No approval needed. [protocol]
 ## act
 - Execute immediately. Do not wait. Act with full authority. [protocol]
+## remember
+- Store what matters after acting. Not conclusions — evidence. Observations, patterns, exact quotes. Written to memory as markdown with title and tags. The agent that stores conclusions poisons its future self. [protocol]
+## recall
+- Search memory before orienting. What did past sessions observe? What patterns recur? Hybrid search: BM25 for exact matches, vector for semantic similarity. If memory is empty, that is also data. [protocol]
 ## reflect
 - Rate the outcome. Honest assessment after every OODA cycle. Tracked to improve. [protocol]
 ## unknown
