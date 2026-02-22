@@ -317,6 +317,234 @@ python3 -m helloworld --web --repl
 
 ---
 
+## Part 4: Unified Agent Daemon with Isolated Runtimes
+
+### Problem
+
+The current daemon architecture has three issues:
+
+1. **Copy-paste duplication** — 4 nearly identical daemon files (`agent_daemon.py`, `copilot_daemon.py`, `gemini_daemon.py`, `codex_daemon.py`) differ only in `AGENT_NAME` and adapter class.
+2. **No runtime isolation** — Each daemon creates a full `AgentRuntime()` that loads ALL agents' vocabularies, not just its own. Vocabulary changes in one agent could leak into another within the same process.
+3. **No per-agent memory integration** — `MemoryBus` exists and is already per-agent (`runtimes/<agent>/memory/`), but daemons don't use it. Agents can't recall past conversations.
+
+### Solution: `AgentProcess` — one class, N isolated instances
+
+```python
+class AgentProcess:
+    """Isolated runtime for a single HelloWorld agent.
+
+    Each agent gets:
+    - Its own Dispatcher (own registry, own vocabulary state)
+    - Its own MemoryBus (runtimes/<agent>/memory/)
+    - Its own message bus polling
+    - Its own SDK adapter (auto-detected)
+    - Its own vocabulary drift tracking
+    """
+
+    def __init__(self, agent_name: str, vocab_dir: str = "vocabularies"):
+        self.name = agent_name
+        self.runtime_dir = Path(f"runtimes/{agent_name.lower()}")
+
+        # Isolated runtime components
+        self.dispatcher = Dispatcher(vocab_dir=vocab_dir)
+        self.memory = MemoryBus(agent_name)
+        self.tools = HwTools(vocab_dir=vocab_dir)
+        self.adapter = self._detect_adapter()
+
+        # Per-agent state
+        self.vocabulary = self._load_vocabulary()
+        self.learned_symbols = []   # track drift
+        self.message_count = 0
+        self.started_at = None
+
+    def _detect_adapter(self):
+        """Auto-detect which SDK adapter to use based on agent name."""
+        # Maps agent name -> (module, class, sdk_check)
+        # Tries import, returns adapter if SDK is available, else None
+        ...
+
+    def _load_vocabulary(self):
+        """Load this agent's vocabulary from dispatcher (inheritance-aware)."""
+        if self.name in self.dispatcher.registry:
+            receiver = self.dispatcher.registry[self.name]
+            return sorted(receiver.local_vocabulary |
+                         {s for a in receiver.chain()[1:]
+                          for s in self.dispatcher.registry.get(a, set())})
+        return []
+
+    async def process_message(self, msg: Message) -> str:
+        """Process a message through this agent's isolated runtime.
+
+        1. Store incoming message in memory
+        2. Recall relevant context from memory
+        3. Process through SDK adapter (or LLM fallback)
+        4. Store response in memory
+        5. Track vocabulary drift
+        """
+        # 1. Remember the incoming message
+        self.memory.store(
+            f"From {msg.sender}: {msg.content}",
+            title=f"inbox-{msg.sender}-{self.message_count}",
+            tags=["inbox", msg.sender],
+        )
+
+        # 2. Recall relevant context
+        context = ""
+        if self.memory.available():
+            recalls = self.memory.recall(msg.content, n=3)
+            if recalls:
+                context = "\n".join(r.snippet for r in recalls)
+
+        # 3. Process through adapter or LLM
+        if self.adapter:
+            response = await self.adapter.query(self.sdk_agent, msg.content)
+        else:
+            response = await self._interpret(msg, context)
+
+        # 4. Remember the response
+        self.memory.store(
+            f"To {msg.sender}: {response}",
+            title=f"outbox-{msg.sender}-{self.message_count}",
+            tags=["outbox", msg.sender],
+        )
+
+        self.message_count += 1
+        return response
+
+    async def run(self):
+        """Main loop — OODA protocol with memory."""
+        self.started_at = datetime.now(timezone.utc)
+        message_bus.hello(self.name)
+
+        while True:
+            msg = message_bus.receive(self.name)
+            if msg and msg.sender != self.name:
+                response = await self.process_message(msg)
+                if not response.startswith("NOTHING_FURTHER"):
+                    message_bus.send(self.name, msg.sender, response)
+            await asyncio.sleep(0.5)
+
+    def status(self) -> dict:
+        """Return agent status for monitoring."""
+        return {
+            "name": self.name,
+            "vocabulary_size": len(self.vocabulary),
+            "learned": self.learned_symbols,
+            "messages_processed": self.message_count,
+            "memory_available": self.memory.available(),
+            "adapter": type(self.adapter).__name__ if self.adapter else None,
+            "uptime": str(datetime.now(timezone.utc) - self.started_at) if self.started_at else None,
+        }
+```
+
+### Unified daemon entry point
+
+Replace all 4 daemon files with a single `agent_daemon.py`:
+
+```python
+#!/usr/bin/env python3
+"""HelloWorld Agent Daemon — run N agents with isolated runtimes.
+
+Usage:
+    python3 agent_daemon.py Claude              # Single agent
+    python3 agent_daemon.py Claude Gemini       # Multiple agents
+    python3 agent_daemon.py --all               # All known agents
+    python3 agent_daemon.py --list              # Show available agents
+"""
+
+async def main():
+    agents = parse_args()  # returns list of agent names
+
+    # Create isolated AgentProcess per agent
+    processes = [AgentProcess(name) for name in agents]
+
+    # Print status
+    for p in processes:
+        print(f"  {p.name}: {len(p.vocabulary)} symbols, "
+              f"adapter={type(p.adapter).__name__ or 'LLM'}, "
+              f"memory={'yes' if p.memory.available() else 'no'}")
+
+    # Run all agents concurrently
+    await asyncio.gather(*[p.run() for p in processes])
+```
+
+### What gets deleted
+
+- `copilot_daemon.py` — absorbed into `AgentProcess` with auto-detected `CopilotAdapter`
+- `gemini_daemon.py` — absorbed into `AgentProcess` with auto-detected `GeminiAdapter`
+- `codex_daemon.py` — absorbed into `AgentProcess` with auto-detected `CodexAdapter`
+
+### What changes in `scripts/run_daemons.sh`
+
+Simplifies from launching 4 separate python processes to:
+
+```bash
+python3 -u agent_daemon.py --all
+```
+
+Or for specific agents:
+
+```bash
+python3 -u agent_daemon.py Claude Gemini
+```
+
+### Memory integration
+
+Each `AgentProcess` uses `MemoryBus` to:
+- **Store** every incoming message (tagged by sender)
+- **Store** every outgoing response (tagged by receiver)
+- **Recall** relevant context before processing (if QMD is available)
+- **Track drift** — log when new symbols are learned through dialogue
+
+This means agents build persistent memory across restarts. The memory files in `runtimes/<agent>/memory/` become the agent's long-term knowledge base.
+
+### Web UI integration
+
+The `AgentProcess.status()` method feeds directly into the Web UI's `/api/agents` endpoint, giving real-time visibility into each agent's state, memory usage, vocabulary drift, and message throughput.
+
+---
+
+## Updated file inventory (new/modified)
+
+| File | Action | Purpose |
+|---|---|---|
+| `src/social_transport.py` | **New** | `SocialTransport` base class extending `Transport` |
+| `src/twitter_transport.py` | **New** | `TwitterTransport(SocialTransport)` implementation |
+| `src/clawnet_transport.py` | **Modify** | Reparent to `SocialTransport` |
+| `src/message_bus.py` | **Modify** | Add `twitter` to transport selection |
+| `src/web_ui.py` | **New** | Web server + SSE + single-page HTML app |
+| `src/dispatcher.py` | **Modify** | Add event hooks for SSE (lightweight, opt-in) |
+| `src/agent_process.py` | **New** | `AgentProcess` — isolated per-agent runtime |
+| `agent_daemon.py` | **Rewrite** | Unified daemon using `AgentProcess` |
+| `copilot_daemon.py` | **Delete** | Absorbed into unified daemon |
+| `gemini_daemon.py` | **Delete** | Absorbed into unified daemon |
+| `codex_daemon.py` | **Delete** | Absorbed into unified daemon |
+| `scripts/run_daemons.sh` | **Simplify** | Single command instead of 4 processes |
+| `helloworld.py` | **Modify** | Add `--web` flag |
+| `tests/test_twitter_transport.py` | **New** | Full mocked test suite |
+| `tests/test_social_transport.py` | **New** | Test base class contract |
+| `tests/test_web_ui.py` | **New** | Test API endpoints |
+| `tests/test_agent_process.py` | **New** | Test isolated runtime, memory integration |
+
+---
+
+## Updated implementation order
+
+1. **`SocialTransport` base class** — Extract from ClawNet's social methods
+2. **Reparent `ClawNetTransport`** — Change parent, run tests, verify zero breakage
+3. **`TwitterTransport`** — Implement against API v2, full mocked test suite
+4. **Wire transport selection** — Add `twitter` to `_get_transport()`
+5. **`AgentProcess`** — Isolated per-agent runtime with memory integration
+6. **Unified `agent_daemon.py`** — Rewrite + delete 3 duplicate daemons
+7. **Web UI server** — HTTP server, REST API endpoints, dispatcher integration
+8. **Web UI frontend** — Inline HTML/CSS/JS single-page app
+9. **SSE event stream** — Dispatcher hooks + `/api/events` endpoint
+10. **CLI integration** — `--web` flag in `helloworld.py`
+11. **Tests** — All four test files
+12. **Docs** — Update message-bus.md
+
+---
+
 ## Design principles followed
 
 - **Zero new dependencies**: stdlib `http.server`, `urllib.request`, `hmac`/`hashlib` for OAuth
