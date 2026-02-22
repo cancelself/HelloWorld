@@ -29,7 +29,7 @@ SDK_AGENT_MAP = {
     "Codex": "codex_runtime.CodexAdapter",
     "Copilot": "copilot_runtime.CopilotAdapter",
     "Gemini": "gemini_runtime.GeminiAdapter",
-    "Claude": None,  # uses existing claude_llm.py directly
+    "Claude": "claude_runtime.ClaudeAdapter",
 }
 
 # Design principles appended to every agent's system prompt
