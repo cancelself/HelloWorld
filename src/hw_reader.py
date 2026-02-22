@@ -85,6 +85,14 @@ def read_hw_file(path: str) -> Optional[HwReceiver]:
         text = f.read()
 
     lines = text.split("\n")
+
+    # Skip YAML/QMD frontmatter (--- delimited block)
+    if lines and lines[0].strip() == '---':
+        i = 1
+        while i < len(lines) and lines[i].strip() != '---':
+            i += 1
+        lines = lines[i + 1:] if i < len(lines) else []
+
     receiver = None
     current_symbol = None
     in_comment = False

@@ -46,6 +46,7 @@ class Lexer:
         self.tokens: List[Token] = []
     
     def tokenize(self) -> List[Token]:
+        self._skip_frontmatter()
         while self.pos < len(self.source):
             self._skip_whitespace_and_comments()
 
@@ -73,6 +74,35 @@ class Lexer:
 
         self.tokens.append(Token(TokenType.EOF, '', self.line, self.column))
         return self.tokens
+
+    def _skip_frontmatter(self):
+        """Skip YAML/QMD frontmatter (--- delimited block) at start of source."""
+        if self.source[self.pos:self.pos + 3] == '---':
+            # Skip opening ---
+            self.pos += 3
+            self.column += 3
+            while self.pos < len(self.source) and self.source[self.pos] != '\n':
+                self._advance()
+            if self.pos < len(self.source):
+                self._advance()
+                self.line += 1
+                self.column = 1
+            # Skip until closing ---
+            while self.pos < len(self.source):
+                if self.column == 1 and self.source[self.pos:self.pos + 3] == '---':
+                    self.pos += 3
+                    self.column += 3
+                    while self.pos < len(self.source) and self.source[self.pos] != '\n':
+                        self._advance()
+                    if self.pos < len(self.source):
+                        self._advance()
+                        self.line += 1
+                        self.column = 1
+                    return
+                if self.source[self.pos] == '\n':
+                    self.line += 1
+                    self.column = 0
+                self._advance()
 
     def _match_markdown(self) -> bool:
         """Recognize Markdown structure at column 1: headings and list items."""
