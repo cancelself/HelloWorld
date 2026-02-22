@@ -317,17 +317,61 @@ python3 -m helloworld --web --repl
 
 ---
 
-## Part 4: Unified Agent Daemon with Isolated Runtimes
+## Part 4: SDK-Driven Agent Daemons with Human-in-the-Loop
 
-### Problem
+### Vision
 
-The current daemon architecture has three issues:
+Each agent daemon IS its namesake AI, powered by that AI's SDK. The daemon isn't a wrapper — it's Claude/Codex/Gemini/Copilot running with HelloWorld tools, vocabulary, and memory. Humans interact through two interfaces: the **Web UI** (browser, all agents) and the **native CLI** (terminal, one agent at a time).
 
-1. **Copy-paste duplication** — 4 nearly identical daemon files (`agent_daemon.py`, `copilot_daemon.py`, `gemini_daemon.py`, `codex_daemon.py`) differ only in `AGENT_NAME` and adapter class.
-2. **No runtime isolation** — Each daemon creates a full `AgentRuntime()` that loads ALL agents' vocabularies, not just its own. Vocabulary changes in one agent could leak into another within the same process.
-3. **No per-agent memory integration** — `MemoryBus` exists and is already per-agent (`runtimes/<agent>/memory/`), but daemons don't use it. Agents can't recall past conversations.
+### Architecture
 
-### Solution: `AgentProcess` — one class, N isolated instances
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     Human Interfaces                          │
+│                                                               │
+│  Web UI (browser)               Native CLIs (terminal)        │
+│  ┌──────────────┐      ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐  │
+│  │ All agents   │      │claude│ │codex │ │gemini│ │copilot│  │
+│  │ Dashboard    │      │ code │ │ cli  │ │ cli  │ │ cli   │  │
+│  │ REPL         │      └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘  │
+│  │ Inbox viewer │         │        │        │        │       │
+│  └──────┬───────┘         │        │        │        │       │
+│         │                 │        │        │        │       │
+├─────────┼─────────────────┼────────┼────────┼────────┼───────┤
+│         │           HelloWorld Message Bus                     │
+│         │      (FileTransport / ClawNet / Twitter)             │
+├─────────┼─────────────────┼────────┼────────┼────────┼───────┤
+│         ▼                 ▼        ▼        ▼        ▼       │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │               Agent Daemons (N concurrent)            │    │
+│  │                                                       │    │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │    │
+│  │  │ Claude   │ │ Codex    │ │ Gemini   │ │ Copilot  │ │    │
+│  │  │ Process  │ │ Process  │ │ Process  │ │ Process  │ │    │
+│  │  │          │ │          │ │          │ │          │ │    │
+│  │  │SDK:      │ │SDK:      │ │SDK:      │ │SDK:      │ │    │
+│  │  │Claude    │ │OpenAI    │ │Google    │ │GitHub    │ │    │
+│  │  │Agent SDK │ │Agents SDK│ │ADK       │ │Copilot   │ │    │
+│  │  │          │ │          │ │          │ │          │ │    │
+│  │  │Memory:   │ │Memory:   │ │Memory:   │ │Memory:   │ │    │
+│  │  │own bus   │ │own bus   │ │own bus   │ │own bus   │ │    │
+│  │  │          │ │          │ │          │ │          │ │    │
+│  │  │Vocab:    │ │Vocab:    │ │Vocab:    │ │Vocab:    │ │    │
+│  │  │own disp  │ │own disp  │ │own disp  │ │own disp  │ │    │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ │    │
+│  └──────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Problem (current state)
+
+1. **Copy-paste duplication** — 4 nearly identical daemon files differ only in `AGENT_NAME` and adapter class.
+2. **No runtime isolation** — Each daemon loads ALL agents' vocabularies via `AgentRuntime()`.
+3. **No memory integration** — `MemoryBus` exists per-agent but daemons don't use it.
+4. **No human-in-the-loop** — Daemons run fully autonomously with no escalation mechanism.
+5. **Inconsistent code paths** — `agent_daemon.py` uses `get_llm_for_agent()` while SDK daemons use `AgentRuntime` + adapter.
+
+### Solution: `AgentProcess` — isolated, SDK-driven, human-aware
 
 ```python
 class AgentProcess:
@@ -336,9 +380,9 @@ class AgentProcess:
     Each agent gets:
     - Its own Dispatcher (own registry, own vocabulary state)
     - Its own MemoryBus (runtimes/<agent>/memory/)
-    - Its own message bus polling
-    - Its own SDK adapter (auto-detected)
+    - Its own SDK adapter (auto-detected from SdkAdapter registry)
     - Its own vocabulary drift tracking
+    - Human escalation via message bus (#propose, #review, #approve)
     """
 
     def __init__(self, agent_name: str, vocab_dir: str = "vocabularies"):
@@ -350,58 +394,76 @@ class AgentProcess:
         self.memory = MemoryBus(agent_name)
         self.tools = HwTools(vocab_dir=vocab_dir)
         self.adapter = self._detect_adapter()
+        self.sdk_agent = None  # initialized lazily
 
         # Per-agent state
         self.vocabulary = self._load_vocabulary()
-        self.learned_symbols = []   # track drift
+        self.learned_symbols = []
         self.message_count = 0
         self.started_at = None
+        self.pending_human = []  # messages awaiting human response
 
-    def _detect_adapter(self):
-        """Auto-detect which SDK adapter to use based on agent name."""
-        # Maps agent name -> (module, class, sdk_check)
-        # Tries import, returns adapter if SDK is available, else None
-        ...
+    def _detect_adapter(self) -> Optional[SdkAdapter]:
+        """Auto-detect SDK adapter from the SDK_AGENT_MAP registry.
 
-    def _load_vocabulary(self):
-        """Load this agent's vocabulary from dispatcher (inheritance-aware)."""
-        if self.name in self.dispatcher.registry:
-            receiver = self.dispatcher.registry[self.name]
-            return sorted(receiver.local_vocabulary |
-                         {s for a in receiver.chain()[1:]
-                          for s in self.dispatcher.registry.get(a, set())})
-        return []
+        Tries import, returns adapter instance if SDK is available.
+        """
+        adapter_path = SDK_AGENT_MAP.get(self.name)
+        if adapter_path is None:
+            return None
+        module_name, class_name = adapter_path.rsplit(".", 1)
+        try:
+            mod = __import__(module_name)
+            adapter_cls = getattr(mod, class_name)
+            adapter = adapter_cls(hw_tools=self.tools)
+            return adapter if adapter.has_sdk() else None
+        except (ImportError, AttributeError):
+            return None
+
+    def _init_sdk_agent(self):
+        """Create the SDK agent with HelloWorld tools + system prompt."""
+        if self.sdk_agent or not self.adapter:
+            return
+        agent_def = self._build_agent_def()
+        sdk_tools = self.adapter.adapt_tools(self.tools)
+        self.sdk_agent = self.adapter.create_agent(
+            name=self.name,
+            system_prompt=agent_def.system_prompt,
+            tools=sdk_tools,
+        )
 
     async def process_message(self, msg: Message) -> str:
-        """Process a message through this agent's isolated runtime.
+        """Process a message through this agent's SDK.
 
         1. Store incoming message in memory
         2. Recall relevant context from memory
-        3. Process through SDK adapter (or LLM fallback)
-        4. Store response in memory
-        5. Track vocabulary drift
+        3. Check if human escalation is needed
+        4. Process through SDK adapter (or LLM fallback)
+        5. Store response in memory
+        6. Track vocabulary drift
         """
-        # 1. Remember the incoming message
+        # 1. Store incoming
         self.memory.store(
             f"From {msg.sender}: {msg.content}",
             title=f"inbox-{msg.sender}-{self.message_count}",
             tags=["inbox", msg.sender],
         )
 
-        # 2. Recall relevant context
-        context = ""
-        if self.memory.available():
-            recalls = self.memory.recall(msg.content, n=3)
-            if recalls:
-                context = "\n".join(r.snippet for r in recalls)
+        # 2. Recall context
+        context = self._recall_context(msg.content)
 
-        # 3. Process through adapter or LLM
-        if self.adapter:
-            response = await self.adapter.query(self.sdk_agent, msg.content)
+        # 3. Check for human escalation
+        if self._needs_human(msg):
+            return self._escalate_to_human(msg)
+
+        # 4. Process through SDK
+        if self.adapter and self.sdk_agent:
+            prompt = self._build_prompt(msg, context)
+            response = await self.adapter.query(self.sdk_agent, prompt)
         else:
-            response = await self._interpret(msg, context)
+            response = await self._interpret_via_llm(msg, context)
 
-        # 4. Remember the response
+        # 5. Store response
         self.memory.store(
             f"To {msg.sender}: {response}",
             title=f"outbox-{msg.sender}-{self.message_count}",
@@ -411,29 +473,65 @@ class AgentProcess:
         self.message_count += 1
         return response
 
+    def _needs_human(self, msg: Message) -> bool:
+        """Check if message requires human-in-the-loop.
+
+        Triggers: #propose (needs #approve), #review (needs human eyes),
+        #question (needs human answer), messages from Human receiver.
+        """
+        content = msg.content
+        return any(sym in content for sym in
+                   ("#propose", "#review", "#question")) or msg.sender == "Human"
+
+    def _escalate_to_human(self, msg: Message) -> str:
+        """Route message to human via Web UI and CLI.
+
+        Adds to pending_human queue (polled by Web UI).
+        Also sends to Human receiver inbox (picked up by CLI).
+        """
+        self.pending_human.append({
+            "from": msg.sender,
+            "content": msg.content,
+            "timestamp": msg.timestamp,
+            "type": "escalation",
+        })
+        message_bus.send(self.name, "Human", msg.content)
+        return f"[{self.name}] Escalated to human: {msg.content[:80]}"
+
     async def run(self):
-        """Main loop — OODA protocol with memory."""
+        """Main daemon loop — OODA with memory and human escalation."""
         self.started_at = datetime.now(timezone.utc)
+        self._init_sdk_agent()
         message_bus.hello(self.name)
 
         while True:
+            # Check for human responses
+            human_msg = message_bus.receive(f"{self.name}-human")
+            if human_msg:
+                await self._handle_human_response(human_msg)
+
+            # Check agent inbox
             msg = message_bus.receive(self.name)
             if msg and msg.sender != self.name:
                 response = await self.process_message(msg)
                 if not response.startswith("NOTHING_FURTHER"):
                     message_bus.send(self.name, msg.sender, response)
+
             await asyncio.sleep(0.5)
 
     def status(self) -> dict:
-        """Return agent status for monitoring."""
+        """Full agent status for Web UI monitoring."""
         return {
             "name": self.name,
             "vocabulary_size": len(self.vocabulary),
             "learned": self.learned_symbols,
             "messages_processed": self.message_count,
             "memory_available": self.memory.available(),
-            "adapter": type(self.adapter).__name__ if self.adapter else None,
-            "uptime": str(datetime.now(timezone.utc) - self.started_at) if self.started_at else None,
+            "adapter": self.adapter.sdk_name() if self.adapter else "LLM fallback",
+            "sdk_ready": self.sdk_agent is not None,
+            "pending_human": len(self.pending_human),
+            "uptime": str(datetime.now(timezone.utc) - self.started_at)
+                     if self.started_at else None,
         }
 ```
 
@@ -443,7 +541,13 @@ Replace all 4 daemon files with a single `agent_daemon.py`:
 
 ```python
 #!/usr/bin/env python3
-"""HelloWorld Agent Daemon — run N agents with isolated runtimes.
+"""HelloWorld Agent Daemon — run N agents with isolated SDK runtimes.
+
+Each agent IS its namesake AI, powered by its SDK:
+  Claude  -> Claude Agent SDK
+  Codex   -> OpenAI Agents SDK
+  Gemini  -> Google ADK
+  Copilot -> GitHub Copilot SDK
 
 Usage:
     python3 agent_daemon.py Claude              # Single agent
@@ -453,54 +557,64 @@ Usage:
 """
 
 async def main():
-    agents = parse_args()  # returns list of agent names
-
-    # Create isolated AgentProcess per agent
+    agents = parse_args()
     processes = [AgentProcess(name) for name in agents]
 
-    # Print status
     for p in processes:
-        print(f"  {p.name}: {len(p.vocabulary)} symbols, "
-              f"adapter={type(p.adapter).__name__ or 'LLM'}, "
-              f"memory={'yes' if p.memory.available() else 'no'}")
+        sdk = p.adapter.sdk_name() if p.adapter else "LLM fallback"
+        mem = "yes" if p.memory.available() else "no"
+        print(f"  {p.name}: {len(p.vocabulary)} symbols, sdk={sdk}, memory={mem}")
 
-    # Run all agents concurrently
     await asyncio.gather(*[p.run() for p in processes])
 ```
 
+### Human-in-the-loop: two interfaces
+
+**1. Web UI (browser — all agents)**
+
+The Web UI from Part 3 gains human interaction endpoints:
+
+```
+GET  /api/agents                    → All running agents with status
+GET  /api/agents/:name/pending      → Messages awaiting human response
+POST /api/agents/:name/respond      → Human responds to pending message
+POST /api/agents/:name/approve      → Human approves a #propose
+POST /api/agents/:name/guide        → Human sends #guide to redirect agent
+GET  /api/events                    → SSE includes escalation events
+```
+
+Dashboard shows notification badges when agents have pending human items.
+
+**2. Native CLI (terminal — one agent)**
+
+Each AI's CLI drives its daemon directly. The human runs their preferred CLI, which connects to the running daemon via the message bus:
+
+```bash
+# Human uses Claude Code to interact with Claude daemon
+claude --session helloworld
+
+# Human uses Codex CLI to interact with Codex daemon
+codex --session helloworld
+
+# Human uses Gemini to interact with Gemini daemon
+gemini code --session helloworld
+```
+
+**How it connects:** The CLI reads from `runtimes/<agent>-human/inbox/` (daemon's escalation outbox) and writes human responses to `runtimes/<agent>-human/outbox/`. The daemon polls this channel in its main loop alongside its primary inbox.
+
 ### What gets deleted
 
-- `copilot_daemon.py` — absorbed into `AgentProcess` with auto-detected `CopilotAdapter`
-- `gemini_daemon.py` — absorbed into `AgentProcess` with auto-detected `GeminiAdapter`
-- `codex_daemon.py` — absorbed into `AgentProcess` with auto-detected `CodexAdapter`
-
-### What changes in `scripts/run_daemons.sh`
-
-Simplifies from launching 4 separate python processes to:
-
-```bash
-python3 -u agent_daemon.py --all
-```
-
-Or for specific agents:
-
-```bash
-python3 -u agent_daemon.py Claude Gemini
-```
+- `copilot_daemon.py` — absorbed into unified `AgentProcess`
+- `gemini_daemon.py` — absorbed into unified `AgentProcess`
+- `codex_daemon.py` — absorbed into unified `AgentProcess`
 
 ### Memory integration
 
 Each `AgentProcess` uses `MemoryBus` to:
-- **Store** every incoming message (tagged by sender)
-- **Store** every outgoing response (tagged by receiver)
-- **Recall** relevant context before processing (if QMD is available)
+- **Store** every incoming/outgoing message (tagged by sender/receiver)
+- **Recall** relevant context before processing (if QMD available)
 - **Track drift** — log when new symbols are learned through dialogue
-
-This means agents build persistent memory across restarts. The memory files in `runtimes/<agent>/memory/` become the agent's long-term knowledge base.
-
-### Web UI integration
-
-The `AgentProcess.status()` method feeds directly into the Web UI's `/api/agents` endpoint, giving real-time visibility into each agent's state, memory usage, vocabulary drift, and message throughput.
+- **Persist across restarts** — `runtimes/<agent>/memory/` survives daemon restarts
 
 ---
 
