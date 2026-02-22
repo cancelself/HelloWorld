@@ -125,6 +125,9 @@ def _get_transport() -> Transport:
     if name == "clawnet":
         from clawnet_transport import ClawNetTransport
         _transport = ClawNetTransport()
+    elif name == "twitter":
+        from twitter_transport import TwitterTransport
+        _transport = TwitterTransport()
     else:
         _transport = FileTransport()
     return _transport

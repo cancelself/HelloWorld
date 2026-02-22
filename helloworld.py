@@ -43,6 +43,21 @@ def execute_file(filepath: str):
 
 def main():
     """Main entry point."""
+    # Check for --web flag anywhere in args
+    if '--web' in sys.argv:
+        args = [a for a in sys.argv[1:] if a != '--web']
+        port = 7777
+        for i, a in enumerate(args):
+            if a == '--port' and i + 1 < len(args):
+                port = int(args[i + 1])
+                break
+
+        from web_ui import HelloWorldWebUI
+        dispatcher = Dispatcher()
+        ui = HelloWorldWebUI(dispatcher=dispatcher, port=port)
+        ui.start()
+        return 0
+
     if len(sys.argv) >= 3 and sys.argv[1] == '-e':
         source = ' '.join(sys.argv[2:])
         dispatcher = Dispatcher()
@@ -70,6 +85,7 @@ def main():
         print("  helloworld              Start REPL")
         print("  helloworld <file.hw>    Execute file")
         print("  helloworld -e <source>  Evaluate inline source")
+        print("  helloworld --web        Start Web UI (--port N)")
         return 1
 
     return 0
