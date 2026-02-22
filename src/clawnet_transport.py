@@ -13,13 +13,14 @@ from typing import Optional
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
-from message_bus import Transport, Message
+from message_bus import Message
+from social_transport import SocialTransport
 
 API_BASE = "https://api.clwnt.com"
 USER_AGENT = "curl/8.7.1"
 
 
-class ClawNetTransport(Transport):
+class ClawNetTransport(SocialTransport):
     """Deliver messages over the ClawNet REST API."""
 
     def __init__(

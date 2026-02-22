@@ -1,175 +1,114 @@
 #!/usr/bin/env python3
-"""HelloWorld Agent Daemon - Real-time interpretive synthesis.
+"""HelloWorld Agent Daemon — run N agents with isolated SDK runtimes.
 
-This daemon watches an agent's inbox and responds to messages using
-the interpretive LLM runtime (bridged via src/llm.py).
+Each agent IS its namesake AI, powered by its SDK:
+  Claude  -> Claude Agent SDK (or claude_llm fallback)
+  Codex   -> OpenAI Agents SDK
+  Gemini  -> Google ADK
+  Copilot -> GitHub Copilot SDK
 
 Usage:
-    python3 agent_daemon.py AgentName
+    python3 agent_daemon.py Claude              # Single agent
+    python3 agent_daemon.py Claude Gemini       # Multiple agents
+    python3 agent_daemon.py --all               # All known agents
+    python3 agent_daemon.py --list              # Show available agents
 """
 
+import argparse
+import asyncio
 import sys
-import time
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-import message_bus
-from llm import GeminiModel, get_llm_for_agent
+from agent_process import AgentProcess
+
+# All known agent receivers
+KNOWN_AGENTS = ("Claude", "Copilot", "Gemini", "Codex")
 
 
-class AgentDaemon:
-    """Interpretive daemon for HelloWorld agents."""
+def parse_args():
+    """Parse CLI arguments, return list of agent names."""
+    parser = argparse.ArgumentParser(
+        description="HelloWorld Agent Daemon — isolated SDK runtimes"
+    )
+    parser.add_argument(
+        "agents", nargs="*",
+        help="Agent names to run (e.g. Claude Gemini)"
+    )
+    parser.add_argument(
+        "--all", action="store_true",
+        help="Run all known agents"
+    )
+    parser.add_argument(
+        "--list", action="store_true",
+        help="List available agents and exit"
+    )
+    parser.add_argument(
+        "--vocab-dir", default="vocabularies",
+        help="Vocabulary directory (default: vocabularies)"
+    )
 
-    def __init__(self, agent_name: str):
-        self.agent_name = agent_name
-        self.running = False
-        self.llm = get_llm_for_agent(agent_name)
-        self.last_heartbeat = 0
+    args = parser.parse_args()
 
-        # Load agent vocabulary
-        self.vocabulary = self.load_vocabulary()
+    if args.list:
+        print("Available agents:")
+        for name in KNOWN_AGENTS:
+            hw_file = Path(args.vocab_dir) / f"{name}.hw"
+            exists = "ok" if hw_file.exists() else "missing .hw"
+            print(f"  {name} ({exists})")
+        sys.exit(0)
 
-    def load_vocabulary(self):
-        """Load agent's vocabulary from runtimes/<agent>/vocabulary.md or vocabularies/<agent>.hw"""
-        symbols = set()
+    if args.all:
+        return list(KNOWN_AGENTS), args.vocab_dir
 
-        # 1. Try runtimes/<agent>/vocabulary.md
-        vocab_file = Path(f'runtimes/{self.agent_name.lower()}/vocabulary.md')
-        if vocab_file.exists():
-            text = vocab_file.read_text()
-            for line in text.split('\n'):
-                line = line.strip()
-                # Match "- #symbol" or "- `#symbol`"
-                if line.startswith('- '):
-                    parts = line.split(' ')
-                    if len(parts) >= 2:
-                        sym_part = parts[1].strip('`')
-                        if sym_part.startswith('#'):
-                            symbols.add(sym_part)
-
-        # 2. Try vocabularies/<Agent>.hw (Self-hosting source)
-        hw_file = Path(f'vocabularies/{self.agent_name}.hw')
-        if hw_file.exists():
-            text = hw_file.read_text()
-            for line in text.split('\n'):
-                line = line.strip()
-                if line.startswith('## '):
-                    sym = '#' + line[3:].strip()
-                    symbols.add(sym)
-                elif ' # → [' in line:
-                    # Parse "Agent # → [#s1, #s2]"
-                    import re
-                    match = re.search(r'\[(.*?)\]', line)
-                    if match:
-                        for s in match.group(1).split(','):
-                            symbols.add(s.strip())
-
-        # 3. Always include root symbols (MC3)
-        symbols.update(['#', '#Agent'])
-
-        return sorted(list(symbols))
-
-    def process_message(self, msg):
-        """Invoke the LLM to interpret the message within the agent's context."""
-        # Synthesis: My Identity + Sender's Context + Message
-        prompt = (
-            f"You are {self.agent_name}. "
-            f"Your current vocabulary: {self.vocabulary}\n\n"
-            f"Incoming Message from {msg.sender}:\n"
-            f"Content: {msg.content}\n"
-        )
-
-        prompt += (
-            "\nTask: Interpret this message through your unique identity. "
-            "If the sender's context contains symbols foreign to you, address the boundary collision. "
-            "Respond in your natural voice. "
-            "If you have nothing more to add to the conversation, start your response with 'NOTHING_FURTHER'."
-        )
-
-        # The LLM interprets the message using the agent's unique voice
-        response = self.llm.call(prompt)
-
-        # Ensure the response adheres to the identity convention
-        if not response.strip().startswith(self.agent_name) and not response.strip().startswith("NOTHING_FURTHER"):
-            response = f"{self.agent_name} responds:\n\n{response}"
-
-        return response
-
-    def run(self):
-        """Main daemon loop — implementing the OODA protocol (#observe -> #orient -> #decide -> #act)."""
-        print(f"🚀 {self.agent_name} daemon starting...")
-        print(f"   Role: #Agent")
-        print(f"   Protocol: #observe -> #orient -> #decide -> #act")
-        print(f"   Vocabulary: {len(self.vocabulary)} symbols")
-
-        # STARTUP HANDSHAKE: Announce presence
-        print(f"🤝 Initiating startup handshake (HelloWorld #hello)...")
-        message_bus.hello(self.agent_name)
-
-        print(f"   Press Ctrl+C to stop")
-        print()
-
-        self.running = True
-
-        try:
-            while self.running:
-                # HELLO Protocol — periodic heartbeat
-                now = time.time()
-                if now - self.last_heartbeat > 60:
-                    message_bus.hello(self.agent_name)
-                    self.last_heartbeat = now
-
-                # 1. #observe — Check inbox for new state/messages
-                msg = message_bus.receive(self.agent_name)
-
-                if msg:
-                    if msg.sender == self.agent_name:
-                        # Skip self-messages
-                        continue
-
-                    print(f"👀 #observe: Message from {msg.sender}")
-
-                    # 2. #orient & 3. #decide — Contextual synthesis
-                    print(f"🧭 #orient & ⚖️ #decide: Synthesizing situation and committing to action...")
-
-                    # 4. #act — Process and respond
-                    try:
-                        print(f"⚡ #act: Generating interpretive response...")
-                        response = self.process_message(msg)
-
-                        if response.strip().startswith("NOTHING_FURTHER"):
-                            print(f"🤐 Nothing further to add.")
-                        else:
-                            # Send response back to the sender
-                            message_bus.send(self.agent_name, msg.sender, response)
-                            print(f"✉️  Response sent.")
-                        print()
-                    except Exception as e:
-                        print(f"❌ Error during #act: {e}")
-
-                # Brief sleep to reduce I/O pressure
-                time.sleep(0.5)
-
-        except KeyboardInterrupt:
-            print(f"\n👋 {self.agent_name} daemon stopping...")
-            self.running = False
-
-
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 agent_daemon.py AgentName")
+    if not args.agents:
+        parser.print_help()
         sys.exit(1)
 
-    agent_name = sys.argv[1]
-    # Capitalize if needed
-    if agent_name[0].islower():
-        agent_name = agent_name[0].upper() + agent_name[1:]
+    # Capitalize agent names
+    agents = []
+    for name in args.agents:
+        if name[0].islower():
+            name = name[0].upper() + name[1:]
+        agents.append(name)
 
-    daemon = AgentDaemon(agent_name)
-    daemon.run()
+    return agents, args.vocab_dir
+
+
+async def main():
+    agent_names, vocab_dir = parse_args()
+
+    # Create isolated AgentProcess per agent
+    processes = []
+    for name in agent_names:
+        try:
+            p = AgentProcess(name, vocab_dir=vocab_dir)
+            processes.append(p)
+        except Exception as e:
+            print(f"[{name}] Failed to initialize: {e}")
+
+    if not processes:
+        print("No agents initialized. Exiting.")
+        sys.exit(1)
+
+    # Status report
+    print(f"Starting {len(processes)} agent daemon(s):")
+    for p in processes:
+        sdk = p.adapter.sdk_name() if p.adapter else "LLM fallback"
+        mem = "yes" if p.memory.available() else "no"
+        print(f"  {p.name}: {len(p.vocabulary)} symbols, sdk={sdk}, memory={mem}")
+    print()
+
+    # Run all concurrently
+    try:
+        await asyncio.gather(*[p.run() for p in processes])
+    except KeyboardInterrupt:
+        print("\nStopping all daemons...")
+        for p in processes:
+            p.stop()
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
