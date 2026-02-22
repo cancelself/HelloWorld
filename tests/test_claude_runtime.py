@@ -57,7 +57,7 @@ class TestClaudeToolAdaptation:
         result = adapter.adapt_tools(HwTools(vocab_dir=VOCAB_DIR))
         assert result == []
 
-    def test_adapt_tools_returns_seven_with_mock_sdk(self):
+    def test_adapt_tools_returns_nine_with_mock_sdk(self):
         """Mock the claude_agent_sdk module to test tool wrapping."""
         mock_tool = lambda f: f  # noqa: E731 — identity decorator
 
@@ -65,7 +65,7 @@ class TestClaudeToolAdaptation:
             adapter = ClaudeAdapter()
             adapter._sdk_available = True
             tools = adapter.adapt_tools(HwTools(vocab_dir=VOCAB_DIR))
-            assert len(tools) == 7
+            assert len(tools) == 9
 
     def test_adapted_tools_call_through(self):
         """Verify wrapped tools actually call HwTools methods."""

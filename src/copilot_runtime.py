@@ -169,6 +169,54 @@ _TOOL_SCHEMAS = {
             "required": [],
         },
     },
+    "memory_store": {
+        "name": "memory_store",
+        "description": "Store a memory note. Tags are comma-separated.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string",
+                    "description": "The agent storing the memory.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The content to store.",
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Optional title for the memory note.",
+                },
+                "tags": {
+                    "type": "string",
+                    "description": "Optional comma-separated tags.",
+                },
+            },
+            "required": ["agent_name", "content"],
+        },
+    },
+    "memory_recall": {
+        "name": "memory_recall",
+        "description": "Search agent memory via hybrid search. Returns matching snippets.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string",
+                    "description": "The agent whose memory to search.",
+                },
+                "query": {
+                    "type": "string",
+                    "description": "The search query.",
+                },
+                "n": {
+                    "type": "integer",
+                    "description": "Number of results to return (default 5).",
+                },
+            },
+            "required": ["agent_name", "query"],
+        },
+    },
 }
 
 
@@ -224,6 +272,17 @@ class CopilotAdapter(SdkAdapter):
                 params["receiver"]
             ),
             "receivers_list": lambda params: hw_tools.receivers_list(),
+            "memory_store": lambda params: hw_tools.memory_store(
+                params["agent_name"],
+                params["content"],
+                params.get("title", ""),
+                params.get("tags", ""),
+            ),
+            "memory_recall": lambda params: hw_tools.memory_recall(
+                params["agent_name"],
+                params["query"],
+                params.get("n", 5),
+            ),
         }
 
     def adapt_tools(self, hw_tools: HwTools) -> List[Any]:

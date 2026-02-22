@@ -4,3 +4,4 @@
 - This is intentional: Claude's identity comes from how it interprets inherited vocabulary, not from owning exclusive symbols.
 - When Claude encounters #observe, it speaks through Agent's definition constrained by HelloWorld's root vocabulary.
 - The LLM provides the voice. The .hw file provides the boundary.
+- At runtime, Claude has access to tools for vocabulary operations, memory store/recall, and message bus communication. See the system prompt for details.

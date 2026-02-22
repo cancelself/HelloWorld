@@ -143,6 +143,33 @@ class GeminiAdapter(SdkAdapter):
             """
             return tools_instance.receivers_list()
 
+        def memory_store(agent_name: str, content: str, title: str = "", tags: str = "") -> dict:
+            """Store a memory note. Tags are comma-separated.
+
+            Args:
+                agent_name: The agent storing the memory.
+                content: The content to store.
+                title: Optional title for the memory note.
+                tags: Optional comma-separated tags.
+
+            Returns:
+                dict with stored, path (or error).
+            """
+            return tools_instance.memory_store(agent_name, content, title, tags)
+
+        def memory_recall(agent_name: str, query: str, n: int = 5) -> dict:
+            """Search agent memory via hybrid search. Returns matching snippets.
+
+            Args:
+                agent_name: The agent whose memory to search.
+                query: The search query.
+                n: Number of results to return (default 5).
+
+            Returns:
+                dict with found, results list.
+            """
+            return tools_instance.memory_recall(agent_name, query, n)
+
         return [
             vocabulary_lookup,
             vocabulary_list,
@@ -151,6 +178,8 @@ class GeminiAdapter(SdkAdapter):
             message_send,
             message_receive,
             receivers_list,
+            memory_store,
+            memory_recall,
         ]
 
     def _ensure_session_service(self):

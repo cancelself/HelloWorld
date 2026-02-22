@@ -57,7 +57,7 @@ class TestCodexToolAdaptation:
             adapter = CodexAdapter()
             adapter._sdk_available = True
             tools = adapter.adapt_tools(HwTools(vocab_dir=VOCAB_DIR))
-            assert len(tools) == 7
+            assert len(tools) == 9
 
     def test_adapted_tools_call_through(self):
         """Verify wrapped tools actually call HwTools methods."""

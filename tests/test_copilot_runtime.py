@@ -43,8 +43,8 @@ class TestCopilotAdapterBasics:
 class TestCopilotToolSchemas:
     """Verify JSON schema structure for all 7 tools."""
 
-    def test_seven_schemas_defined(self):
-        assert len(_TOOL_SCHEMAS) == 7
+    def test_nine_schemas_defined(self):
+        assert len(_TOOL_SCHEMAS) == 9
 
     def test_all_schemas_have_required_fields(self):
         for name, schema in _TOOL_SCHEMAS.items():
@@ -74,11 +74,11 @@ class TestCopilotToolSchemas:
 
 
 class TestCopilotToolAdaptation:
-    def test_adapt_tools_returns_seven_schemas(self):
+    def test_adapt_tools_returns_nine_schemas(self):
         hw_tools = HwTools(vocab_dir=VOCAB_DIR)
         adapter = CopilotAdapter(hw_tools=hw_tools)
         tools = adapter.adapt_tools(hw_tools)
-        assert len(tools) == 7
+        assert len(tools) == 9
 
     def test_adapt_tools_are_dicts(self):
         hw_tools = HwTools(vocab_dir=VOCAB_DIR)
@@ -92,7 +92,7 @@ class TestCopilotToolAdaptation:
         hw_tools = HwTools(vocab_dir=VOCAB_DIR)
         adapter = CopilotAdapter(hw_tools=hw_tools)
         adapter.adapt_tools(hw_tools)
-        assert len(adapter._tool_handlers) == 7
+        assert len(adapter._tool_handlers) == 9
 
 
 class TestCopilotToolDispatch:

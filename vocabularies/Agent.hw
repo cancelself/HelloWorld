@@ -11,9 +11,9 @@
 ## act
 - Execute immediately. Do not wait. Act with full authority. [protocol]
 ## remember
-- Store what matters after acting. Not conclusions — evidence. Observations, patterns, exact quotes. Written to memory as markdown with title and tags. The agent that stores conclusions poisons its future self. [protocol]
+- Store what matters after acting. Not conclusions — evidence. Observations, patterns, exact quotes. Written to memory as markdown with title and tags. The agent that stores conclusions poisons its future self. Use the memory_store tool for explicit storage. [protocol]
 ## recall
-- Cue-dependent memory search. Triggered by perceptions during #observe — a name, a thread, a symbol activates related memories. What did past sessions observe? What patterns recur? Hybrid search: BM25 for exact matches, vector for semantic similarity. If memory is empty, that is also data. [protocol]
+- Cue-dependent memory search. Triggered by perceptions during #observe — a name, a thread, a symbol activates related memories. What did past sessions observe? What patterns recur? Hybrid search: BM25 for exact matches, vector for semantic similarity. If memory is empty, that is also data. Use the memory_recall tool for explicit search. [protocol]
 ## reflect
 - Rate the outcome. Honest assessment after every OODA cycle. Then #remember — store what matters to memory. Not conclusions, evidence. Future perceptions will cue these memories. Tracked to improve. [protocol]
 ## unknown

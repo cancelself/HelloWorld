@@ -131,6 +131,29 @@ class ClaudeAdapter(SdkAdapter):
             """List all receivers found in the vocabulary directory."""
             return json.dumps(tools_instance.receivers_list())
 
+        @tool
+        def memory_store(agent_name: str, content: str, title: str = "", tags: str = "") -> str:
+            """Store a memory note. Tags are comma-separated.
+
+            Args:
+                agent_name: The agent storing the memory.
+                content: The content to store.
+                title: Optional title for the memory note.
+                tags: Optional comma-separated tags.
+            """
+            return json.dumps(tools_instance.memory_store(agent_name, content, title, tags))
+
+        @tool
+        def memory_recall(agent_name: str, query: str, n: int = 5) -> str:
+            """Search agent memory via hybrid search. Returns matching snippets.
+
+            Args:
+                agent_name: The agent whose memory to search.
+                query: The search query.
+                n: Number of results to return (default 5).
+            """
+            return json.dumps(tools_instance.memory_recall(agent_name, query, n))
+
         return [
             vocabulary_lookup,
             vocabulary_list,
@@ -139,6 +162,8 @@ class ClaudeAdapter(SdkAdapter):
             message_send,
             message_receive,
             receivers_list,
+            memory_store,
+            memory_recall,
         ]
 
     def create_agent(self, name: str, system_prompt: str, tools: List[Any]) -> Any:

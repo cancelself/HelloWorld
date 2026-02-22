@@ -46,12 +46,12 @@ class TestGeminiAdapterBasics:
 class TestGeminiToolAdaptation:
     """Test that adapt_tools produces the right structure."""
 
-    def test_adapt_tools_returns_seven_functions(self):
+    def test_adapt_tools_returns_nine_functions(self):
         """ADK tools are plain functions — no SDK import needed."""
         hw_tools = HwTools(vocab_dir=VOCAB_DIR)
         adapter = GeminiAdapter(hw_tools=hw_tools)
         tools = adapter.adapt_tools(hw_tools)
-        assert len(tools) == 7
+        assert len(tools) == 9
 
     def test_adapted_tools_are_callable(self):
         hw_tools = HwTools(vocab_dir=VOCAB_DIR)

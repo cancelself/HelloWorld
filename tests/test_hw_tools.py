@@ -129,9 +129,104 @@ class TestReceiversList:
             assert r["symbol_count"] >= 0
 
 
+class TestMemoryStore:
+    def test_store_without_memory_returns_error(self):
+        tools = HwTools(vocab_dir=VOCAB_DIR)
+        result = tools.memory_store("Claude", "test content")
+        assert result["stored"] is False
+        assert "not available" in result["error"]
+
+    def test_store_with_memory(self):
+        tmpdir = tempfile.mkdtemp()
+        try:
+            from unittest.mock import MagicMock
+            mock_memory = MagicMock()
+            mock_memory.store.return_value = Path(tmpdir) / "test.md"
+
+            tools = HwTools(vocab_dir=VOCAB_DIR, memory=mock_memory)
+            result = tools.memory_store("Claude", "test content", title="test", tags="a,b")
+            assert result["stored"] is True
+            assert "test.md" in result["path"]
+            mock_memory.store.assert_called_once_with(
+                "test content", title="test", tags=["a", "b"]
+            )
+        finally:
+            shutil.rmtree(tmpdir)
+
+    def test_store_empty_tags_passes_none(self):
+        from unittest.mock import MagicMock
+        mock_memory = MagicMock()
+        mock_memory.store.return_value = Path("/tmp/mem.md")
+
+        tools = HwTools(vocab_dir=VOCAB_DIR, memory=mock_memory)
+        tools.memory_store("Claude", "content", title="t", tags="")
+        mock_memory.store.assert_called_once_with("content", title="t", tags=None)
+
+    def test_store_empty_title_passes_none(self):
+        from unittest.mock import MagicMock
+        mock_memory = MagicMock()
+        mock_memory.store.return_value = Path("/tmp/mem.md")
+
+        tools = HwTools(vocab_dir=VOCAB_DIR, memory=mock_memory)
+        tools.memory_store("Claude", "content", title="", tags="")
+        mock_memory.store.assert_called_once_with("content", title=None, tags=None)
+
+
+class TestMemoryRecall:
+    def test_recall_without_memory_returns_empty(self):
+        tools = HwTools(vocab_dir=VOCAB_DIR)
+        result = tools.memory_recall("Claude", "test query")
+        assert result["found"] == 0
+        assert result["results"] == []
+
+    def test_recall_without_qmd_returns_note(self):
+        from unittest.mock import MagicMock
+        mock_memory = MagicMock()
+        mock_memory.available.return_value = False
+
+        tools = HwTools(vocab_dir=VOCAB_DIR, memory=mock_memory)
+        result = tools.memory_recall("Claude", "test query")
+        assert result["found"] == 0
+        assert result["note"] == "QMD not installed"
+
+    def test_recall_with_results(self):
+        from unittest.mock import MagicMock
+        from memory_bus import MemoryResult
+        mock_memory = MagicMock()
+        mock_memory.available.return_value = True
+        mock_memory.recall.return_value = [
+            MemoryResult(path="/a.md", score=0.9, snippet="hello", title="t1", docid="d1"),
+        ]
+
+        tools = HwTools(vocab_dir=VOCAB_DIR, memory=mock_memory)
+        result = tools.memory_recall("Claude", "hello", n=3)
+        assert result["found"] == 1
+        assert result["results"][0]["title"] == "t1"
+        assert result["results"][0]["snippet"] == "hello"
+        assert result["results"][0]["score"] == 0.9
+        mock_memory.recall.assert_called_once_with("hello", n=3)
+
+    def test_recall_handles_exception(self):
+        from unittest.mock import MagicMock
+        mock_memory = MagicMock()
+        mock_memory.available.return_value = True
+        mock_memory.recall.side_effect = RuntimeError("qmd crashed")
+
+        tools = HwTools(vocab_dir=VOCAB_DIR, memory=mock_memory)
+        result = tools.memory_recall("Claude", "query")
+        assert result["found"] == 0
+        assert "qmd crashed" in result["error"]
+
+
 class TestAllTools:
-    def test_returns_seven_tools(self):
+    def test_returns_nine_tools(self):
         tools = HwTools(vocab_dir=VOCAB_DIR)
         all_tools = tools.all_tools()
-        assert len(all_tools) == 7
+        assert len(all_tools) == 9
         assert all(callable(t) for t in all_tools)
+
+    def test_tool_names(self):
+        tools = HwTools(vocab_dir=VOCAB_DIR)
+        names = [t.__name__ for t in tools.all_tools()]
+        assert "memory_store" in names
+        assert "memory_recall" in names

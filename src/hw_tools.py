@@ -1,9 +1,9 @@
 """HelloWorld MCP Tools — deterministic vocabulary operations.
 
-Seven tools that handle the structural/deterministic side of the runtime:
-vocabulary lookup, listing, saving, collision logging, messaging, and
-receiver discovery. These are the tools the orchestrator agent uses
-to ground its interpretive work in factual state.
+Nine tools that handle the structural/deterministic side of the runtime:
+vocabulary lookup, listing, saving, collision logging, messaging,
+receiver discovery, and memory store/recall. These are the tools the
+orchestrator agent uses to ground its interpretive work in factual state.
 
 Designed for use with Claude Agent SDK's @tool decorator pattern,
 but usable standalone for testing without the SDK.
@@ -20,13 +20,14 @@ import message_bus
 class HwTools:
     """Collection of HelloWorld MCP tools.
 
-    All tools operate on .hw files and the message bus.
+    All tools operate on .hw files, the message bus, and agent memory.
     No parser dependency — uses hw_reader for all file operations.
     """
 
-    def __init__(self, vocab_dir: str = "vocabularies"):
+    def __init__(self, vocab_dir: str = "vocabularies", memory=None):
         self.vocab_dir = vocab_dir
         self.log_file = "collisions.log"
+        self.memory = memory
 
     def _receiver_path(self, receiver_name: str) -> str:
         return os.path.join(self.vocab_dir, f"{receiver_name}.hw")
@@ -222,6 +223,54 @@ class HwTools:
             })
         return {"receivers": receivers}
 
+    def memory_store(
+        self, agent_name: str, content: str, title: str = "", tags: str = ""
+    ) -> dict:
+        """Store a memory note. Tags are comma-separated.
+
+        Returns:
+            dict with keys: stored, path (or error)
+        """
+        if self.memory is None:
+            return {"stored": False, "error": "Memory not available"}
+
+        tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
+        try:
+            path = self.memory.store(
+                content, title=title or None, tags=tag_list or None
+            )
+            return {"stored": True, "path": str(path)}
+        except Exception as e:
+            return {"stored": False, "error": str(e)}
+
+    def memory_recall(
+        self, agent_name: str, query: str, n: int = 5
+    ) -> dict:
+        """Search agent memory via hybrid search. Returns matching snippets.
+
+        Returns:
+            dict with keys: found, results (list of dicts with title, snippet, score)
+        """
+        if self.memory is None:
+            return {"found": 0, "results": []}
+
+        if not self.memory.available():
+            return {"found": 0, "results": [], "note": "QMD not installed"}
+
+        try:
+            recalls = self.memory.recall(query, n=n)
+            results = [
+                {
+                    "title": r.title,
+                    "snippet": r.snippet,
+                    "score": r.score,
+                }
+                for r in recalls
+            ]
+            return {"found": len(results), "results": results}
+        except Exception as e:
+            return {"found": 0, "results": [], "error": str(e)}
+
     def all_tools(self) -> list:
         """Return all tool functions for SDK registration."""
         return [
@@ -232,4 +281,6 @@ class HwTools:
             self.message_send,
             self.message_receive,
             self.receivers_list,
+            self.memory_store,
+            self.memory_recall,
         ]

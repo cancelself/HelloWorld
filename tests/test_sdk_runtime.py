@@ -102,7 +102,7 @@ class TestToolsIntegration:
     def test_runtime_has_tools(self):
         runtime = AgentRuntime(vocab_dir=VOCAB_DIR)
         assert runtime.tools is not None
-        assert len(runtime.tools.all_tools()) == 7
+        assert len(runtime.tools.all_tools()) == 9
 
     def test_tools_use_same_vocab_dir(self):
         runtime = AgentRuntime(vocab_dir=VOCAB_DIR)

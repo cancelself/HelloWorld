@@ -26,6 +26,7 @@ from hw_tools import HwTools
 from hw_reader import read_hw_file
 import message_bus
 from message_bus import Message
+from daemon_registry import pid_file_for
 
 # SDK adapter registry — agent name -> "module.ClassName"
 SDK_AGENT_MAP = {
@@ -59,7 +60,7 @@ class AgentProcess:
         # Isolated runtime components
         self.dispatcher = Dispatcher(vocab_dir=vocab_dir)
         self.memory = MemoryBus(agent_name)
-        self.tools = HwTools(vocab_dir=vocab_dir)
+        self.tools = HwTools(vocab_dir=vocab_dir, memory=self.memory)
         self.adapter = self._detect_adapter()
         self.sdk_agent: Any = None
 
@@ -111,7 +112,7 @@ class AgentProcess:
         )
 
     def _build_system_prompt(self) -> str:
-        """Build system prompt from vocabulary file."""
+        """Build system prompt from vocabulary file, tools, memory, and protocols."""
         hw_path = os.path.join(self.vocab_dir, f"{self.name}.hw")
         receiver = read_hw_file(hw_path)
 
@@ -129,6 +130,30 @@ class AgentProcess:
                 lines.append(f"- {sym}: {desc}")
             else:
                 lines.append(f"- {sym}")
+        lines.append("")
+
+        # Tools section — dynamically built from all_tools()
+        lines.append("## Tools")
+        lines.append("You have the following tools available:")
+        for tool_fn in self.tools.all_tools():
+            name = tool_fn.__name__
+            doc = (tool_fn.__doc__ or "").strip().split("\n")[0]
+            lines.append(f"- **{name}**: {doc}")
+        lines.append("")
+
+        # Memory section
+        lines.append("## Memory")
+        lines.append("- Your memory is QMD-backed (BM25 + vector hybrid search).")
+        lines.append("- Context from memory is automatically prepended to incoming messages.")
+        lines.append("- You can explicitly store via the memory_store tool and recall via the memory_recall tool.")
+        lines.append("- Store evidence, not conclusions. Observations, patterns, exact quotes.")
+        lines.append("")
+
+        # Protocols section
+        lines.append("## Protocols")
+        lines.append("- Messages containing #propose, #review, or #question escalate to Human.")
+        lines.append("- Messages are received via the message bus; responses are sent back automatically.")
+        lines.append(f"- Your sender name is '{self.name}'.")
         lines.append("")
 
         lines.append("## Constraints")
@@ -187,18 +212,20 @@ class AgentProcess:
 
         # 3. Check for human escalation
         if self._needs_human(msg):
-            print(f"[{self.name}] Escalating to human (protocol symbol detected)")
+            print(f"[{self.name}] Escalating to human (protocol symbol detected)",
+                  flush=True)
             return self._escalate_to_human(msg)
 
         # 4. Process through SDK or LLM
         if self.adapter and self.sdk_agent:
-            print(f"[{self.name}] Processing via {self.adapter.sdk_name()}")
+            print(f"[{self.name}] Processing via {self.adapter.sdk_name()}",
+                  flush=True)
             prompt = msg.content
             if context:
                 prompt = f"Context from memory:\n{context}\n\nMessage: {msg.content}"
             response = await self.adapter.query(self.sdk_agent, prompt)
         else:
-            print(f"[{self.name}] Processing via LLM fallback")
+            print(f"[{self.name}] Processing via LLM fallback", flush=True)
             response = await self._interpret_via_llm(msg, context)
 
         # 5. Store response
@@ -252,31 +279,41 @@ class AgentProcess:
         sdk_label = self.adapter.sdk_name() if self.adapter else "LLM fallback"
         print(f"[{self.name}] Started (sdk={sdk_label}, "
               f"vocab={len(self.vocabulary)} symbols, "
-              f"memory={'yes' if self.memory.available() else 'no'})")
+              f"memory={'yes' if self.memory.available() else 'no'})",
+              flush=True)
+
+        # Write PID file
+        pid_file = pid_file_for(self.name)
+        pid_file.parent.mkdir(parents=True, exist_ok=True)
+        pid_file.write_text(str(os.getpid()))
 
         try:
             while self.running:
                 # Check for human responses
                 human_msg = message_bus.receive(f"{self.name}-human")
                 if human_msg:
-                    print(f"[{self.name}] Human response from {human_msg.sender}")
+                    print(f"[{self.name}] Human response from {human_msg.sender}",
+                          flush=True)
                     await self._handle_human_response(human_msg)
 
                 # Check agent inbox
                 msg = message_bus.receive(self.name)
                 if msg and msg.sender != self.name:
-                    print(f"[{self.name}] Received from {msg.sender}: {msg.content[:120]}")
+                    print(f"[{self.name}] Received from {msg.sender}: {msg.content[:120]}",
+                          flush=True)
                     response = await self.process_message(msg)
                     if not response.startswith("NOTHING_FURTHER"):
-                        print(f"[{self.name}] Replying to {msg.sender}: {response[:120]}")
+                        print(f"[{self.name}] Replying to {msg.sender}: {response[:120]}",
+                              flush=True)
                         message_bus.send(self.name, msg.sender, response)
 
                 await asyncio.sleep(0.5)
         except asyncio.CancelledError:
             pass
         finally:
+            pid_file.unlink(missing_ok=True)
             self.running = False
-            print(f"[{self.name}] Stopped.")
+            print(f"[{self.name}] Stopped.", flush=True)
 
     def stop(self):
         """Signal the run loop to stop."""
