@@ -98,9 +98,9 @@ def test_needs_human_with_question(agent):
     assert agent._needs_human(msg) is True
 
 
-def test_needs_human_from_human_sender(agent):
+def test_human_sender_goes_through_sdk(agent):
     msg = Message(sender="Human", content="hello", timestamp="t1")
-    assert agent._needs_human(msg) is True
+    assert agent._needs_human(msg) is False
 
 
 def test_no_human_needed_for_normal_message(agent):

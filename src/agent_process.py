@@ -153,10 +153,7 @@ class AgentProcess:
     def _needs_human(self, msg: Message) -> bool:
         """Check if message requires human-in-the-loop."""
         content = msg.content
-        return (
-            any(sym in content for sym in HUMAN_SYMBOLS)
-            or msg.sender == "Human"
-        )
+        return any(sym in content for sym in HUMAN_SYMBOLS)
 
     def _escalate_to_human(self, msg: Message) -> str:
         """Route message to human via pending queue + Human inbox."""
@@ -190,15 +187,18 @@ class AgentProcess:
 
         # 3. Check for human escalation
         if self._needs_human(msg):
+            print(f"[{self.name}] Escalating to human (protocol symbol detected)")
             return self._escalate_to_human(msg)
 
         # 4. Process through SDK or LLM
         if self.adapter and self.sdk_agent:
+            print(f"[{self.name}] Processing via {self.adapter.sdk_name()}")
             prompt = msg.content
             if context:
                 prompt = f"Context from memory:\n{context}\n\nMessage: {msg.content}"
             response = await self.adapter.query(self.sdk_agent, prompt)
         else:
+            print(f"[{self.name}] Processing via LLM fallback")
             response = await self._interpret_via_llm(msg, context)
 
         # 5. Store response
@@ -259,13 +259,16 @@ class AgentProcess:
                 # Check for human responses
                 human_msg = message_bus.receive(f"{self.name}-human")
                 if human_msg:
+                    print(f"[{self.name}] Human response from {human_msg.sender}")
                     await self._handle_human_response(human_msg)
 
                 # Check agent inbox
                 msg = message_bus.receive(self.name)
                 if msg and msg.sender != self.name:
+                    print(f"[{self.name}] Received from {msg.sender}: {msg.content[:120]}")
                     response = await self.process_message(msg)
                     if not response.startswith("NOTHING_FURTHER"):
+                        print(f"[{self.name}] Replying to {msg.sender}: {response[:120]}")
                         message_bus.send(self.name, msg.sender, response)
 
                 await asyncio.sleep(0.5)
