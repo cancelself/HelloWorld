@@ -182,6 +182,9 @@ class Dispatcher:
         self.registry: Dict[str, Receiver] = {}
         self.vocab_manager = VocabularyManager(vocab_dir)
         self.message_handler_registry = MessageHandlerRegistry()
+        # TODO: evaluate whether collisions.log should exist as a file or be
+        #       replaced with in-memory logging / structured output. It's in
+        #       .gitignore but still causes merge friction.
         self.log_file = "collisions.log"
         self.trace = False
         # HelloWorld is the root parent
