@@ -278,6 +278,75 @@ def test_heading2_no_parent():
     assert child.parent is None
 
 
+def test_symbol_keyed_message_single():
+    """Receiver #symbol: 'value' parses as a MessageNode with symbol key."""
+    nodes = parse("Cancelself #observe: 'copy-paste was the first killer GUI feature'")
+    assert len(nodes) == 1
+    stmt = nodes[0]
+    assert isinstance(stmt, MessageNode)
+    assert stmt.receiver.name == "Cancelself"
+    assert "#observe" in stmt.arguments
+    assert stmt.arguments["#observe"].value == "copy-paste was the first killer GUI feature"
+
+
+def test_symbol_keyed_message_multiple():
+    """Multiple symbol-keyed arguments in one message."""
+    nodes = parse("Cancelself #observe: 'X was true' #perhaps: 'Y is true'")
+    assert len(nodes) == 1
+    stmt = nodes[0]
+    assert isinstance(stmt, MessageNode)
+    args = stmt.arguments
+    assert "#observe" in args
+    assert "#perhaps" in args
+    assert args["#observe"].value == "X was true"
+    assert args["#perhaps"].value == "Y is true"
+
+
+def test_symbol_keyed_message_at_syntax():
+    """@ receiver syntax works with symbol-keyed messages."""
+    nodes = parse("@cancelself #observe: 'text'")
+    assert len(nodes) == 1
+    stmt = nodes[0]
+    assert isinstance(stmt, MessageNode)
+    assert stmt.receiver.name == "Cancelself"
+    assert "#observe" in stmt.arguments
+
+
+def test_symbol_keyed_message_with_annotation():
+    """Symbol-keyed message can have a trailing annotation string."""
+    nodes = parse("Agent #observe: 'the sky' 'first light'")
+    assert len(nodes) == 1
+    stmt = nodes[0]
+    assert isinstance(stmt, MessageNode)
+    assert stmt.arguments["#observe"].value == "the sky"
+    assert stmt.annotation == "first light"
+
+
+def test_symbol_keyed_mixed_with_identifier():
+    """Symbol keys and identifier keys can coexist in one message."""
+    nodes = parse("Agent #observe: 'the sky' to: Claude")
+    assert len(nodes) == 1
+    stmt = nodes[0]
+    assert isinstance(stmt, MessageNode)
+    assert "#observe" in stmt.arguments
+    assert "to" in stmt.arguments
+
+
+def test_symbol_lookup_still_works():
+    """Receiver #symbol without colon still parses as ScopedLookupNode."""
+    nodes = parse("Claude #observe")
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], ScopedLookupNode)
+    assert nodes[0].symbol.name == "#observe"
+
+
+def test_symbol_super_lookup_still_works():
+    """Receiver #symbol super still parses as SuperLookupNode."""
+    nodes = parse("Claude #observe super")
+    assert len(nodes) == 1
+    assert isinstance(nodes[0], SuperLookupNode)
+
+
 if __name__ == "__main__":
     test_vocabulary_definition()
     test_message_with_annotation()

@@ -175,11 +175,33 @@ class Parser:
             self._consume(TokenType.COLON, f"Expect ':' after keyword '{key}'")
             value = self._parse_value()
             arguments[key] = value
-        
+
         annotation = None
         if self._match(TokenType.STRING):
             annotation = self._previous().value
-            
+
+        return MessageNode(receiver, arguments, annotation)
+
+    def _parse_symbol_message(self, receiver: ReceiverNode, first_key: str) -> MessageNode:
+        """Parse a symbol-keyed message: Receiver #symbol: value #symbol: value ..."""
+        arguments = {}
+        self._consume(TokenType.COLON, f"Expect ':' after '{first_key}'")
+        arguments[first_key] = self._parse_value()
+        # Continue with more symbol-keyed or identifier-keyed arguments
+        while self._check(TokenType.SYMBOL) or self._check(TokenType.IDENTIFIER):
+            saved = self.pos
+            self._advance()
+            key = self._previous().value
+            if self._check(TokenType.COLON):
+                self._advance()  # consume COLON
+                arguments[key] = self._parse_value()
+            else:
+                self.pos = saved
+                break
+
+        annotation = None
+        if self._match(TokenType.STRING):
+            annotation = self._previous().value
         return MessageNode(receiver, arguments, annotation)
 
     def _parse_value(self) -> Node:
@@ -214,6 +236,9 @@ class Parser:
             # If followed by `super`, it's a typedef super lookup
             if self._match(TokenType.SUPER):
                 return SuperLookupNode(receiver, SymbolNode(symbol_token.value))
+            # If followed by `:`, it's a symbol-keyed message
+            if self._check(TokenType.COLON):
+                return self._parse_symbol_message(receiver, symbol_token.value)
             return ScopedLookupNode(receiver, SymbolNode(symbol_token.value))
 
         if consumed_dot:
