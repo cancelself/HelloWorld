@@ -2,9 +2,12 @@
 
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
+from ast_nodes import ReceiverNode, MessageNode, ScopedLookupNode, UnaryMessageNode, VocabularyQueryNode
+from daemon_registry import is_daemon_running, running_daemons, DAEMON_AGENTS
 from dispatcher import Dispatcher
 from lexer import Lexer
 import message_bus
@@ -275,8 +278,40 @@ class REPL:
         print("  Receiver #symbol super        Super lookup (typedef)")
         print("  Receiver action: #symbol      Keyword message")
 
+    def _extract_receiver(self, nodes) -> Optional[str]:
+        """Extract the target receiver name if it targets a daemon agent."""
+        agent_names = {n.lower() for n in DAEMON_AGENTS}
+        for node in nodes:
+            name = None
+            if isinstance(node, ReceiverNode):
+                name = node.name
+            elif isinstance(node, (MessageNode, ScopedLookupNode, UnaryMessageNode, VocabularyQueryNode)):
+                name = node.receiver.name
+            if name and name.lower() in agent_names:
+                return name
+        return None
+
+    def _query_daemon(self, target: str, source: str, timeout: float = 30.0) -> str:
+        """Send source to a daemon via message bus and poll for response."""
+        repl_id = "REPL"
+        # Drain any stale messages for REPL
+        while message_bus.receive(repl_id):
+            pass
+        message_bus.send(repl_id, target, source)
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            msg = message_bus.receive(repl_id)
+            if msg:
+                return msg.content
+            time.sleep(0.25)
+        return "(daemon did not respond within timeout)"
+
     def start(self):
         print(f"{self.BOLD}HelloWorld v0.1{self.RESET}")
+        daemons = running_daemons()
+        if daemons:
+            names = ", ".join(daemons)
+            print(f"Daemons: {names} ({len(daemons)} running)")
         print("Type '.exit' to quit, '.help' for commands")
 
         while self.running:
@@ -383,16 +418,22 @@ class REPL:
             parser = Parser(tokens)
             nodes = parser.parse()
 
-            # 3. Dispatch
+            # 3. Check for daemon routing
+            target = self._extract_receiver(nodes)
+            if target and is_daemon_running(target):
+                response = self._query_daemon(target, source)
+                print(f"{self.CYAN}[{target} daemon]{self.RESET} {response}")
+                return
+
+            # 4. Structural dispatch
             results = self.dispatcher.dispatch(nodes)
 
-            # 4. Print results
+            # 5. Print results
             for result in results:
-                # If result looks like a system log (contains '📡'), use Yellow
-                if "📡" in result:
-                    print(f"{self.YELLOW}→ {result}{self.RESET}")
+                if "\U0001f4e1" in result:
+                    print(f"{self.YELLOW}\u2192 {result}{self.RESET}")
                 else:
-                    print(f"{self.GREEN}→ {result}{self.RESET}")
+                    print(f"{self.GREEN}\u2192 {result}{self.RESET}")
 
         except Exception as e:
             print(f"{self.RED}Error: {e}{self.RESET}")

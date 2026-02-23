@@ -60,6 +60,19 @@ def main():
 
     if len(sys.argv) >= 3 and sys.argv[1] == '-e':
         source = ' '.join(sys.argv[2:])
+        from parser import Parser
+        from lexer import Lexer
+        from daemon_registry import is_daemon_running
+        from repl import REPL
+
+        nodes = Parser(Lexer(source).tokenize()).parse()
+        repl = REPL(enable_readline=False)
+        target = repl._extract_receiver(nodes)
+        if target and is_daemon_running(target):
+            response = repl._query_daemon(target, source)
+            print(f"[{target} daemon] {response}")
+            return 0
+
         dispatcher = Dispatcher()
         results = dispatcher.dispatch_source(source)
         for r in results:

@@ -94,18 +94,19 @@ async def main():
         sys.exit(1)
 
     # Status report
-    print(f"Starting {len(processes)} agent daemon(s):")
+    print(f"Starting {len(processes)} agent daemon(s):", flush=True)
     for p in processes:
         sdk = p.adapter.sdk_name() if p.adapter else "LLM fallback"
         mem = "yes" if p.memory.available() else "no"
-        print(f"  {p.name}: {len(p.vocabulary)} symbols, sdk={sdk}, memory={mem}")
-    print()
+        print(f"  {p.name}: {len(p.vocabulary)} symbols, sdk={sdk}, memory={mem}",
+              flush=True)
+    print(flush=True)
 
     # Run all concurrently
     try:
         await asyncio.gather(*[p.run() for p in processes])
     except KeyboardInterrupt:
-        print("\nStopping all daemons...")
+        print("\nStopping all daemons...", flush=True)
         for p in processes:
             p.stop()
 
