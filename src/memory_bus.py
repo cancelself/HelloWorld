@@ -10,16 +10,17 @@ Files are markdown with YAML frontmatter. QMD provides hybrid search
     mem.recall("how does severith communicate")
 """
 
+import fnmatch
 import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import message_bus  # for BASE_DIR
 
@@ -55,6 +56,150 @@ def _slugify(text: str) -> str:
     return text.strip("-")
 
 
+def _parse_frontmatter(text: str) -> Tuple[dict, str]:
+    """Split YAML frontmatter from content. Simple line-based — no YAML lib.
+
+    Returns (metadata_dict, content_after_frontmatter).
+    If no frontmatter found, returns ({}, original_text).
+    """
+    lines = text.split("\n")
+    if not lines or lines[0].strip() != "---":
+        return {}, text
+
+    end = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            end = i
+            break
+
+    if end is None:
+        return {}, text
+
+    meta = {}
+    current_key = None
+    current_list: Optional[list] = None
+
+    for line in lines[1:end]:
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        # List item under a key (e.g. "  - social")
+        if stripped.startswith("- ") and current_key is not None and current_list is not None:
+            current_list.append(stripped[2:].strip())
+            continue
+
+        # Key-value pair
+        if ":" in stripped:
+            # Flush previous list
+            if current_key and current_list is not None:
+                meta[current_key] = current_list
+
+            key, _, val = stripped.partition(":")
+            key = key.strip()
+            val = val.strip()
+
+            if val:
+                meta[key] = val
+                current_key = key
+                current_list = None
+            else:
+                # Start of a list or empty value
+                current_key = key
+                current_list = []
+
+    # Flush final list
+    if current_key and current_list is not None:
+        meta[current_key] = current_list
+
+    content = "\n".join(lines[end + 1:]).lstrip("\n")
+    return meta, content
+
+
+@dataclass
+class MemoryEntry:
+    """A parsed memory file with frontmatter metadata."""
+    path: Path
+    title: str
+    created: Optional[str] = None
+    updated: Optional[str] = None
+    tags: List[str] = field(default_factory=list)
+    content: str = ""
+
+
+class MemoryIndex:
+    """Pure-Python structured queries over .hw/.md memory files."""
+
+    def __init__(self, memory_dir: Path):
+        self._memory_dir = memory_dir
+        self._entries: Optional[List[MemoryEntry]] = None
+
+    def refresh(self) -> None:
+        """Re-scan directory and rebuild the index."""
+        entries = []
+        if not self._memory_dir.is_dir():
+            self._entries = entries
+            return
+
+        for p in sorted(self._memory_dir.iterdir()):
+            if p.suffix not in (".hw", ".md"):
+                continue
+            try:
+                text = p.read_text()
+            except OSError:
+                continue
+            meta, content = _parse_frontmatter(text)
+            tags_raw = meta.get("tags", [])
+            if isinstance(tags_raw, str):
+                tags_raw = [t.strip() for t in tags_raw.split(",")]
+            entries.append(MemoryEntry(
+                path=p,
+                title=meta.get("title", p.stem),
+                created=meta.get("created"),
+                updated=meta.get("updated"),
+                tags=tags_raw,
+                content=content,
+            ))
+        self._entries = entries
+
+    def _ensure_loaded(self) -> List[MemoryEntry]:
+        if self._entries is None:
+            self.refresh()
+        return self._entries  # type: ignore[return-value]
+
+    def all(self) -> List[MemoryEntry]:
+        """Return all memory entries."""
+        return list(self._ensure_loaded())
+
+    def titles(self) -> List[str]:
+        """Quick listing of all memory titles."""
+        return [e.title for e in self._ensure_loaded()]
+
+    def by_tag(self, *tags: str) -> List[MemoryEntry]:
+        """Return entries matching ALL given tags (AND)."""
+        tag_set = set(tags)
+        return [e for e in self._ensure_loaded() if tag_set <= set(e.tags)]
+
+    def by_title(self, pattern: str) -> List[MemoryEntry]:
+        """Return entries whose title matches pattern (substring or glob)."""
+        lowered = pattern.lower()
+        # If pattern contains glob chars, use fnmatch
+        if any(c in pattern for c in "*?[]"):
+            return [e for e in self._ensure_loaded()
+                    if fnmatch.fnmatch(e.title.lower(), lowered)]
+        # Otherwise substring match
+        return [e for e in self._ensure_loaded()
+                if lowered in e.title.lower()]
+
+    def recent(self, n: int = 5) -> List[MemoryEntry]:
+        """Return the n most recently created entries (by created desc)."""
+        entries = self._ensure_loaded()
+        # Sort by created descending; entries without created go last
+        with_date = [(e, e.created or "") for e in entries]
+        with_date.sort(key=lambda x: x[1], reverse=True)
+        return [e for e, _ in with_date[:n]]
+
+
 def _memory_dir(agent_id: str) -> Path:
     """Return the memory directory for an agent, creating it if needed."""
     p = message_bus.BASE_DIR / agent_id.lstrip("@").lower() / "memory"
@@ -69,11 +214,19 @@ class MemoryBus:
         self.agent_id = agent_id
         self._qmd_bin: Optional[str] = None
         self._collection_registered = False
+        self._index: Optional[MemoryIndex] = None
 
     @property
     def memory_dir(self) -> Path:
         """Read BASE_DIR dynamically so monkey-patching in tests works."""
         return _memory_dir(self.agent_id)
+
+    @property
+    def index(self) -> MemoryIndex:
+        """Lazily create a MemoryIndex for this agent's memory dir."""
+        if self._index is None:
+            self._index = MemoryIndex(self.memory_dir)
+        return self._index
 
     def _find_qmd(self) -> Optional[str]:
         """Find the qmd binary. Cache result."""

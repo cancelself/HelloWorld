@@ -9,7 +9,10 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 import message_bus
-from memory_bus import MemoryBus, MemoryResult, QMDNotFoundError, _slugify
+from memory_bus import (
+    MemoryBus, MemoryEntry, MemoryIndex, MemoryResult,
+    QMDNotFoundError, _parse_frontmatter, _slugify,
+)
 
 _original_base = message_bus.BASE_DIR
 
@@ -227,6 +230,231 @@ def test_at_prefix_stripped():
         _restore()
 
 
+# --- _parse_frontmatter ---
+
+
+def test_parse_frontmatter_basic():
+    text = "---\ntitle: test\ncreated: 2026-01-01T00:00:00Z\n---\n\nBody here.\n"
+    meta, content = _parse_frontmatter(text)
+    assert meta["title"] == "test"
+    assert meta["created"] == "2026-01-01T00:00:00Z"
+    assert "Body here." in content
+
+
+def test_parse_frontmatter_with_tags():
+    text = "---\ntitle: tagged\ntags:\n  - alpha\n  - beta\n---\n\ncontent\n"
+    meta, content = _parse_frontmatter(text)
+    assert meta["tags"] == ["alpha", "beta"]
+    assert "content" in content
+
+
+def test_parse_frontmatter_no_frontmatter():
+    text = "Just plain text, no frontmatter."
+    meta, content = _parse_frontmatter(text)
+    assert meta == {}
+    assert content == text
+
+
+def test_parse_frontmatter_empty():
+    meta, content = _parse_frontmatter("")
+    assert meta == {}
+
+
+def test_parse_frontmatter_updated_field():
+    text = "---\ntitle: t\ncreated: 2026-01-01\nupdated: 2026-02-01\n---\n\nbody\n"
+    meta, content = _parse_frontmatter(text)
+    assert meta["updated"] == "2026-02-01"
+
+
+# --- MemoryIndex ---
+
+
+def _make_hw_file(directory, name, title, created, tags=None, content="body"):
+    """Helper to write a .hw file with frontmatter."""
+    lines = ["---", f"title: {title}", f"created: {created}"]
+    if tags:
+        lines.append("tags:")
+        for t in tags:
+            lines.append(f"  - {t}")
+    lines.append("---")
+    lines.append("")
+    lines.append(content)
+    path = directory / name
+    path.write_text("\n".join(lines) + "\n")
+    return path
+
+
+def test_memory_index_all():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "alpha", "2026-01-01")
+        _make_hw_file(mem_dir, "b.hw", "beta", "2026-01-02")
+        idx = MemoryIndex(mem_dir)
+        assert len(idx.all()) == 2
+    finally:
+        _restore()
+
+
+def test_memory_index_titles():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "alpha", "2026-01-01")
+        _make_hw_file(mem_dir, "b.hw", "beta", "2026-01-02")
+        idx = MemoryIndex(mem_dir)
+        titles = idx.titles()
+        assert "alpha" in titles
+        assert "beta" in titles
+    finally:
+        _restore()
+
+
+def test_memory_index_by_tag():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "alpha", "2026-01-01", tags=["cycle", "ooda-r"])
+        _make_hw_file(mem_dir, "b.hw", "beta", "2026-01-02", tags=["agent"])
+        _make_hw_file(mem_dir, "c.hw", "gamma", "2026-01-03", tags=["cycle", "agent"])
+        idx = MemoryIndex(mem_dir)
+
+        # Single tag
+        cycle = idx.by_tag("cycle")
+        assert len(cycle) == 2
+        assert {e.title for e in cycle} == {"alpha", "gamma"}
+
+        # AND match — both tags required
+        both = idx.by_tag("cycle", "agent")
+        assert len(both) == 1
+        assert both[0].title == "gamma"
+    finally:
+        _restore()
+
+
+def test_memory_index_by_title_substring():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "ciel-dialogue", "2026-01-01")
+        _make_hw_file(mem_dir, "b.hw", "severith-notes", "2026-01-02")
+        _make_hw_file(mem_dir, "c.hw", "ciel-update", "2026-01-03")
+        idx = MemoryIndex(mem_dir)
+        results = idx.by_title("ciel")
+        assert len(results) == 2
+        assert {e.title for e in results} == {"ciel-dialogue", "ciel-update"}
+    finally:
+        _restore()
+
+
+def test_memory_index_by_title_glob():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "cycle-feb21", "2026-02-21")
+        _make_hw_file(mem_dir, "b.hw", "cycle-feb22", "2026-02-22")
+        _make_hw_file(mem_dir, "c.hw", "severith", "2026-01-01")
+        idx = MemoryIndex(mem_dir)
+        results = idx.by_title("cycle-*")
+        assert len(results) == 2
+    finally:
+        _restore()
+
+
+def test_memory_index_recent():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "oldest", "2026-01-01")
+        _make_hw_file(mem_dir, "b.hw", "middle", "2026-01-15")
+        _make_hw_file(mem_dir, "c.hw", "newest", "2026-02-01")
+        idx = MemoryIndex(mem_dir)
+        top2 = idx.recent(2)
+        assert len(top2) == 2
+        assert top2[0].title == "newest"
+        assert top2[1].title == "middle"
+    finally:
+        _restore()
+
+
+def test_memory_index_refresh():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.hw", "first", "2026-01-01")
+        idx = MemoryIndex(mem_dir)
+        assert len(idx.all()) == 1
+
+        _make_hw_file(mem_dir, "b.hw", "second", "2026-01-02")
+        # Still cached
+        assert len(idx.all()) == 1
+        # After refresh
+        idx.refresh()
+        assert len(idx.all()) == 2
+    finally:
+        _restore()
+
+
+def test_memory_index_empty_dir():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("empty_agent")
+        idx = MemoryIndex(mem.memory_dir)
+        assert idx.all() == []
+        assert idx.titles() == []
+        assert idx.by_tag("anything") == []
+        assert idx.recent() == []
+    finally:
+        _restore()
+
+
+def test_memory_index_reads_md_files():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem_dir = mem.memory_dir
+        _make_hw_file(mem_dir, "a.md", "markdown-note", "2026-01-01")
+        idx = MemoryIndex(mem_dir)
+        assert len(idx.all()) == 1
+        assert idx.all()[0].title == "markdown-note"
+    finally:
+        _restore()
+
+
+# --- MemoryBus.index property ---
+
+
+def test_memory_bus_index_property():
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        mem.store("test content", title="index-test", tags=["test"])
+        entries = mem.index.by_tag("test")
+        assert len(entries) == 1
+        assert entries[0].title == "index-test"
+    finally:
+        _restore()
+
+
+def test_memory_bus_index_lazy():
+    """index property should return the same MemoryIndex instance."""
+    tmp = _use_tmp()
+    try:
+        mem = MemoryBus("idx_agent")
+        idx1 = mem.index
+        idx2 = mem.index
+        assert idx1 is idx2
+    finally:
+        _restore()
+
+
 if __name__ == "__main__":
     test_store_creates_markdown()
     test_store_with_tags()
@@ -242,4 +470,20 @@ if __name__ == "__main__":
     test_memory_dir_per_agent()
     test_memory_dir_created()
     test_at_prefix_stripped()
+    test_parse_frontmatter_basic()
+    test_parse_frontmatter_with_tags()
+    test_parse_frontmatter_no_frontmatter()
+    test_parse_frontmatter_empty()
+    test_parse_frontmatter_updated_field()
+    test_memory_index_all()
+    test_memory_index_titles()
+    test_memory_index_by_tag()
+    test_memory_index_by_title_substring()
+    test_memory_index_by_title_glob()
+    test_memory_index_recent()
+    test_memory_index_refresh()
+    test_memory_index_empty_dir()
+    test_memory_index_reads_md_files()
+    test_memory_bus_index_property()
+    test_memory_bus_index_lazy()
     print("All memory bus tests passed")
