@@ -13,7 +13,7 @@ import os
 from datetime import datetime
 from typing import Optional
 
-from hw_reader import read_hw_file, read_hw_directory, save_hw_symbol
+from hw_reader import read_hw_file, read_hw_directory, save_hw_symbol, update_hw_symbol
 import message_bus
 
 
@@ -127,8 +127,12 @@ class HwTools:
         receiver_name: str,
         symbol_name: str,
         description: Optional[str] = None,
+        update: bool = False,
     ) -> dict:
-        """Append a new symbol to a receiver's .hw file.
+        """Save a symbol to a receiver's .hw file.
+
+        If update=True and the symbol already exists, its description
+        is replaced. Otherwise, existing symbols return already_exists.
 
         Returns:
             dict with keys: receiver, symbol, status
@@ -141,9 +145,15 @@ class HwTools:
                 "status": f"error: {path} not found",
             }
 
-        # Check if symbol already exists
         receiver = read_hw_file(path)
         if receiver and symbol_name in receiver.symbols:
+            if update and description:
+                update_hw_symbol(path, symbol_name, description)
+                return {
+                    "receiver": receiver_name,
+                    "symbol": symbol_name,
+                    "status": "updated",
+                }
             return {
                 "receiver": receiver_name,
                 "symbol": symbol_name,

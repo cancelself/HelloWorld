@@ -1,0 +1,12 @@
+dbs:
+  - path: /app/storage/messages.db
+    replicas:
+      - type: gcs
+        bucket: helloworld-lang-litestream
+        path: messages
+
+  - path: /app/storage/oauth.db
+    replicas:
+      - type: gcs
+        bucket: helloworld-lang-litestream
+        path: oauth

@@ -11,9 +11,13 @@ Start with:
         python3 helloworld.py --mcp --port 8080 --auth   # HTTP + OAuth 2.1
 """
 
+import logging
 import os
 import sys
 from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("helloworld.mcp")
 
 # Ensure src/ is importable
 sys.path.insert(0, str(Path(__file__).parent))
@@ -41,6 +45,7 @@ def _create_server(auth: bool = False, host: str = "0.0.0.0",
         ),
         host=host,
         port=port,
+        streamable_http_path="/",
     )
 
     if auth:
@@ -84,6 +89,7 @@ def dispatch(source: str) -> dict:
         dispatch("@claude.#observe")  -> What #observe means to Claude
         dispatch("@copilot say: #build 'let us build'")
     """
+    logger.info("dispatch: %s", source[:200])
     results = _dispatcher.dispatch_source(source)
     return {
         "source": source,
@@ -108,12 +114,17 @@ def vocabulary_list(receiver_name: str) -> dict:
 
 
 @mcp.tool()
-def vocabulary_save(receiver_name: str, symbol_name: str, description: str = "") -> dict:
-    """Add a new symbol to a receiver's vocabulary.
+def vocabulary_save(receiver_name: str, symbol_name: str,
+                    description: str = "", update: bool = False) -> dict:
+    """Save a symbol to a receiver's vocabulary.
 
-    The symbol is appended to the receiver's .hw file.
+    If the symbol is new, it is appended. If it already exists and
+    update=True, its description is replaced. Otherwise returns
+    already_exists.
     """
-    return _tools.vocabulary_save(receiver_name, symbol_name, description or None)
+    return _tools.vocabulary_save(
+        receiver_name, symbol_name, description or None, update=update
+    )
 
 
 @mcp.tool()
@@ -125,13 +136,19 @@ def receivers_list() -> dict:
 @mcp.tool()
 def message_send(sender: str, receiver: str, content: str) -> dict:
     """Send a message on the HelloWorld message bus."""
-    return _tools.message_send(sender, receiver, content)
+    logger.info("message_send: %s -> %s: %s", sender, receiver, content[:200])
+    result = _tools.message_send(sender, receiver, content)
+    logger.info("message_send result: %s", result)
+    return result
 
 
 @mcp.tool()
 def message_receive(receiver: str) -> dict:
     """Receive the next pending message for a receiver."""
-    return _tools.message_receive(receiver)
+    logger.info("message_receive: %s", receiver)
+    result = _tools.message_receive(receiver)
+    logger.info("message_receive result: %s", result)
+    return result
 
 
 @mcp.tool()
@@ -147,6 +164,9 @@ def run(transport: str = "stdio", host: str = "0.0.0.0", port: int = 8080,
         auth: bool = False):
     """Start the MCP server."""
     global mcp
+
+    logger.info("Starting MCP server: transport=%s auth=%s HW_TRANSPORT=%s",
+                transport, auth, os.environ.get("HW_TRANSPORT", "file"))
 
     if auth or transport != "stdio":
         # Rebuild the server with host/port/auth settings

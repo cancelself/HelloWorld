@@ -197,3 +197,33 @@ def save_hw_symbol(path: str, symbol_name: str, description: str = None):
             f.write(f"- {description}\n")
         else:
             f.write("- (learned through dialogue)\n")
+
+
+def update_hw_symbol(path: str, symbol_name: str, description: str):
+    """Update an existing symbol's description in a .hw file.
+
+    Replaces all description lines (- ...) following the symbol's ## heading
+    with the new description. Preserves everything else.
+    """
+    raw_name = symbol_name.lstrip('#') if symbol_name != '#' else '#'
+    heading_pattern = re.compile(r'^##\s+' + re.escape(raw_name) + r'\s*$')
+
+    with open(path, "r") as f:
+        lines = f.readlines()
+
+    result = []
+    i = 0
+    while i < len(lines):
+        if heading_pattern.match(lines[i].strip()):
+            result.append(lines[i])
+            i += 1
+            # Skip old description lines
+            while i < len(lines) and lines[i].strip().startswith('- '):
+                i += 1
+            result.append(f"- {description}\n")
+        else:
+            result.append(lines[i])
+            i += 1
+
+    with open(path, "w") as f:
+        f.writelines(result)

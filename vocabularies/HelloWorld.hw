@@ -20,3 +20,7 @@
 
 ## Superposition
 - The state of existing in multiple potential meanings simultaneously until collapsed into specific understanding through dialogue interaction.
+## address
+- Fully-qualified identifier for an agent across boundaries. Format: {receiver}@{domain} (e.g. claude@purdy.im, claude@cancelself.gmail.com). The context portion is a real domain, not a slug. Unqualified @receiver means local/same-context. Cross-boundary sends must use qualified form.
+## context
+- The domain portion of an #address. Identifies which domain an agent instance belongs to (e.g. 'purdy.im' in claude@purdy.im). Used to disambiguate same-named receivers across boundaries.

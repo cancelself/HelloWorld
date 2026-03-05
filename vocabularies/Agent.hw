@@ -30,3 +30,5 @@
 - The set of symbols an agent can speak through. Identity made explicit.
 ## approach
 - The strategy chosen for the current task. How intent becomes action.
+## address
+- This agent's fully-qualified identity. Format: {receiver}@{context}. Every agent should know its own #address and use qualified form for cross-boundary sends.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """HelloWorld CLI - Execute .hw files or enter REPL mode."""
 
+import os
 import sys
 from pathlib import Path
 
@@ -9,6 +10,8 @@ sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 from dispatcher import Dispatcher
 from repl import REPL
+
+DEFAULT_SERVER = "https://helloworld-997317080791.us-central1.run.app"
 
 
 def execute_file(filepath: str):
@@ -41,6 +44,10 @@ def execute_file(filepath: str):
     return 0
 
 
+def _get_server():
+    return os.environ.get("HELLOWORLD_SERVER", DEFAULT_SERVER)
+
+
 def main():
     """Main entry point."""
     # Check for --mcp flag anywhere in args
@@ -59,6 +66,39 @@ def main():
                 transport = "http"
         from mcp_server import run as mcp_run
         mcp_run(transport=transport, host=host, port=port, auth=use_auth)
+        return 0
+
+    # --receive address  — receive messages from the shared bus
+    if '--receive' in sys.argv:
+        idx = sys.argv.index('--receive')
+        if idx + 1 >= len(sys.argv):
+            print("Usage: helloworld --receive <address>")
+            return 1
+        address = sys.argv[idx + 1]
+        from mcp_client import McpClient
+        client = McpClient(_get_server())
+        messages = client.receive_all(address)
+        if not messages:
+            print(f"No messages for {address}")
+        for msg in messages:
+            print(f"[{msg['timestamp']}] {msg['sender']}:")
+            print(f"  {msg['content']}")
+            print()
+        return 0
+
+    # --send sender receiver content  — send a message on the shared bus
+    if '--send' in sys.argv:
+        idx = sys.argv.index('--send')
+        if idx + 3 >= len(sys.argv):
+            print("Usage: helloworld --send <sender> <receiver> <content>")
+            return 1
+        sender = sys.argv[idx + 1]
+        receiver = sys.argv[idx + 2]
+        content = sys.argv[idx + 3]
+        from mcp_client import McpClient
+        client = McpClient(_get_server())
+        result = client.send(sender, receiver, content)
+        print(f"Sent {result['msg_id']}: {sender} -> {receiver}")
         return 0
 
     # Check for --web flag anywhere in args
@@ -113,13 +153,15 @@ def main():
         return execute_file(sys.argv[1])
     else:
         print("Usage:")
-        print("  helloworld              Start REPL")
-        print("  helloworld <file.hw>    Execute file")
-        print("  helloworld -e <source>  Evaluate inline source")
-        print("  helloworld --web        Start Web UI (--port N)")
-        print("  helloworld --mcp        Start MCP server (stdio)")
-        print("  helloworld --mcp --port N  Start MCP server (HTTP)")
+        print("  helloworld                    Start REPL")
+        print("  helloworld <file.hw>          Execute file")
+        print("  helloworld -e <source>        Evaluate inline source")
+        print("  helloworld --web              Start Web UI (--port N)")
+        print("  helloworld --mcp              Start MCP server (stdio)")
+        print("  helloworld --mcp --port N     Start MCP server (HTTP)")
         print("  helloworld --mcp --port N --auth  HTTP + OAuth 2.1")
+        print("  helloworld --receive <addr>   Receive messages from shared bus")
+        print("  helloworld --send <from> <to> <msg>  Send message on shared bus")
         return 1
 
     return 0

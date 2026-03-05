@@ -7,6 +7,9 @@
 Messages are routed through pluggable transports.  The default is
 FileTransport (runtimes/<agent>/inbox/*.hw).  Set HW_TRANSPORT=clawnet
 or call set_transport() for ClawNet.
+
+Receiver names support #address format: receiver@context (e.g. claude@purdy).
+Qualified and unqualified names route to different inboxes.
 """
 
 import os
@@ -18,6 +21,16 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 BASE_DIR = Path(__file__).resolve().parent.parent / "runtimes"
+
+
+def _normalize_receiver(receiver: str) -> str:
+    """Normalize a receiver name for routing.
+
+    Handles #address format: claude@purdy -> claude@purdy
+    Plain receivers: @Claude -> claude, Claude -> claude
+    """
+    name = receiver.lstrip("@").lower()
+    return name
 
 
 @dataclass
@@ -109,6 +122,66 @@ class FileTransport(Transport):
 
 
 # ---------------------------------------------------------------------------
+# SQLiteTransport — durable, Litestream-friendly
+# ---------------------------------------------------------------------------
+
+class SQLiteTransport(Transport):
+    """Deliver messages via a SQLite database.
+
+    Good for deployed environments where Litestream replicates the DB to
+    cloud storage.  Set HW_TRANSPORT=sqlite and optionally HW_SQLITE_PATH.
+
+    Supports #address format: claude@purdy and claude@cancelself are
+    different inboxes. Plain "claude" is a third, distinct inbox.
+    """
+
+    def __init__(self, db_path: Optional[str] = None):
+        import sqlite3
+        self._db_path = db_path or os.environ.get(
+            "HW_SQLITE_PATH",
+            str(Path(__file__).resolve().parent.parent / "storage" / "messages.db"),
+        )
+        os.makedirs(os.path.dirname(self._db_path), exist_ok=True)
+        self._conn = sqlite3.connect(self._db_path, check_same_thread=False)
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS messages (
+                id       TEXT PRIMARY KEY,
+                sender   TEXT NOT NULL,
+                receiver TEXT NOT NULL,
+                content  TEXT NOT NULL,
+                ts       TEXT NOT NULL,
+                read     INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        self._conn.commit()
+
+    def send(self, sender: str, receiver: str, content: str) -> str:
+        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+        ts = datetime.now(timezone.utc).isoformat()
+        self._conn.execute(
+            "INSERT INTO messages (id, sender, receiver, content, ts) VALUES (?, ?, ?, ?, ?)",
+            (msg_id, sender, _normalize_receiver(receiver), content, ts),
+        )
+        self._conn.commit()
+        return msg_id
+
+    def receive(self, receiver: str) -> Optional[Message]:
+        name = _normalize_receiver(receiver)
+        row = self._conn.execute(
+            "SELECT id, sender, content, ts FROM messages "
+            "WHERE receiver = ? AND read = 0 ORDER BY ts LIMIT 1",
+            (name,),
+        ).fetchone()
+        if not row:
+            return None
+        msg_id, sender, content, ts = row
+        self._conn.execute("UPDATE messages SET read = 1 WHERE id = ?", (msg_id,))
+        self._conn.commit()
+        return Message(sender=sender, content=content, timestamp=ts)
+
+
+# ---------------------------------------------------------------------------
 # Transport lifecycle
 # ---------------------------------------------------------------------------
 
@@ -128,6 +201,8 @@ def _get_transport() -> Transport:
     elif name == "twitter":
         from twitter_transport import TwitterTransport
         _transport = TwitterTransport()
+    elif name == "sqlite":
+        _transport = SQLiteTransport()
     else:
         _transport = FileTransport()
     return _transport
@@ -151,7 +226,7 @@ def reset_transport() -> None:
 
 def _inbox(receiver: str) -> Path:
     """Return the inbox directory for a receiver, creating it if needed."""
-    p = BASE_DIR / receiver.lstrip("@").lower() / "inbox"
+    p = BASE_DIR / _normalize_receiver(receiver) / "inbox"
     p.mkdir(parents=True, exist_ok=True)
     return p
 

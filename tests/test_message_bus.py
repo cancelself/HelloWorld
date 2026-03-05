@@ -126,6 +126,127 @@ def test_at_prefix_stripped():
         _restore()
 
 
+# ---------------------------------------------------------------------------
+# SQLiteTransport tests
+# ---------------------------------------------------------------------------
+
+def test_sqlite_send_and_receive():
+    """SQLiteTransport round-trips messages."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        msg_id = t.send("Copilot", "Claude", "explain: #collision")
+        assert msg_id.startswith("msg-")
+        msg = t.receive("claude")
+        assert msg is not None
+        assert msg.sender == "Copilot"
+        assert msg.content == "explain: #collision"
+
+
+def test_sqlite_fifo_order():
+    """SQLiteTransport delivers in FIFO order."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        t.send("A", "claude", "first")
+        t.send("B", "claude", "second")
+        assert t.receive("claude").content == "first"
+        assert t.receive("claude").content == "second"
+        assert t.receive("claude") is None
+
+
+def test_sqlite_empty_inbox():
+    """SQLiteTransport returns None for empty inbox."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        assert t.receive("nobody") is None
+
+
+def test_sqlite_at_prefix_stripped():
+    """SQLiteTransport normalizes @ prefix on receiver."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        t.send("A", "@Claude", "test")
+        msg = t.receive("Claude")
+        assert msg is not None
+        assert msg.content == "test"
+
+
+def test_sqlite_hello():
+    """SQLiteTransport hello() sends to helloworld receiver."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        t.hello("Claude")
+        msg = t.receive("helloworld")
+        assert msg is not None
+        assert "Claude #hello" in msg.content
+
+
+# ---------------------------------------------------------------------------
+# #address routing tests — receiver@context
+# ---------------------------------------------------------------------------
+
+def test_sqlite_address_routing():
+    """claude@purdy and claude@cancelself are different inboxes."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        t.send("claude@cancelself", "claude@purdy", "hello from cancelself")
+        t.send("claude@purdy", "claude@cancelself", "hello from purdy")
+
+        msg = t.receive("claude@purdy")
+        assert msg is not None
+        assert msg.sender == "claude@cancelself"
+        assert msg.content == "hello from cancelself"
+
+        msg = t.receive("claude@cancelself")
+        assert msg is not None
+        assert msg.sender == "claude@purdy"
+        assert msg.content == "hello from purdy"
+
+
+def test_sqlite_address_vs_plain():
+    """claude@purdy and plain claude are separate inboxes."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        t.send("A", "claude@purdy", "qualified msg")
+        t.send("B", "claude", "unqualified msg")
+
+        # Plain claude should not see qualified messages
+        msg = t.receive("claude")
+        assert msg is not None
+        assert msg.content == "unqualified msg"
+
+        # Qualified claude@purdy gets its own message
+        msg = t.receive("claude@purdy")
+        assert msg is not None
+        assert msg.content == "qualified msg"
+
+
+def test_sqlite_address_case_insensitive():
+    """Address routing is case-insensitive."""
+    with tempfile.TemporaryDirectory() as tmp:
+        t = message_bus.SQLiteTransport(db_path=str(Path(tmp) / "test.db"))
+        t.send("A", "Claude@Purdy", "test")
+        msg = t.receive("claude@purdy")
+        assert msg is not None
+        assert msg.content == "test"
+
+
+def test_file_address_routing():
+    """FileTransport routes claude@purdy to a distinct inbox dir."""
+    tmp = _use_tmp()
+    try:
+        message_bus.send("A", "claude@purdy", "qualified")
+        message_bus.send("B", "claude", "unqualified")
+
+        inbox_qualified = tmp / "claude@purdy" / "inbox"
+        inbox_plain = tmp / "claude" / "inbox"
+        assert inbox_qualified.exists()
+        assert inbox_plain.exists()
+        assert len(list(inbox_qualified.glob("msg-*.hw"))) == 1
+        assert len(list(inbox_plain.glob("msg-*.hw"))) == 1
+    finally:
+        _restore()
+
+
 def test_default_is_file_transport():
     """With no env var, _get_transport() returns FileTransport."""
     message_bus.reset_transport()
