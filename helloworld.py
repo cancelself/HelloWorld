@@ -43,6 +43,24 @@ def execute_file(filepath: str):
 
 def main():
     """Main entry point."""
+    # Check for --mcp flag anywhere in args
+    if '--mcp' in sys.argv:
+        args = [a for a in sys.argv[1:] if a not in ('--mcp', '--auth')]
+        transport = "stdio"
+        host = "0.0.0.0"
+        port = 8080
+        use_auth = '--auth' in sys.argv
+        for i, a in enumerate(args):
+            if a == '--port' and i + 1 < len(args):
+                port = int(args[i + 1])
+                transport = "http"
+            elif a == '--host' and i + 1 < len(args):
+                host = args[i + 1]
+                transport = "http"
+        from mcp_server import run as mcp_run
+        mcp_run(transport=transport, host=host, port=port, auth=use_auth)
+        return 0
+
     # Check for --web flag anywhere in args
     if '--web' in sys.argv:
         args = [a for a in sys.argv[1:] if a != '--web']
@@ -99,6 +117,9 @@ def main():
         print("  helloworld <file.hw>    Execute file")
         print("  helloworld -e <source>  Evaluate inline source")
         print("  helloworld --web        Start Web UI (--port N)")
+        print("  helloworld --mcp        Start MCP server (stdio)")
+        print("  helloworld --mcp --port N  Start MCP server (HTTP)")
+        print("  helloworld --mcp --port N --auth  HTTP + OAuth 2.1")
         return 1
 
     return 0
