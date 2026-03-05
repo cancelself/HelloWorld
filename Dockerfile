@@ -2,8 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install MCP SDK (only external dependency — core language is stdlib-only)
-RUN pip install --no-cache-dir mcp[cli]
+# Install runtime dependencies (core language is stdlib-only, these are for the MCP server)
+RUN pip install --no-cache-dir mcp[cli] anthropic
 
 # Copy project
 COPY src/ src/
