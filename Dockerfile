@@ -2,14 +2,15 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install Litestream
+# Install Litestream and git
 ADD https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz /tmp/litestream.tar.gz
 RUN tar -xzf /tmp/litestream.tar.gz -C /usr/local/bin && rm /tmp/litestream.tar.gz
+RUN apt-get update && apt-get install -y --no-install-recommends git openssh-client && rm -rf /var/lib/apt/lists/*
 
 # Install runtime dependencies (core language is stdlib-only, these are for the MCP server)
 RUN pip install --no-cache-dir mcp[cli] anthropic
 
-# Copy project
+# Copy project (vocabularies come from git clone at runtime)
 COPY src/ src/
 COPY vocabularies/ vocabularies/
 COPY helloworld.py .
@@ -27,5 +28,6 @@ ENV HELLOWORLD_SERVER_URL=http://localhost:8080
 ENV HELLOWORLD_OAUTH_DB=/app/storage/oauth.db
 ENV HW_TRANSPORT=sqlite
 ENV HW_SQLITE_PATH=/app/storage/messages.db
+ENV HELLOWORLD_REPO=git@github.com:cancelself/HelloWorld.git
 
 ENTRYPOINT ["./entrypoint.sh"]

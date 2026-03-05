@@ -28,7 +28,8 @@ deploy: push
 		--project $(PROJECT) \
 		--port 8080 \
 		--max-instances 1 \
-		--set-env-vars HELLOWORLD_SERVER_URL=$(CLOUD_RUN_URL)
+		--set-env-vars HELLOWORLD_SERVER_URL=$(CLOUD_RUN_URL) \
+		--update-secrets DEPLOY_KEY=helloworld-deploy-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest
 
 run:
 	docker run --rm -p 8080:8080 \

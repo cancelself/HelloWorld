@@ -219,10 +219,10 @@ class TestMemoryRecall:
 
 
 class TestAllTools:
-    def test_returns_nine_tools(self):
+    def test_returns_ten_tools(self):
         tools = HwTools(vocab_dir=VOCAB_DIR)
         all_tools = tools.all_tools()
-        assert len(all_tools) == 9
+        assert len(all_tools) == 10
         assert all(callable(t) for t in all_tools)
 
     def test_tool_names(self):

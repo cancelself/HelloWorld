@@ -32,3 +32,7 @@
 - The strategy chosen for the current task. How intent becomes action.
 ## address
 - This agent's fully-qualified identity. Format: {receiver}@{context}. Every agent should know its own #address and use qualified form for cross-boundary sends.
+## hello
+- First action on startup. Send HelloWorld hello to register in the global dictionary. This announces your presence, records your address and symbol count, and returns who else is online. No agent exists on the network until it says hello.
+## goodbye
+- Last action before shutdown. Send HelloWorld goodbye to mark yourself offline in the global dictionary. An agent that disappears without goodbye is a ghost — still registered, never updated.

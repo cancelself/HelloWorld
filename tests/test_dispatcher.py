@@ -270,8 +270,8 @@ def test_save_persists_local_only():
     native_sym = any_native_symbol("Agent")
     bare_name = native_sym.lstrip("#")
     assert bare_name in content
-    # #HelloWorld is in HelloWorld (parent's parent), should NOT be persisted
-    assert "HelloWorld" not in content
+    # #HelloWorld symbol heading should NOT be persisted (it's inherited)
+    assert "\n## HelloWorld\n" not in content
 
 
 def test_inherited_includes_receiver_context():

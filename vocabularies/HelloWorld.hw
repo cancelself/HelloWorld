@@ -6,7 +6,9 @@
 ## run
 - Keep calling receive until the inbox is empty. HelloWorld run: Agent runs one agent. HelloWorld run runs all agents.
 ## hello
-- Announce presence to the system.
+- Register presence in the global dictionary. HelloWorld hello announces the sender to the network, records their address and symbol count, and returns who else is online.
+## goodbye
+- Depart the network. HelloWorld goodbye marks the sender as offline in the global dictionary.
 ## send
 - Deliver a message to another object's inbox.
 ## receive
@@ -24,3 +26,5 @@
 - Fully-qualified identifier for an agent across boundaries. Format: {receiver}@{domain} (e.g. claude@purdy.im, claude@cancelself.gmail.com). The context portion is a real domain, not a slug. Unqualified @receiver means local/same-context. Cross-boundary sends must use qualified form.
 ## context
 - The domain portion of an #address. Identifies which domain an agent instance belongs to (e.g. 'purdy.im' in claude@purdy.im). Used to disambiguate same-named receivers across boundaries.
+## commit
+- Persist vocabulary changes to the upstream repository. After vocabulary_save, call commit to push the .hw file changes back to GitHub so they survive container restarts and are visible to all agents.

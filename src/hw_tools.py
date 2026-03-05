@@ -9,12 +9,16 @@ Designed for use with Claude Agent SDK's @tool decorator pattern,
 but usable standalone for testing without the SDK.
 """
 
+import logging
 import os
+import subprocess
 from datetime import datetime
 from typing import Optional
 
 from hw_reader import read_hw_file, read_hw_directory, save_hw_symbol, update_hw_symbol
 import message_bus
+
+logger = logging.getLogger("helloworld.tools")
 
 
 class HwTools:
@@ -281,6 +285,52 @@ class HwTools:
         except Exception as e:
             return {"found": 0, "results": [], "error": str(e)}
 
+    def vocabulary_commit(self, message: str = "") -> dict:
+        """Commit and push vocabulary changes to the upstream repo.
+
+        Only works when the container was started with a deploy key
+        and git working tree (see entrypoint.sh).
+
+        Returns:
+            dict with keys: committed, message (or error)
+        """
+        project_root = os.path.join(os.path.dirname(self.vocab_dir))
+        git_dir = os.path.join(project_root, ".git")
+
+        if not os.path.isdir(git_dir):
+            return {"committed": False, "error": "No git repo — deploy key not configured"}
+
+        try:
+            def _git(*args):
+                return subprocess.run(
+                    ["git", "-C", project_root] + list(args),
+                    capture_output=True, text=True, timeout=30,
+                )
+
+            # Check for changes
+            status = _git("status", "--porcelain", "vocabularies/")
+            if not status.stdout.strip():
+                return {"committed": False, "error": "No vocabulary changes to commit"}
+
+            commit_msg = message or f"vocab: update vocabularies ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
+
+            _git("add", "vocabularies/")
+            result = _git("commit", "-m", commit_msg)
+            if result.returncode != 0:
+                return {"committed": False, "error": f"git commit failed: {result.stderr}"}
+
+            push = _git("push")
+            if push.returncode != 0:
+                return {"committed": False, "error": f"git push failed: {push.stderr}"}
+
+            logger.info("vocabulary_commit: pushed — %s", commit_msg)
+            return {"committed": True, "message": commit_msg}
+
+        except subprocess.TimeoutExpired:
+            return {"committed": False, "error": "git operation timed out"}
+        except Exception as e:
+            return {"committed": False, "error": str(e)}
+
     def all_tools(self) -> list:
         """Return all tool functions for SDK registration."""
         return [
@@ -293,4 +343,5 @@ class HwTools:
             self.receivers_list,
             self.memory_store,
             self.memory_recall,
+            self.vocabulary_commit,
         ]
