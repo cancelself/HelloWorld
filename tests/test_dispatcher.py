@@ -322,29 +322,28 @@ def test_handlers_do_not_prevent_vocabulary_learning():
 
 
 def test_cross_receiver_send_collision():
-    """Verify send:to: triggers collision and learning on the target.
+    """Verify send:to: with a native symbol teaches the target.
 
-    Claude send: #design to: Copilot
-    → #design is foreign to Copilot (not native, not global)
-    → Copilot learns #design through this dialogue
+    Sender must hold the symbol to send it.
+    SenderX send: #spark to: TargetX
+    → #spark is native to SenderX, foreign to TargetX
+    → TargetX learns #spark through this dialogue
     """
     dispatcher = _fresh_dispatcher()
-    copilot = dispatcher.registry["Copilot"]
 
-    # Copilot doesn't have #design natively in a fresh dispatcher
-    had_design = copilot.is_native("#design")
+    dispatcher.dispatch_source("SenderX # → [#spark, #flame]")
+    dispatcher.dispatch_source("TargetX # → [#water]")
 
-    results = dispatcher.dispatch_source("Claude send: #design to: Copilot")
+    target = dispatcher.registry["TargetX"]
+    assert not target.is_native("#spark")
+
+    results = dispatcher.dispatch_source("SenderX send: #spark to: TargetX")
     assert len(results) == 1
 
-    if had_design:
-        # If copilot already had it (persisted state), it's native
-        assert "native" in results[0] or "already holds" in results[0]
-    else:
-        # Foreign symbol — collision and learning
-        assert "collision" in results[0] or "foreign" in results[0]
-        assert copilot.is_native("#design"), \
-            "send:to: should teach the target receiver"
+    # Foreign symbol — boundary collision and learning
+    assert "foreign" in results[0] or "learns" in results[0]
+    assert target.is_native("#spark"), \
+        "send:to: should teach the target receiver"
 
 
 def test_cross_receiver_send_native():
@@ -472,6 +471,65 @@ def test_collision_logs_event():
     assert "COLLISION" in log_text
     assert "LogTarget" in log_text
     assert "#pulse" in log_text
+
+
+def test_send_unknown_symbol_rejected():
+    """UNKNOWN: sender tries to send a symbol it doesn't hold (not native, not inherited).
+
+    The cross-receiver send should not create a phantom symbol on the target.
+    Instead, it should route through unknown symbol resolution.
+    """
+    dispatcher = _fresh_dispatcher()
+
+    # Create two test receivers with disjoint vocabularies
+    dispatcher.dispatch_source("PhantomSender # → [#alpha]")
+    dispatcher.dispatch_source("PhantomTarget # → [#beta]")
+
+    sender = dispatcher.registry["PhantomSender"]
+    target = dispatcher.registry["PhantomTarget"]
+
+    # #ghost is unknown to the sender (not native, not inherited)
+    assert not sender.is_native("#ghost")
+    assert not sender.is_inherited("#ghost")
+
+    results = dispatcher.dispatch_source("PhantomSender send: #ghost to: PhantomTarget")
+    assert len(results) == 1
+    result = results[0]
+
+    # Must recognize the symbol is unknown to the sender
+    assert "unknown" in result.lower()
+    assert "cannot send" in result.lower() or "do not hold" in result.lower()
+
+    # Target must NOT learn a phantom symbol
+    assert not target.is_native("#ghost"), \
+        "Target should not learn a symbol the sender doesn't own"
+
+
+def test_send_both_inherited_shared_ground():
+    """SHARED INHERITED: both sender and target inherit the same symbol.
+
+    When both inherit from a common ancestor, the result should acknowledge
+    shared ground from both sides, not just the target.
+    """
+    dispatcher = _fresh_dispatcher()
+
+    # #send is defined in HelloWorld — both Codex and Copilot inherit it
+    codex = dispatcher.registry["Codex"]
+    copilot = dispatcher.registry["Copilot"]
+
+    assert not codex.is_native("#send")
+    assert codex.is_inherited("#send")
+    assert not copilot.is_native("#send")
+    assert copilot.is_inherited("#send")
+
+    results = dispatcher.dispatch_source("Codex send: #send to: Copilot")
+    assert len(results) == 1
+    result = results[0]
+
+    # Should recognize shared ground, not treat as foreign
+    assert "shared ground" in result or "inherits" in result
+    assert "foreign" not in result
+    assert "learns" not in result
 
 
 def test_bootstrap_from_markdown():

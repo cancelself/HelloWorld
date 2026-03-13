@@ -955,6 +955,20 @@ class Dispatcher:
 
         sender_native = sender.is_native(symbol_name)
         target_native = target.is_native(symbol_name)
+        sender_inherited = sender.is_inherited(symbol_name) if not sender_native else False
+        sender_lookup = sender.lookup(symbol_name)
+
+        # Sender must own the symbol (native or inherited) to send it.
+        # If the sender doesn't hold it at all, this is an unknown symbol —
+        # route through _handle_unknown_symbol instead of creating a phantom.
+        if sender_lookup.is_unknown():
+            lines.append(f"  {symbol_name} is unknown to {sender_name} — cannot send what you do not hold")
+            lines.append(
+                self._handle_unknown_symbol(sender_name, sender, symbol_name, sender_lookup)
+            )
+            if node.annotation:
+                lines.append(f"  '{node.annotation}'")
+            return "\n".join(lines)
 
         # Deferred resolution: if this symbol already has a pending collision, try to resolve now
         if sender_native and target_native and self._check_pending_collision(symbol_name) and self.llm:
@@ -988,7 +1002,16 @@ class Dispatcher:
         elif target.is_inherited(symbol_name):
             ancestor = target._find_in_chain(symbol_name)
             defined_in = ancestor.name if ancestor else "parent"
-            lines.append(f"  {target_name} inherits {symbol_name} from {defined_in} (shared ground)")
+            if sender_inherited:
+                # Both inherit the same symbol — shared ground through common ancestor
+                sender_ancestor = sender._find_in_chain(symbol_name)
+                sender_defined_in = sender_ancestor.name if sender_ancestor else "parent"
+                lines.append(
+                    f"  {sender_name} inherits {symbol_name} from {sender_defined_in}, "
+                    f"{target_name} inherits from {defined_in} (shared ground)"
+                )
+            else:
+                lines.append(f"  {target_name} inherits {symbol_name} from {defined_in} (shared ground)")
         elif symbol_name.lstrip("#") == target_name:
             # Self-referencing — don't learn your own name
             lines.append(f"  {symbol_name} names {target_name} itself — not learned")
@@ -1277,10 +1300,9 @@ class Dispatcher:
         # Build message string
         args_str = ", ".join([f"{k}: {self._node_val(v)}" for k, v in node.arguments.items()])
 
-        # Always learn symbols first — vocabularies grow through dialogue
-        self._learn_symbols_from_message(receiver_name, receiver, node)
-
         # Cross-receiver delivery: send:to: triggers collision on target
+        # Must run BEFORE _learn_symbols_from_message so the sender's authority
+        # is checked against their pre-existing vocabulary, not phantom learning.
         keywords = list(node.arguments.keys())
         if keywords == ["send", "to"]:
             # First execute the root handler for the side effect/logging
@@ -1288,6 +1310,10 @@ class Dispatcher:
             if root_response:
                 print(root_response)
             return self._handle_cross_receiver_send(receiver_name, receiver, node)
+
+        # Learn symbols from message arguments — vocabularies grow through dialogue.
+        # Runs after send:to: check so cross-receiver sends validate sender authority first.
+        self._learn_symbols_from_message(receiver_name, receiver, node)
 
         # HelloWorld run: Agent — the protocol running the agent
         if receiver_name == "HelloWorld" and keywords == ["run"]:
